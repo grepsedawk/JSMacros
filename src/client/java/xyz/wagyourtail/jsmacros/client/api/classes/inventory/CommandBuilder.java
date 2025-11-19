@@ -200,6 +200,15 @@ public abstract class CommandBuilder implements Registrable<CommandBuilder> {
         return this;
     }
 
+    public CommandBuilder posArg(String name) {
+        return posArg(name, true);
+    }
+
+    public CommandBuilder posArg(String name, boolean centerArgs) {
+        argument(name, () -> Vec3ArgumentType.vec3(centerArgs));
+        return this;
+    }
+
     public CommandBuilder columnPosArg(String name) {
         argument(name, ColumnPosArgumentType::new);
         return this;
