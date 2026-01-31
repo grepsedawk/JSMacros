@@ -1,17 +1,17 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.mob;
 
-import net.minecraft.entity.mob.CreeperEntity;
+import net.minecraft.world.entity.monster.Creeper;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.MobEntityHelper;
-import xyz.wagyourtail.jsmacros.client.mixin.access.MixinCreeperEntity;
+import xyz.wagyourtail.jsmacros.client.mixin.access.MixinCreeper;
 
 /**
  * @author Etheradon
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class CreeperEntityHelper extends MobEntityHelper<CreeperEntity> {
+public class CreeperEntityHelper extends MobEntityHelper<Creeper> {
 
-    public CreeperEntityHelper(CreeperEntity base) {
+    public CreeperEntityHelper(Creeper base) {
         super(base);
     }
 
@@ -20,7 +20,7 @@ public class CreeperEntityHelper extends MobEntityHelper<CreeperEntity> {
      * @since 1.8.4
      */
     public boolean isCharged() {
-        return base.isCharged();
+        return base.isPowered();
     }
 
     /**
@@ -39,7 +39,7 @@ public class CreeperEntityHelper extends MobEntityHelper<CreeperEntity> {
      * @since 1.8.4
      */
     public int getFuseChange() {
-        return base.getFuseSpeed();
+        return base.getSwellDir();
     }
 
     /**
@@ -47,7 +47,7 @@ public class CreeperEntityHelper extends MobEntityHelper<CreeperEntity> {
      * @since 1.8.4
      */
     public int getFuseTime() {
-        return ((MixinCreeperEntity) base).getFuseTime();
+        return ((MixinCreeper) base).getFuseTime();
     }
 
     /**
@@ -55,7 +55,7 @@ public class CreeperEntityHelper extends MobEntityHelper<CreeperEntity> {
      * @since 1.8.4
      */
     public int getMaxFuseTime() {
-        return ((MixinCreeperEntity) base).getMaxFuseTime();
+        return ((MixinCreeper) base).getMaxFuseTime();
     }
 
     /**

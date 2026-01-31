@@ -1,18 +1,18 @@
 package xyz.wagyourtail.jsmacros.client.api.classes.inventory;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.ingame.CreativeInventoryScreen;
-import net.minecraft.client.network.ClientPlayerInteractionManager;
-import net.minecraft.client.option.HotbarStorage;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.item.ItemGroups;
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.PlayerScreenHandler;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.client.HotbarManager;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
+import net.minecraft.client.multiplayer.MultiPlayerGameMode;
+import net.minecraft.util.Mth;
+import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.CreativeModeTabs;
+import net.minecraft.world.item.ItemStack;
 import xyz.wagyourtail.jsmacros.client.api.classes.RegistryHelper;
 import xyz.wagyourtail.jsmacros.client.api.helper.TextHelper;
 import xyz.wagyourtail.jsmacros.client.api.helper.inventory.ItemStackHelper;
-import xyz.wagyourtail.jsmacros.client.mixin.access.MixinCreativeInventoryScreen;
+import xyz.wagyourtail.jsmacros.client.mixin.access.MixinCreativeModeInventoryScreen;
 
 import java.util.List;
 import java.util.Objects;
@@ -23,13 +23,13 @@ import java.util.stream.Collectors;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class CreativeInventory extends Inventory<CreativeInventoryScreen> {
+public class CreativeInventory extends Inventory<CreativeModeInventoryScreen> {
 
-    private final CreativeInventoryScreen.CreativeScreenHandler handler;
+    private final CreativeModeInventoryScreen.ItemPickerMenu handler;
 
-    protected CreativeInventory(CreativeInventoryScreen inventory) {
+    protected CreativeInventory(CreativeModeInventoryScreen inventory) {
         super(inventory);
-        this.handler = inventory.getScreenHandler();
+        this.handler = inventory.getMenu();
     }
 
     /**
@@ -40,7 +40,7 @@ public class CreativeInventory extends Inventory<CreativeInventoryScreen> {
      * @since 1.8.4
      */
     public CreativeInventory scroll(double amount) {
-        scrollTo((float) (((MixinCreativeInventoryScreen) inventory).getScrollPosition() + amount));
+        scrollTo((float) (((MixinCreativeModeInventoryScreen) inventory).getScrollOffs() + amount));
         return this;
     }
 
@@ -52,9 +52,9 @@ public class CreativeInventory extends Inventory<CreativeInventoryScreen> {
      * @since 1.8.4
      */
     public CreativeInventory scrollTo(double position) {
-        if (((MixinCreativeInventoryScreen) inventory).invokeHasScrollbar()) {
-            position = MathHelper.clamp(position, 0, 1);
-            handler.scrollItems((float) position);
+        if (((MixinCreativeModeInventoryScreen) inventory).invokeCanScroll()) {
+            position = Mth.clamp(position, 0, 1);
+            handler.scrollTo((float) position);
         }
         return this;
     }
@@ -64,7 +64,7 @@ public class CreativeInventory extends Inventory<CreativeInventoryScreen> {
      * @since 1.8.4
      */
     public List<ItemStackHelper> getShownItems() {
-        return handler.itemList.stream().map(ItemStackHelper::new).collect(Collectors.toList());
+        return handler.items.stream().map(ItemStackHelper::new).collect(Collectors.toList());
     }
 
     /**
@@ -73,9 +73,9 @@ public class CreativeInventory extends Inventory<CreativeInventoryScreen> {
      * @since 1.8.4
      */
     public CreativeInventory search(String search) {
-        if (((MixinCreativeInventoryScreen) inventory).getSelectedTab() == ItemGroups.getSearchGroup()) {
-            ((MixinCreativeInventoryScreen) inventory).getSearchBox().setText(search);
-            ((MixinCreativeInventoryScreen) inventory).invokeSearch();
+        if (((MixinCreativeModeInventoryScreen) inventory).getSelectedTab() == CreativeModeTabs.searchTab()) {
+            ((MixinCreativeModeInventoryScreen) inventory).getSearchBox().setValue(search);
+            ((MixinCreativeModeInventoryScreen) inventory).invokeRefreshSearchResults();
         }
         return this;
     }
@@ -87,7 +87,7 @@ public class CreativeInventory extends Inventory<CreativeInventoryScreen> {
      * @since 1.8.4
      */
     public CreativeInventory selectSearch() {
-        selectTab(ItemGroups.getSearchGroup());
+        selectTab(CreativeModeTabs.searchTab());
         return this;
     }
 
@@ -98,7 +98,7 @@ public class CreativeInventory extends Inventory<CreativeInventoryScreen> {
      * @since 1.8.4
      */
     public CreativeInventory selectInventory() {
-        ItemGroups.getGroups().stream().filter(e -> e.getType().equals(ItemGroup.Type.INVENTORY)).findFirst().ifPresent(this::selectTab);
+        CreativeModeTabs.allTabs().stream().filter(e -> e.getType().equals(CreativeModeTab.Type.INVENTORY)).findFirst().ifPresent(this::selectTab);
         return this;
     }
 
@@ -109,7 +109,7 @@ public class CreativeInventory extends Inventory<CreativeInventoryScreen> {
      * @since 1.8.4
      */
     public CreativeInventory selectHotbar() {
-        ItemGroups.getGroups().stream().filter(e -> e.getType().equals(ItemGroup.Type.HOTBAR)).findFirst().ifPresent(this::selectTab);
+        CreativeModeTabs.allTabs().stream().filter(e -> e.getType().equals(CreativeModeTab.Type.HOTBAR)).findFirst().ifPresent(this::selectTab);
         return this;
     }
 
@@ -120,20 +120,20 @@ public class CreativeInventory extends Inventory<CreativeInventoryScreen> {
      */
     public CreativeInventory selectTab(String tabName) {
         //TODO detect if translatable and use translate id instead
-        selectTab(ItemGroups.getGroups().stream().filter(e -> e.getDisplayName().getString().equals(tabName)).findFirst().orElseThrow(() -> new IllegalArgumentException("Invalid tab name")));
+        selectTab(CreativeModeTabs.allTabs().stream().filter(e -> e.getDisplayName().getString().equals(tabName)).findFirst().orElseThrow(() -> new IllegalArgumentException("Invalid tab name")));
         return this;
     }
 
     public List<String> getTabNames() {
-        return ItemGroups.getGroups().stream().map(e -> e.getDisplayName().getString()).collect(Collectors.toList());
+        return CreativeModeTabs.allTabs().stream().map(e -> e.getDisplayName().getString()).collect(Collectors.toList());
     }
 
     public List<TextHelper> getTabTexts() {
-        return ItemGroups.getGroups().stream().map(e -> TextHelper.wrap(e.getDisplayName())).collect(Collectors.toList());
+        return CreativeModeTabs.allTabs().stream().map(e -> TextHelper.wrap(e.getDisplayName())).collect(Collectors.toList());
     }
 
-    private CreativeInventory selectTab(ItemGroup group) {
-        mc.execute(() -> ((MixinCreativeInventoryScreen) inventory).invokeSetSelectedTab(group));
+    private CreativeInventory selectTab(CreativeModeTab group) {
+        mc.execute(() -> ((MixinCreativeModeInventoryScreen) inventory).invokeSelectTab(group));
         return this;
     }
 
@@ -144,7 +144,7 @@ public class CreativeInventory extends Inventory<CreativeInventoryScreen> {
      * @since 1.8.4
      */
     public CreativeInventory destroyHeldItem() {
-        handler.setCursorStack(ItemStack.EMPTY);
+        handler.setCarried(ItemStack.EMPTY);
         return this;
     }
 
@@ -155,9 +155,9 @@ public class CreativeInventory extends Inventory<CreativeInventoryScreen> {
      * @since 1.8.4
      */
     public CreativeInventory destroyAllItems() {
-        ClientPlayerInteractionManager interactionManager = MinecraftClient.getInstance().interactionManager;
+        MultiPlayerGameMode interactionManager = Minecraft.getInstance().gameMode;
         for (int i = 0; i < getTotalSlots(); i++) {
-            interactionManager.clickCreativeStack(ItemStack.EMPTY, i);
+            interactionManager.handleCreativeModeItemAdd(ItemStack.EMPTY, i);
         }
         return this;
     }
@@ -169,7 +169,7 @@ public class CreativeInventory extends Inventory<CreativeInventoryScreen> {
      * @since 1.8.4
      */
     public CreativeInventory setCursorStack(ItemStackHelper stack) {
-        handler.setCursorStack(stack.getRaw());
+        handler.setCarried(stack.getRaw());
         return this;
     }
 
@@ -181,7 +181,7 @@ public class CreativeInventory extends Inventory<CreativeInventoryScreen> {
      * @since 1.8.4
      */
     public CreativeInventory setStack(int slot, ItemStackHelper stack) {
-        MinecraftClient.getInstance().interactionManager.clickCreativeStack(stack.getRaw(), slot);
+        Minecraft.getInstance().gameMode.handleCreativeModeItemAdd(stack.getRaw(), slot);
         return this;
     }
 
@@ -191,7 +191,7 @@ public class CreativeInventory extends Inventory<CreativeInventoryScreen> {
      * @since 1.8.4
      */
     public CreativeInventory saveHotbar(int index) {
-        CreativeInventoryScreen.onHotbarKeyPress(MinecraftClient.getInstance(), index, false, true);
+        CreativeModeInventoryScreen.handleHotbarLoadOrSave(Minecraft.getInstance(), index, false, true);
         return this;
     }
 
@@ -201,7 +201,7 @@ public class CreativeInventory extends Inventory<CreativeInventoryScreen> {
      * @since 1.8.4
      */
     public CreativeInventory restoreHotbar(int index) {
-        CreativeInventoryScreen.onHotbarKeyPress(MinecraftClient.getInstance(), index, true, false);
+        CreativeModeInventoryScreen.handleHotbarLoadOrSave(Minecraft.getInstance(), index, true, false);
         return this;
     }
 
@@ -211,8 +211,8 @@ public class CreativeInventory extends Inventory<CreativeInventoryScreen> {
      * @since 1.8.4
      */
     public List<ItemStackHelper> getSavedHotbar(int index) {
-        HotbarStorage hotbarStorage = mc.getCreativeHotbarStorage();
-        return hotbarStorage.getSavedHotbar(index).deserialize(Objects.requireNonNull(mc.getNetworkHandler()).getRegistryManager()).stream().map(ItemStackHelper::new).collect(Collectors.toList());
+        HotbarManager hotbarStorage = mc.getHotbarManager();
+        return hotbarStorage.get(index).load(Objects.requireNonNull(mc.getConnection()).registryAccess()).stream().map(ItemStackHelper::new).collect(Collectors.toList());
     }
 
     /**
@@ -222,7 +222,7 @@ public class CreativeInventory extends Inventory<CreativeInventoryScreen> {
      * @since 1.8.4
      */
     public boolean isInHotbar(int slot) {
-        return PlayerScreenHandler.isInHotbar(slot);
+        return InventoryMenu.isHotbarSlot(slot);
     }
 
     /**

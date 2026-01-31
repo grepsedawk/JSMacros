@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive;
 
-import net.minecraft.entity.passive.PandaEntity;
+import net.minecraft.world.entity.animal.Panda;
 import xyz.wagyourtail.doclet.DocletReplaceReturn;
 
 /**
@@ -8,9 +8,9 @@ import xyz.wagyourtail.doclet.DocletReplaceReturn;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class PandaEntityHelper extends AnimalEntityHelper<PandaEntity> {
+public class PandaEntityHelper extends AnimalEntityHelper<Panda> {
 
-    public PandaEntityHelper(PandaEntity base) {
+    public PandaEntityHelper(Panda base) {
         super(base);
     }
 
@@ -28,7 +28,7 @@ public class PandaEntityHelper extends AnimalEntityHelper<PandaEntity> {
      */
     @DocletReplaceReturn("PandaGene")
     public String getMainGeneName() {
-        return base.getMainGene().asString();
+        return base.getMainGene().getSerializedName();
     }
 
     /**
@@ -53,7 +53,7 @@ public class PandaEntityHelper extends AnimalEntityHelper<PandaEntity> {
      */
     @DocletReplaceReturn("PandaGene")
     public String getHiddenGeneName() {
-        return base.getHiddenGene().asString();
+        return base.getHiddenGene().getSerializedName();
     }
 
     /**
@@ -69,7 +69,7 @@ public class PandaEntityHelper extends AnimalEntityHelper<PandaEntity> {
      * @since 1.8.4
      */
     public boolean isIdle() {
-        return base.isIdle();
+        return base.canPerformAction();
     }
 
     /**
@@ -85,7 +85,7 @@ public class PandaEntityHelper extends AnimalEntityHelper<PandaEntity> {
      * @since 1.8.4
      */
     public boolean isPlaying() {
-        return base.isPlaying();
+        return base.isRolling();
     }
 
     /**
@@ -101,7 +101,7 @@ public class PandaEntityHelper extends AnimalEntityHelper<PandaEntity> {
      * @since 1.8.4
      */
     public boolean isLyingOnBack() {
-        return base.isLyingOnBack();
+        return base.isOnBack();
     }
 
     /**
@@ -126,7 +126,7 @@ public class PandaEntityHelper extends AnimalEntityHelper<PandaEntity> {
      * @since 1.8.4
      */
     public boolean isScaredByThunderstorm() {
-        return base.isScaredByThunderstorm();
+        return base.isScared();
     }
 
     /**
@@ -158,7 +158,7 @@ public class PandaEntityHelper extends AnimalEntityHelper<PandaEntity> {
      * @since 1.8.4
      */
     public boolean isAttacking() {
-        return base.isAttacking();
+        return base.isAggressive();
     }
 
 }

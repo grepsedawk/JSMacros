@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.mob;
 
-import net.minecraft.entity.mob.SpiderEntity;
+import net.minecraft.world.entity.monster.Spider;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.MobEntityHelper;
 
 /**
@@ -8,9 +8,9 @@ import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.MobEntityHelper;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class SpiderEntityHelper extends MobEntityHelper<SpiderEntity> {
+public class SpiderEntityHelper extends MobEntityHelper<Spider> {
 
-    public SpiderEntityHelper(SpiderEntity base) {
+    public SpiderEntityHelper(Spider base) {
         super(base);
     }
 
@@ -19,7 +19,7 @@ public class SpiderEntityHelper extends MobEntityHelper<SpiderEntity> {
      * @since 1.8.4
      */
     public boolean isClimbing() {
-        return base.isClimbing();
+        return base.onClimbable();
     }
 
 }

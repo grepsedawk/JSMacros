@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.classes.inventory;
 
-import net.minecraft.client.gui.screen.ingame.SmithingScreen;
+import net.minecraft.client.gui.screens.inventory.SmithingScreen;
 import xyz.wagyourtail.jsmacros.client.api.helper.inventory.ItemStackHelper;
 
 /**

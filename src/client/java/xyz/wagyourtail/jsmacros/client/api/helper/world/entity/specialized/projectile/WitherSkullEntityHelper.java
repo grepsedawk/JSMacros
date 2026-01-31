@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.projectile;
 
-import net.minecraft.entity.projectile.WitherSkullEntity;
+import net.minecraft.world.entity.projectile.WitherSkull;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.EntityHelper;
 
 /**
@@ -8,9 +8,9 @@ import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.EntityHelper;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class WitherSkullEntityHelper extends EntityHelper<WitherSkullEntity> {
+public class WitherSkullEntityHelper extends EntityHelper<WitherSkull> {
 
-    public WitherSkullEntityHelper(WitherSkullEntity base) {
+    public WitherSkullEntityHelper(WitherSkull base) {
         super(base);
     }
 
@@ -19,7 +19,7 @@ public class WitherSkullEntityHelper extends EntityHelper<WitherSkullEntity> {
      * @since 1.8.4
      */
     public boolean isCharged() {
-        return base.isCharged();
+        return base.isDangerous();
     }
 
 }

@@ -1,15 +1,15 @@
 package xyz.wagyourtail.jsmacros.client.api.helper;
 
 import com.mojang.serialization.JsonOps;
-import net.minecraft.advancement.Advancement;
-import net.minecraft.advancement.PlacedAdvancement;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.util.Identifier;
+import net.minecraft.advancements.Advancement;
+import net.minecraft.advancements.AdvancementNode;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.doclet.DocletReplaceReturn;
-import xyz.wagyourtail.jsmacros.client.mixin.access.MixinClientAdvancementManager;
+import xyz.wagyourtail.jsmacros.client.mixin.access.MixinClientAdvancements;
 import xyz.wagyourtail.jsmacros.core.helpers.BaseHelper;
 
 import java.util.List;
@@ -21,11 +21,11 @@ import java.util.stream.StreamSupport;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class AdvancementHelper extends BaseHelper<PlacedAdvancement> {
-    private static final MinecraftClient mc = MinecraftClient.getInstance();
+public class AdvancementHelper extends BaseHelper<AdvancementNode> {
+    private static final Minecraft mc = Minecraft.getInstance();
 
 
-    public AdvancementHelper(PlacedAdvancement base) {
+    public AdvancementHelper(AdvancementNode base) {
         super(base);
     }
 
@@ -35,7 +35,7 @@ public class AdvancementHelper extends BaseHelper<PlacedAdvancement> {
      */
     @Nullable
     public AdvancementHelper getParent() {
-        return base.getParent() == null ? null : new AdvancementHelper(base.getParent());
+        return base.parent() == null ? null : new AdvancementHelper(base.parent());
     }
 
     /**
@@ -43,7 +43,7 @@ public class AdvancementHelper extends BaseHelper<PlacedAdvancement> {
      * @since 1.8.4
      */
     public List<AdvancementHelper> getChildren() {
-        return StreamSupport.stream(base.getChildren().spliterator(), false).map(AdvancementHelper::new).collect(Collectors.toList());
+        return StreamSupport.stream(base.children().spliterator(), false).map(AdvancementHelper::new).collect(Collectors.toList());
     }
 
     /**
@@ -51,7 +51,7 @@ public class AdvancementHelper extends BaseHelper<PlacedAdvancement> {
      * @since 1.8.4
      */
     public List<List<String>> getRequirements() {
-        return base.getAdvancement().requirements().requirements();
+        return base.advancement().requirements().requirements();
     }
 
     /**
@@ -59,7 +59,7 @@ public class AdvancementHelper extends BaseHelper<PlacedAdvancement> {
      * @since 1.8.4
      */
     public int getRequirementCount() {
-        return base.getAdvancement().requirements().getLength();
+        return base.advancement().requirements().size();
     }
 
     /**
@@ -68,7 +68,7 @@ public class AdvancementHelper extends BaseHelper<PlacedAdvancement> {
      */
     @DocletReplaceReturn("AdvancementId")
     public String getId() {
-        return base.getAdvancementEntry().id().toString();
+        return base.holder().id().toString();
     }
 
     /**
@@ -76,7 +76,7 @@ public class AdvancementHelper extends BaseHelper<PlacedAdvancement> {
      * @since 1.8.4
      */
     public int getExperience() {
-        return base.getAdvancement().rewards().experience();
+        return base.advancement().rewards().experience();
     }
 
     /**
@@ -84,7 +84,7 @@ public class AdvancementHelper extends BaseHelper<PlacedAdvancement> {
      * @since 1.8.4
      */
     public String[] getLoot() {
-        return base.getAdvancement().rewards().loot().stream().map(e -> e.getValue().toString()).toArray(String[]::new);
+        return base.advancement().rewards().loot().stream().map(e -> e.location().toString()).toArray(String[]::new);
     }
 
     /**
@@ -93,7 +93,7 @@ public class AdvancementHelper extends BaseHelper<PlacedAdvancement> {
      */
     @DocletReplaceReturn("JavaArray<RecipeId>")
     public String[] getRecipes() {
-        return (String[]) base.getAdvancement().rewards().recipes().stream().map(RegistryKey::getValue).map(Identifier::toString).toArray();
+        return (String[]) base.advancement().rewards().recipes().stream().map(ResourceKey::location).map(ResourceLocation::toString).toArray();
     }
 
     /**
@@ -101,9 +101,9 @@ public class AdvancementHelper extends BaseHelper<PlacedAdvancement> {
      * @since 1.8.4
      */
     public AdvancementProgressHelper getProgress() {
-        ClientPlayerEntity player = MinecraftClient.getInstance().player;
+        LocalPlayer player = Minecraft.getInstance().player;
         assert player != null;
-        return new AdvancementProgressHelper(((MixinClientAdvancementManager) player.networkHandler.getAdvancementHandler()).getAdvancementProgresses().get(base.getAdvancementEntry()));
+        return new AdvancementProgressHelper(((MixinClientAdvancements) player.connection.getAdvancements()).getProgress().get(base.holder()));
     }
 
     /**
@@ -111,7 +111,7 @@ public class AdvancementHelper extends BaseHelper<PlacedAdvancement> {
      * @return the json string of this advancement.
      */
     public String toJson() {
-        return Advancement.CODEC.encodeStart(JsonOps.INSTANCE, base.getAdvancement()).getOrThrow().toString();
+        return Advancement.CODEC.encodeStart(JsonOps.INSTANCE, base.advancement()).getOrThrow().toString();
     }
 
     @Override

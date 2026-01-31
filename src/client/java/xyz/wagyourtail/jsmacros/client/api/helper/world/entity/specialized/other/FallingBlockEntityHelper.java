@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.other;
 
-import net.minecraft.entity.FallingBlockEntity;
+import net.minecraft.world.entity.item.FallingBlockEntity;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.BlockPosHelper;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.BlockStateHelper;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.EntityHelper;
@@ -21,7 +21,7 @@ public class FallingBlockEntityHelper extends EntityHelper<FallingBlockEntity> {
      * @since 1.8.4
      */
     public BlockPosHelper getOriginBlockPos() {
-        return new BlockPosHelper(base.getFallingBlockPos());
+        return new BlockPosHelper(base.getStartPos());
     }
 
     /**

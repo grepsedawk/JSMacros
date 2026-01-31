@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive;
 
-import net.minecraft.entity.passive.TropicalFishEntity;
+import net.minecraft.world.entity.animal.TropicalFish;
 import xyz.wagyourtail.doclet.DocletReplaceReturn;
 
 /**
@@ -8,9 +8,9 @@ import xyz.wagyourtail.doclet.DocletReplaceReturn;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class TropicalFishEntityHelper extends FishEntityHelper<TropicalFishEntity> {
+public class TropicalFishEntityHelper extends FishEntityHelper<TropicalFish> {
 
-    public TropicalFishEntityHelper(TropicalFishEntity base) {
+    public TropicalFishEntityHelper(TropicalFish base) {
         super(base);
     }
 
@@ -20,7 +20,7 @@ public class TropicalFishEntityHelper extends FishEntityHelper<TropicalFishEntit
      */
     @DocletReplaceReturn("TropicalVariant")
     public String getVariant() {
-        return base.getVariety().asString();
+        return base.getPattern().getSerializedName();
     }
 
     /**
@@ -29,7 +29,7 @@ public class TropicalFishEntityHelper extends FishEntityHelper<TropicalFishEntit
      */
     @DocletReplaceReturn("TropicalSize")
     public String getSize() {
-        return base.getVariety().getSize().name();
+        return base.getPattern().base().name();
     }
 
     /**
@@ -37,7 +37,7 @@ public class TropicalFishEntityHelper extends FishEntityHelper<TropicalFishEntit
      * @since 1.8.4
      */
     public int getBaseColor() {
-        return base.getBaseColor().getEntityColor();
+        return base.getBaseColor().getTextureDiffuseColor();
     }
 
     /**
@@ -45,7 +45,7 @@ public class TropicalFishEntityHelper extends FishEntityHelper<TropicalFishEntit
      * @since 1.8.4
      */
     public int getPatternColor() {
-        return base.getPatternColor().getEntityColor();
+        return base.getPatternColor().getTextureDiffuseColor();
     }
 
     /**
@@ -53,7 +53,7 @@ public class TropicalFishEntityHelper extends FishEntityHelper<TropicalFishEntit
      * @since 1.8.4
      */
     public int getVarietyId() {
-        return base.getTropicalFishVariant();
+        return base.getPackedVariant();
     }
 
 }

@@ -1,13 +1,34 @@
 package xyz.wagyourtail.jsmacros.client;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.ChatScreen;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.screen.ingame.*;
-import net.minecraft.client.option.KeyBinding;
-import net.minecraft.client.resource.language.I18n;
-import net.minecraft.client.util.InputUtil;
-import net.minecraft.text.Text;
+import com.mojang.blaze3d.platform.InputConstants;
+import net.minecraft.client.KeyMapping;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.ChatScreen;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.gui.screens.inventory.AnvilScreen;
+import net.minecraft.client.gui.screens.inventory.BeaconScreen;
+import net.minecraft.client.gui.screens.inventory.BlastFurnaceScreen;
+import net.minecraft.client.gui.screens.inventory.BrewingStandScreen;
+import net.minecraft.client.gui.screens.inventory.CartographyTableScreen;
+import net.minecraft.client.gui.screens.inventory.ContainerScreen;
+import net.minecraft.client.gui.screens.inventory.CraftingScreen;
+import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
+import net.minecraft.client.gui.screens.inventory.DispenserScreen;
+import net.minecraft.client.gui.screens.inventory.EnchantmentScreen;
+import net.minecraft.client.gui.screens.inventory.FurnaceScreen;
+import net.minecraft.client.gui.screens.inventory.GrindstoneScreen;
+import net.minecraft.client.gui.screens.inventory.HopperScreen;
+import net.minecraft.client.gui.screens.inventory.HorseInventoryScreen;
+import net.minecraft.client.gui.screens.inventory.InventoryScreen;
+import net.minecraft.client.gui.screens.inventory.LoomScreen;
+import net.minecraft.client.gui.screens.inventory.MerchantScreen;
+import net.minecraft.client.gui.screens.inventory.ShulkerBoxScreen;
+import net.minecraft.client.gui.screens.inventory.SmithingScreen;
+import net.minecraft.client.gui.screens.inventory.SmokerScreen;
+import net.minecraft.client.gui.screens.inventory.StonecutterScreen;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.network.chat.Component;
 import org.lwjgl.glfw.GLFW;
 import xyz.wagyourtail.jsmacros.client.api.event.impl.EventQuitGame;
 import xyz.wagyourtail.jsmacros.client.api.helper.PacketByteBufferHelper;
@@ -24,7 +45,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
 public class JsMacrosClient extends JsMacros {
-    public static KeyBinding keyBinding = new KeyBinding("jsmacros.menu", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_K, I18n.translate("jsmacros.title"));
+    public static KeyMapping keyBinding = new KeyMapping("jsmacros.menu", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_K, I18n.get("jsmacros.title"));
     public static final Core<ClientProfile, EventRegistry> clientCore = new Core<>(EventRegistry::new, ClientProfile::new, configFolder.getAbsoluteFile(), new File(configFolder, "Macros"), LOGGER);
 
     public static BaseScreen prevScreen;
@@ -48,11 +69,11 @@ public class JsMacrosClient extends JsMacros {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> new EventQuitGame().trigger()));
     }
 
-    static public Text getKeyText(String translationKey) {
+    static public Component getKeyText(String translationKey) {
         try {
-            return InputUtil.fromTranslationKey(translationKey).getLocalizedText();
+            return InputConstants.getKey(translationKey).getDisplayName();
         } catch (Exception e) {
-            return Text.literal(translationKey);
+            return Component.literal(translationKey);
         }
     }
 
@@ -61,11 +82,11 @@ public class JsMacrosClient extends JsMacros {
     static public String getScreenName(Screen s) {
         return switch (s) {
             case null -> null;
-            case HandledScreen<?> handledScreen -> //add more ?
+            case AbstractContainerScreen<?> handledScreen -> //add more ?
                 switch (handledScreen) {
-                    case GenericContainerScreen genericContainerScreen ->
-                        String.format("%d Row Chest", genericContainerScreen.getScreenHandler().getRows());
-                    case Generic3x3ContainerScreen ignored -> "3x3 Container";
+                    case ContainerScreen genericContainerScreen ->
+                        String.format("%d Row Chest", genericContainerScreen.getMenu().getRowCount());
+                    case DispenserScreen ignored -> "3x3 Container";
                     case AnvilScreen ignored -> "Anvil";
                     case BeaconScreen ignored -> "Beacon";
                     case BlastFurnaceScreen ignored -> "Blast Furnace";
@@ -83,13 +104,13 @@ public class JsMacrosClient extends JsMacros {
                     case CartographyTableScreen ignored -> "Cartography Table";
                     case StonecutterScreen ignored -> "Stonecutter";
                     case InventoryScreen ignored -> "Survival Inventory";
-                    case HorseScreen ignored -> "Horse";
-                    case CreativeInventoryScreen ignored -> "Creative Inventory";
+                    case HorseInventoryScreen ignored -> "Horse";
+                    case CreativeModeInventoryScreen ignored -> "Creative Inventory";
                     default -> s.getClass().getName();
                 };
             case ChatScreen ignored -> "Chat";
             default -> {
-                Text t = s.getTitle();
+                Component t = s.getTitle();
                 String ret = "";
                 if (t != null) {
                     ret = t.getString();
@@ -103,13 +124,13 @@ public class JsMacrosClient extends JsMacros {
     }
 
     @Deprecated
-    static public String getLocalizedName(InputUtil.Key keyCode) {
-        return I18n.translate(keyCode.getTranslationKey());
+    static public String getLocalizedName(InputConstants.Key keyCode) {
+        return I18n.get(keyCode.getName());
     }
 
     @Deprecated
-    static public MinecraftClient getMinecraft() {
-        return MinecraftClient.getInstance();
+    static public Minecraft getMinecraft() {
+        return Minecraft.getInstance();
     }
 
 }

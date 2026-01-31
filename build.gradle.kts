@@ -58,9 +58,7 @@ unimined.minecraft {
     side("server")
 
     mappings {
-        intermediary()
-        yarn(libs.versions.yarn.get())
-        devNamespace("yarn")
+        mojmap()
     }
 
     accessWidener {

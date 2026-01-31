@@ -1,14 +1,14 @@
 package xyz.wagyourtail.jsmacros.client.gui.containers;
 
 import com.mojang.blaze3d.opengl.GlStateManager;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gl.RenderPipelines;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.OrderedText;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.FormattedCharSequence;
 import xyz.wagyourtail.jsmacros.client.JsMacros;
 import xyz.wagyourtail.jsmacros.client.JsMacrosClient;
 import xyz.wagyourtail.jsmacros.client.gui.screens.MacroScreen;
@@ -22,14 +22,14 @@ import java.io.File;
 import java.util.List;
 
 public class MacroContainer extends MultiElementContainer<MacroScreen> {
-    private static final Identifier key_down_tex = Identifier.of(JsMacros.MOD_ID, "resources/key_down.png");
-    private static final Identifier key_up_tex = Identifier.of(JsMacros.MOD_ID, "resources/key_up.png");
-    private static final Identifier key_both_tex = Identifier.of(JsMacros.MOD_ID, "resources/key_both.png");
+    private static final ResourceLocation key_down_tex = ResourceLocation.fromNamespaceAndPath(JsMacros.MOD_ID, "resources/key_down.png");
+    private static final ResourceLocation key_up_tex = ResourceLocation.fromNamespaceAndPath(JsMacros.MOD_ID, "resources/key_up.png");
+    private static final ResourceLocation key_both_tex = ResourceLocation.fromNamespaceAndPath(JsMacros.MOD_ID, "resources/key_both.png");
     @SuppressWarnings("unused")
-    private static final Identifier event_tex = Identifier.of(JsMacros.MOD_ID, "resources/event.png");
-    private static final Identifier script_fork_tex = Identifier.of(JsMacros.MOD_ID, "resources/script_fork.png");
-    private static final Identifier script_join_tex = Identifier.of(JsMacros.MOD_ID, "resources/script_join.png");
-    private final MinecraftClient mc;
+    private static final ResourceLocation event_tex = ResourceLocation.fromNamespaceAndPath(JsMacros.MOD_ID, "resources/event.png");
+    private static final ResourceLocation script_fork_tex = ResourceLocation.fromNamespaceAndPath(JsMacros.MOD_ID, "resources/script_fork.png");
+    private static final ResourceLocation script_join_tex = ResourceLocation.fromNamespaceAndPath(JsMacros.MOD_ID, "resources/script_join.png");
+    private final Minecraft mc;
     private final ScriptTrigger macro;
     private Button enableBtn;
     private Button keyBtn;
@@ -40,10 +40,10 @@ public class MacroContainer extends MultiElementContainer<MacroScreen> {
     private Button joinedBtn;
     private boolean selectkey = false;
 
-    public MacroContainer(int x, int y, int width, int height, TextRenderer textRenderer, ScriptTrigger macro, MacroScreen parent) {
+    public MacroContainer(int x, int y, int width, int height, Font textRenderer, ScriptTrigger macro, MacroScreen parent) {
         super(x, y, width, height, textRenderer, parent);
         this.macro = macro;
-        this.mc = MinecraftClient.getInstance();
+        this.mc = Minecraft.getInstance();
         init();
     }
 
@@ -55,10 +55,10 @@ public class MacroContainer extends MultiElementContainer<MacroScreen> {
     public void init() {
         super.init();
         int w = width - 12;
-        enableBtn = addDrawableChild(new Button(x + 1, y + 1, w / 12 - 1, height - 2, textRenderer, macro.enabled ? 0x7000FF00 : 0x70FF0000, 0xFF000000, 0x7F7F7F7F, 0xFFFFFFFF, Text.translatable(macro.enabled ? "jsmacros.enabled" : "jsmacros.disabled"), (btn) -> {
+        enableBtn = addDrawableChild(new Button(x + 1, y + 1, w / 12 - 1, height - 2, textRenderer, macro.enabled ? 0x7000FF00 : 0x70FF0000, 0xFF000000, 0x7F7F7F7F, 0xFFFFFFFF, Component.translatable(macro.enabled ? "jsmacros.enabled" : "jsmacros.disabled"), (btn) -> {
             macro.enabled = !macro.enabled;
             btn.setColor(macro.enabled ? 0x7000FF00 : 0x70FF0000);
-            btn.setMessage(Text.translatable(macro.enabled ? "jsmacros.enabled" : "jsmacros.disabled"));
+            btn.setMessage(Component.translatable(macro.enabled ? "jsmacros.enabled" : "jsmacros.disabled"));
         }));
 
         keyBtn = addDrawableChild(new Button(x + w / 12 + 1, y + 1, macro.triggerType == ScriptTrigger.TriggerType.EVENT ? (w / 4) - (w / 12) - 1 - height : (w / 4) - (w / 12) - 1 - height * 2, height - 2, textRenderer, 0, 0xFF000000, 0x7F7F7F7F, 0xFFFFFFFF, macro.triggerType == ScriptTrigger.TriggerType.EVENT ? TranslationUtil.getTranslatedEventName(macro.event) : buildKeyName(macro.event), (btn) -> {
@@ -66,14 +66,14 @@ public class MacroContainer extends MultiElementContainer<MacroScreen> {
                 parent.setEvent(this);
             } else {
                 selectkey = true;
-                btn.setMessage(Text.translatable("jsmacros.presskey"));
+                btn.setMessage(Component.translatable("jsmacros.presskey"));
             }
         }));
         if (macro.triggerType != ScriptTrigger.TriggerType.EVENT) {
-            joinedBtn = addDrawableChild(new Button(x + w / 4 - height * 2, y + 1, height, height - 2, textRenderer, 0, 0xFF000000, 0x7F7F7F7F, 0xFFFFFFFF, Text.literal(""), (btn) -> {
+            joinedBtn = addDrawableChild(new Button(x + w / 4 - height * 2, y + 1, height, height - 2, textRenderer, 0, 0xFF000000, 0x7F7F7F7F, 0xFFFFFFFF, Component.literal(""), (btn) -> {
                 macro.joined = !macro.joined;
             }));
-            keyStateBtn = addDrawableChild(new Button(x + w / 4 - height, y + 1, height, height - 2, textRenderer, 0, 0xFF000000, 0x7F7F7F7F, 0xFFFFFFFF, Text.literal(""), (btn) -> {
+            keyStateBtn = addDrawableChild(new Button(x + w / 4 - height, y + 1, height, height - 2, textRenderer, 0, 0xFF000000, 0x7F7F7F7F, 0xFFFFFFFF, Component.literal(""), (btn) -> {
                 switch (macro.triggerType) {
                     default:
                     case KEY_RISING:
@@ -88,7 +88,7 @@ public class MacroContainer extends MultiElementContainer<MacroScreen> {
                 }
             }));
         } else {
-            joinedBtn = addDrawableChild(new Button(x + w / 4 - height, y + 1, height, height - 2, textRenderer, 0, 0xFF000000, 0x7F7F7F7F, 0xFFFFFFFF, Text.literal(""), (btn) -> {
+            joinedBtn = addDrawableChild(new Button(x + w / 4 - height, y + 1, height, height - 2, textRenderer, 0, 0xFF000000, 0x7F7F7F7F, 0xFFFFFFFF, Component.literal(""), (btn) -> {
                 macro.joined = !macro.joined;
             }));
         }
@@ -100,11 +100,11 @@ public class MacroContainer extends MultiElementContainer<MacroScreen> {
         } else {
             fileName = macro.scriptFile.toString();
         }
-        fileBtn = addDrawableChild(new Button(x + (w / 4) + 1, y + 1, w * 3 / 4 - 3 - 30, height - 2, textRenderer, 0, 0xFF000000, 0x7F7F7F7F, 0xFFFFFFFF, Text.literal("./" + fileName.replaceAll("\\\\", "/")), (btn) -> {
+        fileBtn = addDrawableChild(new Button(x + (w / 4) + 1, y + 1, w * 3 / 4 - 3 - 30, height - 2, textRenderer, 0, 0xFF000000, 0x7F7F7F7F, 0xFFFFFFFF, Component.literal("./" + fileName.replaceAll("\\\\", "/")), (btn) -> {
             parent.setFile(this);
         }));
 
-        editBtn = addDrawableChild(new Button(x + w - 32, y + 1, 30, height - 2, textRenderer, 0, 0xFF000000, 0x7F7F7F7F, 0xFFFFFFFF, Text.translatable("selectServer.edit"), (btn) -> {
+        editBtn = addDrawableChild(new Button(x + w - 32, y + 1, 30, height - 2, textRenderer, 0, 0xFF000000, 0x7F7F7F7F, 0xFFFFFFFF, Component.translatable("selectServer.edit"), (btn) -> {
             if (macro.scriptFile != null) {
                 final File file;
                 if (macro.scriptFile.isAbsolute()) {
@@ -116,7 +116,7 @@ public class MacroContainer extends MultiElementContainer<MacroScreen> {
             }
         }));
 
-        delBtn = addDrawableChild(new Button(x + w - 1, y + 1, 12, height - 2, textRenderer, 0, 0xFF000000, 0x7F7F7F7F, 0xFFFFFFFF, Text.literal("X"), (btn) -> {
+        delBtn = addDrawableChild(new Button(x + w - 1, y + 1, 12, height - 2, textRenderer, 0, 0xFF000000, 0x7F7F7F7F, 0xFFFFFFFF, Component.literal("X"), (btn) -> {
             parent.confirmRemoveMacro(this);
         }));
     }
@@ -132,7 +132,7 @@ public class MacroContainer extends MultiElementContainer<MacroScreen> {
     public void setFile(File f) {
         macro.scriptFile = JsMacrosClient.clientCore.config.macroFolder.toPath().relativize(f.toPath());
         final String fileName = macro.scriptFile.toString();
-        fileBtn.setMessage(Text.literal("./" + fileName.replaceAll("\\\\", "/")));
+        fileBtn.setMessage(Component.literal("./" + fileName.replaceAll("\\\\", "/")));
     }
 
     @Override
@@ -161,8 +161,8 @@ public class MacroContainer extends MultiElementContainer<MacroScreen> {
         return true;
     }
 
-    public static Text buildKeyName(String translationKeys) {
-        MutableText text = Text.literal("");
+    public static Component buildKeyName(String translationKeys) {
+        MutableComponent text = Component.literal("");
         boolean notfirst = false;
         for (String s : translationKeys.split("\\+")) {
             if (notfirst) {
@@ -183,7 +183,7 @@ public class MacroContainer extends MultiElementContainer<MacroScreen> {
     }
 
     @Override
-    public void render(DrawContext drawContext, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphics drawContext, int mouseX, int mouseY, float delta) {
         BaseEventRegistry reg = JsMacrosClient.clientCore.eventRegistry;
         if (macro.triggerType == ScriptTrigger.TriggerType.EVENT && reg.events.contains(macro.event)) {
             joinedBtn.active = reg.joinableEvents.contains(macro.event);
@@ -205,7 +205,7 @@ public class MacroContainer extends MultiElementContainer<MacroScreen> {
             drawContext.fill(x + width - 14, y + 1, x + width - 13, y + height - 1, 0xFFFFFFFF);
             //RenderSystem.setShader(VertexFormats.POSITION_TEXTURE);
             // icon for keystate
-            Identifier tex;
+            ResourceLocation tex;
             if (macro.triggerType != ScriptTrigger.TriggerType.EVENT) {
                 if (macro.joined) {
                     tex = script_join_tex;
@@ -213,7 +213,7 @@ public class MacroContainer extends MultiElementContainer<MacroScreen> {
                     tex = script_fork_tex;
                 }
                 GlStateManager._enableBlend();
-                drawContext.drawTexture(RenderPipelines.GUI_TEXTURED, tex, x + w / 4 - 2 * height + 2, y + 2, 0, 0, height - 4, height - 4, 32, 32, 32, 32);
+                drawContext.blit(RenderPipelines.GUI_TEXTURED, tex, x + w / 4 - 2 * height + 2, y + 2, 0, 0, height - 4, height - 4, 32, 32, 32, 32);
                 GlStateManager._disableBlend();
                 switch (macro.triggerType) {
                     default:
@@ -228,7 +228,7 @@ public class MacroContainer extends MultiElementContainer<MacroScreen> {
                         break;
                 }
                 GlStateManager._enableBlend();
-                drawContext.drawTexture(RenderPipelines.GUI_TEXTURED, tex, x + w / 4 - height + 2, y + 2, 0, 0, height - 4, height - 4, 32, 32, 32, 32);
+                drawContext.blit(RenderPipelines.GUI_TEXTURED, tex, x + w / 4 - height + 2, y + 2, 0, 0, height - 4, height - 4, 32, 32, 32, 32);
                 GlStateManager._disableBlend();
             } else {
                 if (macro.joined) {
@@ -237,7 +237,7 @@ public class MacroContainer extends MultiElementContainer<MacroScreen> {
                     tex = script_fork_tex;
                 }
                 GlStateManager._enableBlend();
-                drawContext.drawTexture(RenderPipelines.GUI_TEXTURED, tex, x + w / 4 - height + 2, y + 2, 0, 0, height - 4, height - 4, 32, 32, 32, 32);
+                drawContext.blit(RenderPipelines.GUI_TEXTURED, tex, x + w / 4 - height + 2, y + 2, 0, 0, height - 4, height - 4, 32, 32, 32, 32);
                 GlStateManager._disableBlend();
             }
 
@@ -249,17 +249,17 @@ public class MacroContainer extends MultiElementContainer<MacroScreen> {
 
             // overlay
             if (keyBtn.hovering && keyBtn.cantRenderAllText()) {
-                drawContext.fill(mouseX - 2, mouseY - textRenderer.fontHeight - 3, mouseX + textRenderer.getWidth(keyBtn.getMessage()) + 2, mouseY, 0xFF000000);
-                drawContext.drawTextWithShadow(textRenderer, keyBtn.getMessage(), mouseX, mouseY - textRenderer.fontHeight - 1, 0xFFFFFFFF);
+                drawContext.fill(mouseX - 2, mouseY - textRenderer.lineHeight - 3, mouseX + textRenderer.width(keyBtn.getMessage()) + 2, mouseY, 0xFF000000);
+                drawContext.drawString(textRenderer, keyBtn.getMessage(), mouseX, mouseY - textRenderer.lineHeight - 1, 0xFFFFFFFF);
             }
             if (fileBtn.hovering && fileBtn.cantRenderAllText()) {
-                List<OrderedText> lines = textRenderer.wrapLines(fileBtn.getMessage(), this.x + this.width - mouseX);
-                int top = mouseY - (textRenderer.fontHeight * lines.size()) - 2;
-                int width = lines.stream().map(e -> textRenderer.getWidth(e)).reduce(0, Math::max);
+                List<FormattedCharSequence> lines = textRenderer.split(fileBtn.getMessage(), this.x + this.width - mouseX);
+                int top = mouseY - (textRenderer.lineHeight * lines.size()) - 2;
+                int width = lines.stream().map(e -> textRenderer.width(e)).reduce(0, Math::max);
                 drawContext.fill(mouseX - 2, top - 1, mouseX + width + 2, mouseY, 0xFF000000);
                 for (int i = 0; i < lines.size(); ++i) {
-                    int wi = textRenderer.getWidth(lines.get(i)) / 2;
-                    drawContext.drawText(textRenderer, lines.get(i), mouseX + width / 2 - wi, top + textRenderer.fontHeight * i, 0xFFFFFFFF, false);
+                    int wi = textRenderer.width(lines.get(i)) / 2;
+                    drawContext.drawString(textRenderer, lines.get(i), mouseX + width / 2 - wi, top + textRenderer.lineHeight * i, 0xFFFFFFFF, false);
                 }
             }
         }

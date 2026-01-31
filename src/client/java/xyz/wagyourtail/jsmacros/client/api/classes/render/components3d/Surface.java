@@ -1,8 +1,8 @@
 package xyz.wagyourtail.jsmacros.client.api.classes.render.components3d;
 
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.util.math.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.MultiBufferSource;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix3x2fStack;
 import org.joml.Quaternionf;
@@ -251,7 +251,7 @@ public class Surface extends Draw2D implements RenderElement, RenderElement3D<Su
 
     @Override
     @DocletIgnore
-    public void render(MatrixStack matrices, VertexConsumerProvider consumers, float tickDelta) {
+    public void render(PoseStack matrices, MultiBufferSource consumers, float tickDelta) {
         // TODO: I cba to update rendering code
     }
 
@@ -282,7 +282,7 @@ public class Surface extends Draw2D implements RenderElement, RenderElement3D<Su
         return new Vector3f((float) Math.toDegrees(radianX), (float) Math.toDegrees(radianY), (float) Math.toDegrees(radianZ));
     }
 
-    private void renderElements3D(DrawContext drawContext, Iterator<RenderElement> iter) {
+    private void renderElements3D(GuiGraphics drawContext, Iterator<RenderElement> iter) {
         while (iter.hasNext()) {
             RenderElement element = iter.next();
             // Render each draw2D element individually so that the cull and renderBack settings are used
@@ -294,8 +294,8 @@ public class Surface extends Draw2D implements RenderElement, RenderElement3D<Su
         }
     }
 
-    private void renderDraw2D3D(DrawContext drawContext, Draw2DElement element) {
-        Matrix3x2fStack matrixStack = drawContext.getMatrices();
+    private void renderDraw2D3D(GuiGraphics drawContext, Draw2DElement element) {
+        Matrix3x2fStack matrixStack = drawContext.pose();
         matrixStack.pushMatrix();
         setupMatrix(matrixStack, element.x, element.y, element.scale, element.rotation, element.getWidth(), element.getHeight(), element.rotateCenter);
 
@@ -307,9 +307,9 @@ public class Surface extends Draw2D implements RenderElement, RenderElement3D<Su
         matrixStack.popMatrix();
     }
 
-    private void renderElement3D(DrawContext drawContext, RenderElement element) {
+    private void renderElement3D(GuiGraphics drawContext, RenderElement element) {
         // TODO: I cba to update rendering code
-        Matrix3x2fStack matrixStack = drawContext.getMatrices();
+        Matrix3x2fStack matrixStack = drawContext.pose();
         matrixStack.pushMatrix();
         // Z-index is no longer possible as this is a 3x2 matrix now.
         //matrixStack.translate(0, 0, zIndexScale * element.getZIndex());
@@ -318,7 +318,7 @@ public class Surface extends Draw2D implements RenderElement, RenderElement3D<Su
     }
 
     @Override
-    public void render(DrawContext drawContext, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphics drawContext, int mouseX, int mouseY, float delta) {
 
     }
 

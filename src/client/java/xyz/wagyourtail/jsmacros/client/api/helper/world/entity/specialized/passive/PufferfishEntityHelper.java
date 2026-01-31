@@ -1,15 +1,15 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive;
 
-import net.minecraft.entity.passive.PufferfishEntity;
+import net.minecraft.world.entity.animal.Pufferfish;
 
 /**
  * @author Etheradon
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class PufferfishEntityHelper extends FishEntityHelper<PufferfishEntity> {
+public class PufferfishEntityHelper extends FishEntityHelper<Pufferfish> {
 
-    public PufferfishEntityHelper(PufferfishEntity base) {
+    public PufferfishEntityHelper(Pufferfish base) {
         super(base);
     }
 

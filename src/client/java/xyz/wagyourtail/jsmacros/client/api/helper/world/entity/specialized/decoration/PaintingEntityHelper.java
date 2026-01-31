@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.decoration;
 
-import net.minecraft.entity.decoration.painting.PaintingEntity;
+import net.minecraft.world.entity.decoration.Painting;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.doclet.DocletReplaceReturn;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.EntityHelper;
@@ -10,9 +10,9 @@ import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.EntityHelper;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class PaintingEntityHelper extends EntityHelper<PaintingEntity> {
+public class PaintingEntityHelper extends EntityHelper<Painting> {
 
-    public PaintingEntityHelper(PaintingEntity base) {
+    public PaintingEntityHelper(Painting base) {
         super(base);
     }
 
@@ -39,7 +39,7 @@ public class PaintingEntityHelper extends EntityHelper<PaintingEntity> {
     @Nullable
     @DocletReplaceReturn("PaintingId")
     public String getIdentifier() {
-        return base.getVariant().getKey().map(paintingVariantRegistryKey -> paintingVariantRegistryKey.getValue().toString()).orElse(null);
+        return base.getVariant().unwrapKey().map(paintingVariantRegistryKey -> paintingVariantRegistryKey.location().toString()).orElse(null);
     }
 
 }

@@ -1,7 +1,7 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.decoration;
 
-import net.minecraft.entity.decoration.GlowItemFrameEntity;
-import net.minecraft.entity.decoration.ItemFrameEntity;
+import net.minecraft.world.entity.decoration.GlowItemFrame;
+import net.minecraft.world.entity.decoration.ItemFrame;
 import xyz.wagyourtail.jsmacros.client.api.helper.inventory.ItemStackHelper;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.EntityHelper;
 
@@ -10,9 +10,9 @@ import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.EntityHelper;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class ItemFrameEntityHelper extends EntityHelper<ItemFrameEntity> {
+public class ItemFrameEntityHelper extends EntityHelper<ItemFrame> {
 
-    public ItemFrameEntityHelper(ItemFrameEntity base) {
+    public ItemFrameEntityHelper(ItemFrame base) {
         super(base);
     }
 
@@ -21,7 +21,7 @@ public class ItemFrameEntityHelper extends EntityHelper<ItemFrameEntity> {
      * @since 1.8.4
      */
     public boolean isGlowingFrame() {
-        return base instanceof GlowItemFrameEntity;
+        return base instanceof GlowItemFrame;
     }
 
     /**
@@ -37,7 +37,7 @@ public class ItemFrameEntityHelper extends EntityHelper<ItemFrameEntity> {
      * @since 1.8.4
      */
     public ItemStackHelper getItem() {
-        return new ItemStackHelper(base.getHeldItemStack());
+        return new ItemStackHelper(base.getItem());
     }
 
 }

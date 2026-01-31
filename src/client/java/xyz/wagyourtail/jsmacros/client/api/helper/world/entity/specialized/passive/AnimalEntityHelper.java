@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive;
 
-import net.minecraft.entity.passive.AnimalEntity;
+import net.minecraft.world.entity.animal.Animal;
 import xyz.wagyourtail.jsmacros.client.api.helper.inventory.ItemHelper;
 import xyz.wagyourtail.jsmacros.client.api.helper.inventory.ItemStackHelper;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.MobEntityHelper;
@@ -10,7 +10,7 @@ import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.MobEntityHelper;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class AnimalEntityHelper<T extends AnimalEntity> extends MobEntityHelper<T> {
+public class AnimalEntityHelper<T extends Animal> extends MobEntityHelper<T> {
 
     public AnimalEntityHelper(T base) {
         super(base);
@@ -23,7 +23,7 @@ public class AnimalEntityHelper<T extends AnimalEntity> extends MobEntityHelper<
      * @since 1.8.4
      */
     public boolean isFood(ItemHelper item) {
-        return base.isBreedingItem(item.getRaw().getDefaultStack());
+        return base.isFood(item.getRaw().getDefaultInstance());
     }
 
     /**
@@ -33,7 +33,7 @@ public class AnimalEntityHelper<T extends AnimalEntity> extends MobEntityHelper<
      * @since 1.8.4
      */
     public boolean isFood(ItemStackHelper item) {
-        return base.isBreedingItem(item.getRaw());
+        return base.isFood(item.getRaw());
     }
 
     /**
@@ -43,7 +43,7 @@ public class AnimalEntityHelper<T extends AnimalEntity> extends MobEntityHelper<
      * @since 1.8.4
      */
     public boolean canBreedWith(AnimalEntityHelper<?> other) {
-        return base.canBreedWith(other.getRaw());
+        return base.canMate(other.getRaw());
     }
 
 }

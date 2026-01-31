@@ -1,10 +1,10 @@
 package xyz.wagyourtail.jsmacros.client.api.event.impl;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.Element;
-import net.minecraft.client.gui.screen.recipebook.RecipeBookWidget;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.util.InputUtil;
+import com.mojang.blaze3d.platform.InputConstants;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.client.gui.screens.recipebook.RecipeBookComponent;
 import xyz.wagyourtail.doclet.DocletDeclareType;
 import xyz.wagyourtail.doclet.DocletReplaceReturn;
 import xyz.wagyourtail.jsmacros.client.JsMacrosClient;
@@ -24,7 +24,7 @@ import java.util.Set;
  */
 @Event(value = "Key", oldName = "KEY", cancellable = true)
 public class EventKey extends BaseEvent {
-    static final MinecraftClient mc = MinecraftClient.getInstance();
+    static final Minecraft mc = Minecraft.getInstance();
     public final int action;
 
     @DocletReplaceReturn("globalThis.Key")
@@ -55,17 +55,17 @@ public class EventKey extends BaseEvent {
     }
 
     public static boolean parse(int key, int scancode, int action, int mods) {
-        InputUtil.Key keycode;
+        InputConstants.Key keycode;
         if (key <= 7) {
-            keycode = InputUtil.Type.MOUSE.createFromCode(key);
+            keycode = InputConstants.Type.MOUSE.getOrCreate(key);
         } else {
-            keycode = InputUtil.Type.KEYSYM.createFromCode(key);
+            keycode = InputConstants.Type.KEYSYM.getOrCreate(key);
         }
 
-        String keyStr = keycode.getTranslationKey();
+        String keyStr = keycode.getName();
         String modsStr = getKeyModifiers(mods);
 
-        if (keycode == InputUtil.UNKNOWN_KEY) {
+        if (keycode == InputConstants.UNKNOWN) {
             return false;
         }
 
@@ -75,19 +75,19 @@ public class EventKey extends BaseEvent {
             FKeyBind.KeyTracker.unpress(keycode);
         }
 
-        if (mc.currentScreen != null) {
+        if (mc.screen != null) {
             if (action != 0 || !wasNullOnDown.contains(key)) {
                 if (JsMacrosClient.clientCore.config.getOptions(ClientConfigV2.class).disableKeyWhenScreenOpen) {
                     return false;
                 }
-                if (mc.currentScreen instanceof BaseScreen) {
+                if (mc.screen instanceof BaseScreen) {
                     return false;
                 }
-                Element focused = mc.currentScreen.getFocused();
-                if (focused instanceof TextFieldWidget) {
+                GuiEventListener focused = mc.screen.getFocused();
+                if (focused instanceof EditBox) {
                     return false;
                 }
-                if (focused instanceof RecipeBookWidget && ((IRecipeBookWidget) focused).jsmacros_isSearching()) {
+                if (focused instanceof RecipeBookComponent && ((IRecipeBookWidget) focused).jsmacros_isSearching()) {
                     return false;
                 }
             }

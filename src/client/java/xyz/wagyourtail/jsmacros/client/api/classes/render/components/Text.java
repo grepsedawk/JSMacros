@@ -1,10 +1,10 @@
 package xyz.wagyourtail.jsmacros.client.api.classes.render.components;
 
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.util.BufferAllocator;
-import net.minecraft.util.math.MathHelper;
+import com.mojang.blaze3d.vertex.ByteBufferBuilder;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.util.Mth;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix3x2fStack;
 import org.joml.Matrix4f;
@@ -27,7 +27,7 @@ public class Text implements RenderElement, Alignable<Text> {
     @Nullable
     public IDraw2D<?> parent;
 
-    public net.minecraft.text.Text text;
+    public net.minecraft.network.chat.Component text;
     public double scale;
     public float rotation;
     public boolean rotateCenter;
@@ -39,7 +39,7 @@ public class Text implements RenderElement, Alignable<Text> {
     public int zIndex;
 
     public Text(String text, int x, int y, int color, int zIndex, boolean shadow, double scale, float rotation) {
-        this(TextHelper.wrap(net.minecraft.text.Text.literal(text)), x, y, color, zIndex, shadow, scale, rotation);
+        this(TextHelper.wrap(net.minecraft.network.chat.Component.literal(text)), x, y, color, zIndex, shadow, scale, rotation);
     }
 
     public Text(TextHelper text, int x, int y, int color, int zIndex, boolean shadow, double scale, float rotation) {
@@ -47,10 +47,10 @@ public class Text implements RenderElement, Alignable<Text> {
         this.x = x;
         this.y = y;
         setColor(color);
-        this.width = mc.textRenderer.getWidth(this.text);
+        this.width = mc.font.width(this.text);
         this.shadow = shadow;
         this.scale = scale;
-        this.rotation = MathHelper.wrapDegrees(rotation);
+        this.rotation = Mth.wrapDegrees(rotation);
         this.zIndex = zIndex;
     }
 
@@ -108,8 +108,8 @@ public class Text implements RenderElement, Alignable<Text> {
      * @since 1.0.5
      */
     public Text setText(String text) {
-        this.text = net.minecraft.text.Text.literal(text);
-        this.width = mc.textRenderer.getWidth(text);
+        this.text = net.minecraft.network.chat.Component.literal(text);
+        this.width = mc.font.width(text);
         return this;
     }
 
@@ -120,7 +120,7 @@ public class Text implements RenderElement, Alignable<Text> {
      */
     public Text setText(TextHelper text) {
         this.text = text.getRaw();
-        this.width = mc.textRenderer.getWidth(this.text);
+        this.width = mc.font.width(this.text);
         return this;
     }
 
@@ -145,7 +145,7 @@ public class Text implements RenderElement, Alignable<Text> {
      * @since 1.8.4
      */
     public int getHeight() {
-        return mc.textRenderer.fontHeight;
+        return mc.font.lineHeight;
     }
 
     /**
@@ -195,7 +195,7 @@ public class Text implements RenderElement, Alignable<Text> {
      * @since 1.0.5
      */
     public Text setRotation(double rotation) {
-        this.rotation = MathHelper.wrapDegrees((float) rotation);
+        this.rotation = Mth.wrapDegrees((float) rotation);
         return this;
     }
 
@@ -260,18 +260,18 @@ public class Text implements RenderElement, Alignable<Text> {
     }
 
     @Override
-    public void render(DrawContext drawContext, int mouseX, int mouseY, float delta) {
-        Matrix3x2fStack matrices = drawContext.getMatrices();
+    public void render(GuiGraphics drawContext, int mouseX, int mouseY, float delta) {
+        Matrix3x2fStack matrices = drawContext.pose();
         matrices.pushMatrix();
         setupMatrix(matrices, x, y, (float) scale, rotation, getWidth(), getHeight(), rotateCenter);
-        drawContext.drawText(mc.textRenderer, text, 0, 0, color, shadow);
+        drawContext.drawString(mc.font, text, 0, 0, color, shadow);
         matrices.popMatrix();
     }
 
     @Override
     @DocletIgnore
-    public void render3D(DrawContext drawContext, int mouseX, int mouseY, float delta) {
-        Matrix3x2fStack matrices = drawContext.getMatrices();
+    public void render3D(GuiGraphics drawContext, int mouseX, int mouseY, float delta) {
+        Matrix3x2fStack matrices = drawContext.pose();
         matrices.pushMatrix();
         setupMatrix(matrices, x, y, (float) scale, rotation, getWidth(), getHeight(), rotateCenter);
         Matrix4f matrix4f;
@@ -281,8 +281,8 @@ public class Text implements RenderElement, Alignable<Text> {
             buf.rewind();
             matrix4f = new Matrix4f().set(buf);
         }
-        VertexConsumerProvider.Immediate buffer = VertexConsumerProvider.immediate(new BufferAllocator(1536));
-        mc.textRenderer.draw(
+        MultiBufferSource.BufferSource buffer = MultiBufferSource.immediate(new ByteBufferBuilder(1536));
+        mc.font.drawInBatch(
             text,
             x,
             y,
@@ -290,11 +290,11 @@ public class Text implements RenderElement, Alignable<Text> {
             shadow,
             matrix4f,
             buffer,
-            TextRenderer.TextLayerType.NORMAL,
+            Font.DisplayMode.NORMAL,
             0,
             0xFFF000F0
         );
-        buffer.draw();
+        buffer.endBatch();
         matrices.popMatrix();
     }
 
@@ -310,17 +310,17 @@ public class Text implements RenderElement, Alignable<Text> {
 
     @Override
     public int getParentWidth() {
-        return parent != null ? parent.getWidth() : mc.getWindow().getScaledWidth();
+        return parent != null ? parent.getWidth() : mc.getWindow().getGuiScaledWidth();
     }
 
     @Override
     public int getScaledHeight() {
-        return (int) (scale * mc.textRenderer.fontHeight);
+        return (int) (scale * mc.font.lineHeight);
     }
 
     @Override
     public int getParentHeight() {
-        return parent != null ? parent.getHeight() : mc.getWindow().getScaledHeight();
+        return parent != null ? parent.getHeight() : mc.getWindow().getGuiScaledHeight();
     }
 
     @Override
@@ -345,7 +345,7 @@ public class Text implements RenderElement, Alignable<Text> {
     public static class Builder extends RenderElementBuilder<Text> implements Alignable<Builder> {
         private int x = 0;
         private int y = 0;
-        private net.minecraft.text.Text text = net.minecraft.text.Text.empty();
+        private net.minecraft.network.chat.Component text = net.minecraft.network.chat.Component.empty();
         private int color = 0xFFFFFFFF;
         private double scale = 1;
         private float rotation = 0;
@@ -388,7 +388,7 @@ public class Text implements RenderElement, Alignable<Text> {
          */
         public Builder text(String text) {
             if (text != null) {
-                this.text = net.minecraft.text.Text.literal(text);
+                this.text = net.minecraft.network.chat.Component.literal(text);
             }
             return this;
         }
@@ -454,7 +454,7 @@ public class Text implements RenderElement, Alignable<Text> {
          * @since 1.8.4
          */
         public int getWidth() {
-            return mc.textRenderer.getWidth(text);
+            return mc.font.width(text);
         }
 
         /**
@@ -462,7 +462,7 @@ public class Text implements RenderElement, Alignable<Text> {
          * @since 1.8.4
          */
         public int getHeight() {
-            return mc.textRenderer.fontHeight;
+            return mc.font.lineHeight;
         }
 
         /**

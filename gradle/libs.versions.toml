@@ -2,7 +2,6 @@
 java = "21"
 
 minecraft = "1.21.8"
-yarn = "1"
 
 fabric_loader = "0.17.2"
 

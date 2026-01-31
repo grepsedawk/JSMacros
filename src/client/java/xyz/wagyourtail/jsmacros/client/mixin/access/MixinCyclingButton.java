@@ -1,7 +1,7 @@
 package xyz.wagyourtail.jsmacros.client.mixin.access;
 
-import net.minecraft.client.gui.widget.CyclingButtonWidget;
-import net.minecraft.text.Text;
+import net.minecraft.client.gui.components.CycleButton;
+import net.minecraft.network.chat.Component;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.gen.Invoker;
@@ -12,16 +12,16 @@ import java.util.function.Function;
  * @author Etheradon
  * @since 1.8.4
  */
-@Mixin(CyclingButtonWidget.class)
+@Mixin(CycleButton.class)
 public interface MixinCyclingButton<T> {
 
     @Invoker
-    void invokeCycle(int amount);
+    void invokeCycleValue(int amount);
 
     @Invoker
-    Text invokeComposeText(T value);
+    Component invokeCreateLabelForValue(T value);
 
     @Accessor
-    Function<T, Text> getValueToText();
+    Function<T, Component> getValueStringifier();
 
 }

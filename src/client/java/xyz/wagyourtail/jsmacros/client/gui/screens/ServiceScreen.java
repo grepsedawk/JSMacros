@@ -1,7 +1,7 @@
 package xyz.wagyourtail.jsmacros.client.gui.screens;
 
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.ClickableWidget;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.screens.Screen;
 import xyz.wagyourtail.jsmacros.client.JsMacrosClient;
 import xyz.wagyourtail.jsmacros.client.config.ClientConfigV2;
 import xyz.wagyourtail.jsmacros.client.gui.containers.ServiceContainer;
@@ -34,13 +34,13 @@ public class ServiceScreen extends MacroScreen {
     }
 
     public void addService(String service) {
-        macros.add(new ServiceContainer(this.width / 12, topScroll + macros.size() * 16, this.width * 5 / 6, 14, this.textRenderer, this, service));
+        macros.add(new ServiceContainer(this.width / 12, topScroll + macros.size() * 16, this.width * 5 / 6, 14, this.font, this, service));
         macroScroll.setScrollPages(((macros.size() + 1) * 16) / (double) Math.max(1, this.height - 40));
     }
 
     @Override
     public void removeMacro(MultiElementContainer<MacroScreen> macro) {
-        for (ClickableWidget b : macro.getButtons()) {
+        for (AbstractWidget b : macro.getButtons()) {
             remove(b);
         }
         JsMacrosClient.clientCore.services.unregisterService(((ServiceContainer) macro).service);
@@ -61,18 +61,18 @@ public class ServiceScreen extends MacroScreen {
         if (!file.equals(JsMacrosClient.clientCore.config.macroFolder)) {
             dir = file.getParentFile();
         }
-        openOverlay(new FileChooser(width / 4, height / 4, width / 2, height / 2, this.textRenderer, dir, file, this, ((ServiceContainer) macro)::setFile, this::editFile));
+        openOverlay(new FileChooser(width / 4, height / 4, width / 2, height / 2, this.font, dir, file, this, ((ServiceContainer) macro)::setFile, this::editFile));
     }
 
     @Override
     protected MultiElementContainer<MacroScreen> createTopbar() {
-        return (MultiElementContainer) new ServiceListTopbar(this, this.width / 12, 25, this.width * 5 / 6, 14, this.textRenderer);
+        return (MultiElementContainer) new ServiceListTopbar(this, this.width / 12, 25, this.width * 5 / 6, 14, this.font);
     }
 
     @Override
-    public void close() {
+    public void onClose() {
         JsMacrosClient.clientCore.services.save();
-        super.close();
+        super.onClose();
     }
 
 }

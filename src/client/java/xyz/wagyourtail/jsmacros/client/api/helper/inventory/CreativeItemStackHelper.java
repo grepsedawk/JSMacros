@@ -1,24 +1,24 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.inventory;
 
-import net.minecraft.component.ComponentType;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.ItemEnchantmentsComponent;
-import net.minecraft.component.type.LoreComponent;
-import net.minecraft.component.type.TooltipDisplayComponent;
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.item.ItemStack;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Unit;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.ItemLore;
+import net.minecraft.world.item.component.TooltipDisplay;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
 import xyz.wagyourtail.doclet.DocletReplaceParams;
 import xyz.wagyourtail.jsmacros.client.api.classes.TextBuilder;
 import xyz.wagyourtail.jsmacros.client.api.helper.TextHelper;
 
 import java.util.Arrays;
 
-import static net.minecraft.text.Text.literal;
+import static net.minecraft.network.chat.Component.literal;
 
 /**
  * @author Etheradon
@@ -37,7 +37,7 @@ public class CreativeItemStackHelper extends ItemStackHelper {
      * @since 1.8.4
      */
     public CreativeItemStackHelper setDamage(int damage) {
-        base.setDamage(damage);
+        base.setDamageValue(damage);
         return this;
     }
 
@@ -47,7 +47,7 @@ public class CreativeItemStackHelper extends ItemStackHelper {
      * @since 1.8.4
      */
     public CreativeItemStackHelper setDurability(int durability) {
-        base.setDamage(base.getMaxDamage() - durability);
+        base.setDamageValue(base.getMaxDamage() - durability);
         return this;
     }
 
@@ -67,7 +67,7 @@ public class CreativeItemStackHelper extends ItemStackHelper {
      * @since 1.8.4
      */
     public CreativeItemStackHelper setName(String name) {
-        base.set(DataComponentTypes.CUSTOM_NAME, literal(name));
+        base.set(DataComponents.CUSTOM_NAME, literal(name));
         return this;
     }
 
@@ -77,7 +77,7 @@ public class CreativeItemStackHelper extends ItemStackHelper {
      * @since 1.8.4
      */
     public CreativeItemStackHelper setName(TextHelper name) {
-        base.set(DataComponentTypes.CUSTOM_NAME, name.getRaw());
+        base.set(DataComponents.CUSTOM_NAME, name.getRaw());
         return this;
     }
 
@@ -89,8 +89,8 @@ public class CreativeItemStackHelper extends ItemStackHelper {
      */
     @DocletReplaceParams("id: CanOmitNamespace<EnchantmentId>, level: int")
     public CreativeItemStackHelper addEnchantment(String id, int level) {
-        return addEnchantment(mc.getNetworkHandler().getRegistryManager().getOrThrow(RegistryKeys.ENCHANTMENT)
-                .getEntry(Identifier.of(id)).orElseThrow(), level);
+        return addEnchantment(mc.getConnection().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+                .get(ResourceLocation.parse(id)).orElseThrow(), level);
     }
 
     /**
@@ -102,8 +102,8 @@ public class CreativeItemStackHelper extends ItemStackHelper {
         return addEnchantment(enchantment.getRaw(), enchantment.getLevel());
     }
 
-    protected CreativeItemStackHelper addEnchantment(RegistryEntry<Enchantment> enchantment, int level) {
-        base.addEnchantment(enchantment, level);
+    protected CreativeItemStackHelper addEnchantment(Holder<Enchantment> enchantment, int level) {
+        base.enchant(enchantment, level);
         return this;
     }
 
@@ -112,7 +112,7 @@ public class CreativeItemStackHelper extends ItemStackHelper {
      * @since 1.8.4
      */
     public CreativeItemStackHelper clearEnchantments() {
-        base.set(DataComponentTypes.ENCHANTMENTS, ItemEnchantmentsComponent.DEFAULT);
+        base.set(DataComponents.ENCHANTMENTS, ItemEnchantments.EMPTY);
         return this;
     }
 
@@ -132,9 +132,9 @@ public class CreativeItemStackHelper extends ItemStackHelper {
      */
     @DocletReplaceParams("id: EnchantmentId")
     public CreativeItemStackHelper removeEnchantment(String id) {
-        ItemEnchantmentsComponent enchantments = base.getOrDefault(DataComponentTypes.ENCHANTMENTS, ItemEnchantmentsComponent.DEFAULT);
-        ItemEnchantmentsComponent.Builder builder = new ItemEnchantmentsComponent.Builder(enchantments);
-        builder.remove((e) -> e.matchesId(Identifier.of(id)));
+        ItemEnchantments enchantments = base.getOrDefault(DataComponents.ENCHANTMENTS, ItemEnchantments.EMPTY);
+        ItemEnchantments.Mutable builder = new ItemEnchantments.Mutable(enchantments);
+        builder.removeIf((e) -> e.is(ResourceLocation.parse(id)));
 
         return this;
     }
@@ -144,7 +144,7 @@ public class CreativeItemStackHelper extends ItemStackHelper {
      * @since 1.8.4
      */
     public CreativeItemStackHelper clearLore() {
-        base.set(DataComponentTypes.LORE, LoreComponent.DEFAULT);
+        base.set(DataComponents.LORE, ItemLore.EMPTY);
         return this;
     }
 
@@ -172,7 +172,7 @@ public class CreativeItemStackHelper extends ItemStackHelper {
             } else {
                 return literal(e.toString());
             }
-        }).toArray(Text[]::new));
+        }).toArray(Component[]::new));
     }
 
     /**
@@ -180,8 +180,8 @@ public class CreativeItemStackHelper extends ItemStackHelper {
      * @return self for chaining.
      * @since 1.8.4
      */
-    private CreativeItemStackHelper addLoreInternal(Text... texts) {
-        base.set(DataComponentTypes.LORE, new LoreComponent(Arrays.asList(texts)));
+    private CreativeItemStackHelper addLoreInternal(Component... texts) {
+        base.set(DataComponents.LORE, new ItemLore(Arrays.asList(texts)));
         return this;
     }
 
@@ -192,9 +192,9 @@ public class CreativeItemStackHelper extends ItemStackHelper {
      */
     public CreativeItemStackHelper setUnbreakable(boolean unbreakable) {
         if (unbreakable) {
-            base.set(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE);
+            base.set(DataComponents.UNBREAKABLE, Unit.INSTANCE);
         } else {
-            base.remove(DataComponentTypes.UNBREAKABLE);
+            base.remove(DataComponents.UNBREAKABLE);
         }
         return this;
     }
@@ -205,7 +205,7 @@ public class CreativeItemStackHelper extends ItemStackHelper {
      * @since 1.8.4
      */
     public CreativeItemStackHelper hideEnchantments(boolean hide) {
-        return hideComponent(DataComponentTypes.ENCHANTMENTS, hide);
+        return hideComponent(DataComponents.ENCHANTMENTS, hide);
     }
 
     /**
@@ -214,7 +214,7 @@ public class CreativeItemStackHelper extends ItemStackHelper {
      * @since 1.8.4
      */
     public CreativeItemStackHelper hideModifiers(boolean hide) {
-        return hideComponent(DataComponentTypes.ATTRIBUTE_MODIFIERS, hide);
+        return hideComponent(DataComponents.ATTRIBUTE_MODIFIERS, hide);
     }
 
     /**
@@ -224,7 +224,7 @@ public class CreativeItemStackHelper extends ItemStackHelper {
      */
 
     public CreativeItemStackHelper hideUnbreakable(boolean hide) {
-        return hideComponent(DataComponentTypes.UNBREAKABLE, hide);
+        return hideComponent(DataComponents.UNBREAKABLE, hide);
     }
 
     /**
@@ -233,7 +233,7 @@ public class CreativeItemStackHelper extends ItemStackHelper {
      * @since 1.8.4
      */
     public CreativeItemStackHelper hideCanDestroy(boolean hide) {
-        return hideComponent(DataComponentTypes.CAN_BREAK, hide);
+        return hideComponent(DataComponents.CAN_BREAK, hide);
     }
 
     /**
@@ -242,7 +242,7 @@ public class CreativeItemStackHelper extends ItemStackHelper {
      * @since 1.8.4
      */
     public CreativeItemStackHelper hideCanPlace(boolean hide) {
-        return hideComponent(DataComponentTypes.CAN_PLACE_ON, hide);
+        return hideComponent(DataComponents.CAN_PLACE_ON, hide);
     }
 
     /**
@@ -251,12 +251,12 @@ public class CreativeItemStackHelper extends ItemStackHelper {
      * @since 1.8.4
      */
     public CreativeItemStackHelper hideDye(boolean hide) {
-        return hideComponent(DataComponentTypes.DYED_COLOR, hide);
+        return hideComponent(DataComponents.DYED_COLOR, hide);
     }
 
-    private CreativeItemStackHelper hideComponent(ComponentType<?> type, boolean hide) {
-        base.set(DataComponentTypes.TOOLTIP_DISPLAY,
-            base.getOrDefault(DataComponentTypes.TOOLTIP_DISPLAY, TooltipDisplayComponent.DEFAULT).with(type, hide));
+    private CreativeItemStackHelper hideComponent(DataComponentType<?> type, boolean hide) {
+        base.set(DataComponents.TOOLTIP_DISPLAY,
+            base.getOrDefault(DataComponents.TOOLTIP_DISPLAY, TooltipDisplay.DEFAULT).withHidden(type, hide));
         return this;
     }
 

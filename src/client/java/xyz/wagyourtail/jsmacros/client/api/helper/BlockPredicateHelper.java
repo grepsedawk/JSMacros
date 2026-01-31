@@ -1,9 +1,9 @@
 package xyz.wagyourtail.jsmacros.client.api.helper;
 
-import net.minecraft.block.pattern.CachedBlockPosition;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.predicate.BlockPredicate;
-import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.advancements.critereon.BlockPredicate;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.Holder;
+import net.minecraft.world.level.block.state.pattern.BlockInWorld;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.BlockHelper;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.BlockPosHelper;
@@ -15,7 +15,7 @@ import java.util.List;
  * @since 1.9.1
  */
 public class BlockPredicateHelper extends BaseHelper<BlockPredicate> {
-    private static final MinecraftClient mc = MinecraftClient.getInstance();
+    private static final Minecraft mc = Minecraft.getInstance();
 
     public BlockPredicateHelper(BlockPredicate base) {
         super(base);
@@ -27,7 +27,7 @@ public class BlockPredicateHelper extends BaseHelper<BlockPredicate> {
     @Nullable
     public List<BlockHelper> getBlocks() {
         if (base.blocks().isEmpty()) return null;
-        return base.blocks().get().stream().map(RegistryEntry::value).map(BlockHelper::new).toList();
+        return base.blocks().get().stream().map(Holder::value).map(BlockHelper::new).toList();
     }
 
     /**
@@ -35,8 +35,8 @@ public class BlockPredicateHelper extends BaseHelper<BlockPredicate> {
      */
     @Nullable
     public StatePredicateHelper getStatePredicate() {
-        if (base.state().isEmpty()) return null;
-        return new StatePredicateHelper(base.state().get());
+        if (base.properties().isEmpty()) return null;
+        return new StatePredicateHelper(base.properties().get());
     }
 
     /**
@@ -55,7 +55,7 @@ public class BlockPredicateHelper extends BaseHelper<BlockPredicate> {
      * @return
      */
     public boolean test(BlockPosHelper state) {
-        return base.test(new CachedBlockPosition(mc.world, state.getRaw(), true));
+        return base.matches(new BlockInWorld(mc.level, state.getRaw(), true));
     }
 
 }

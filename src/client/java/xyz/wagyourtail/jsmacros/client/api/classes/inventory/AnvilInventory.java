@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.classes.inventory;
 
-import net.minecraft.client.gui.screen.ingame.AnvilScreen;
+import net.minecraft.client.gui.screens.inventory.AnvilScreen;
 import xyz.wagyourtail.jsmacros.client.api.helper.inventory.ItemStackHelper;
 import xyz.wagyourtail.jsmacros.client.mixin.access.MixinAnvilScreen;
 
@@ -20,7 +20,7 @@ public class AnvilInventory extends Inventory<AnvilScreen> {
      * @since 1.8.4
      */
     public String getName() {
-        return ((MixinAnvilScreen) inventory).getNameField().getText();
+        return ((MixinAnvilScreen) inventory).getName().getValue();
     }
 
     /**
@@ -31,7 +31,7 @@ public class AnvilInventory extends Inventory<AnvilScreen> {
      * @since 1.8.4
      */
     public AnvilInventory setName(String name) {
-        ((MixinAnvilScreen) inventory).getNameField().setText(name);
+        ((MixinAnvilScreen) inventory).getName().setValue(name);
         return this;
     }
 
@@ -40,7 +40,7 @@ public class AnvilInventory extends Inventory<AnvilScreen> {
      * @since 1.8.4
      */
     public int getLevelCost() {
-        return inventory.getScreenHandler().getLevelCost();
+        return inventory.getMenu().getCost();
     }
 
     /**

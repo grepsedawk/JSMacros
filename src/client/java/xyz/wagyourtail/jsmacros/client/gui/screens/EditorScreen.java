@@ -2,20 +2,20 @@ package xyz.wagyourtail.jsmacros.client.gui.screens;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.Drawable;
-import net.minecraft.client.gui.Element;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.resource.language.I18n;
-import net.minecraft.text.OrderedText;
-import net.minecraft.text.Style;
-import net.minecraft.text.Text;
-import net.minecraft.text.TextColor;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.Language;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Renderable;
+import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.locale.Language;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.TextColor;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.FormattedCharSequence;
+import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
 import xyz.wagyourtail.jsmacros.client.JsMacrosClient;
@@ -37,11 +37,16 @@ import xyz.wagyourtail.wagyourgui.overlays.SelectorDropdownOverlay;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class EditorScreen extends BaseScreen {
-    private static final OrderedText ellipses = Text.literal("...").formatted(Formatting.DARK_GRAY).asOrderedText();
+    private static final FormattedCharSequence ellipses = Component.literal("...").withStyle(ChatFormatting.DARK_GRAY).getVisualOrderText();
     public static final List<String> langs = Lists.newArrayList(
             "javascript",
             "lua",
@@ -55,14 +60,14 @@ public class EditorScreen extends BaseScreen {
             "kotlin",
             "none"
     );
-    public static Style defaultStyle = Style.EMPTY.withFont(Identifier.of("jsmacros", "ubuntumono"));
+    public static Style defaultStyle = Style.EMPTY.withFont(ResourceLocation.fromNamespaceAndPath("jsmacros", "ubuntumono"));
     protected final File file;
     protected final FileHandler handler;
     public final History history;
     public final SelectCursor cursor;
     private int ellipsesWidth;
     protected String savedString;
-    protected Text fileName = Text.literal("");
+    protected Component fileName = Component.literal("");
     protected String lineCol = "";
     protected Scrollbar scrollbar;
     protected Button saveBtn;
@@ -77,7 +82,7 @@ public class EditorScreen extends BaseScreen {
     public AbstractRenderCodeCompiler codeCompiler;
 
     public EditorScreen(Screen parent, @NotNull File file) {
-        super(Text.literal("Editor"), parent);
+        super(Component.literal("Editor"), parent);
         this.file = file;
         FileHandler handler = new FileHandler(file);
         String content;
@@ -85,7 +90,7 @@ public class EditorScreen extends BaseScreen {
             try {
                 content = handler.read();
             } catch (IOException e) {
-                content = I18n.translate("jsmacros.erroropening") + e.toString();
+                content = I18n.get("jsmacros.erroropening") + e.toString();
                 handler = null;
             }
         } else {
@@ -94,7 +99,7 @@ public class EditorScreen extends BaseScreen {
         savedString = content;
 
         this.handler = handler;
-        defaultStyle = Style.EMPTY.withFont(Identifier.of(JsMacrosClient.clientCore.config.getOptions(ClientConfigV2.class).editorFont));
+        defaultStyle = Style.EMPTY.withFont(ResourceLocation.parse(JsMacrosClient.clientCore.config.getOptions(ClientConfigV2.class).editorFont));
 
         cursor = new SelectCursor(defaultStyle);
 
@@ -130,7 +135,7 @@ public class EditorScreen extends BaseScreen {
     }
 
     public static void openAndScrollToIndex(@NotNull File file, int startIndex, int endIndex) {
-        MinecraftClient mc = MinecraftClient.getInstance();
+        Minecraft mc = Minecraft.getInstance();
         int finalEndIndex = endIndex == -1 ? startIndex : endIndex;
         mc.execute(() -> {
             EditorScreen screen;
@@ -151,7 +156,7 @@ public class EditorScreen extends BaseScreen {
     }
 
     public static void openAndScrollToLine(@NotNull File file, int line, int col, int endCol) {
-        MinecraftClient mc = MinecraftClient.getInstance();
+        Minecraft mc = Minecraft.getInstance();
         mc.execute(() -> {
             EditorScreen screen;
             try {
@@ -222,16 +227,16 @@ public class EditorScreen extends BaseScreen {
     @Override
     public void init() {
         super.init();
-        assert client != null;
+        assert minecraft != null;
 
-        ellipsesWidth = client.textRenderer.getWidth(ellipses);
-        lineSpread = client.textRenderer.fontHeight + 1;
+        ellipsesWidth = minecraft.font.width(ellipses);
+        lineSpread = minecraft.font.lineHeight + 1;
         int width = this.width - 10;
 
         scrollbar = addDrawableChild(new Scrollbar(width, 12, 10, height - 24, 0, 0xFF000000, 0xFFFFFFFF, 1, this::setScroll));
-        saveBtn = this.addDrawableChild(new Button(width / 2, 0, width / 6, 12, textRenderer, needSave() ? 0xFFA0A000 : 0xFF00A000, 0xFF000000, needSave() ? 0xFF707000 : 0xFF007000, 0xFFFFFFFF, Text.translatable("jsmacros.save"), (btn) -> save()));
-        this.addDrawableChild(new Button(width * 4 / 6, 0, width / 6, 12, textRenderer, 0, 0xFF000000, 0x7FFFFFFF, 0xFFFFFFFF, Text.translatable("jsmacros.close"), (btn) -> openParent()));
-        this.addDrawableChild(new Button(width, 0, 10, 12, textRenderer, 0, 0xFF000000, 0x7FFFFFFF, 0xFFFFFFFF, Text.literal(client.world == null ? "X" : "-"), (btn) -> close()));
+        saveBtn = this.addDrawableChild(new Button(width / 2, 0, width / 6, 12, font, needSave() ? 0xFFA0A000 : 0xFF00A000, 0xFF000000, needSave() ? 0xFF707000 : 0xFF007000, 0xFFFFFFFF, Component.translatable("jsmacros.save"), (btn) -> save()));
+        this.addDrawableChild(new Button(width * 4 / 6, 0, width / 6, 12, font, 0, 0xFF000000, 0x7FFFFFFF, 0xFFFFFFFF, Component.translatable("jsmacros.close"), (btn) -> openParent()));
+        this.addDrawableChild(new Button(width, 0, 10, 12, font, 0, 0xFF000000, 0x7FFFFFFF, 0xFFFFFFFF, Component.literal(minecraft.level == null ? "X" : "-"), (btn) -> onClose()));
 
         if (language == null) {
             setLanguage(getDefaultLanguage());
@@ -258,48 +263,48 @@ public class EditorScreen extends BaseScreen {
             }
         };
 
-        this.addDrawableChild(new Button(this.width - width / 8, height - 12, width / 8, 12, textRenderer, 0, 0xFF000000, 0x7FFFFFFF, 0xFFFFFFFF, Text.literal(language), (btn) -> {
-            int height = langs.size() * (textRenderer.fontHeight + 1) + 4;
-            openOverlay(new SelectorDropdownOverlay(btn.getX(), btn.getY() - height, btn.getWidth(), height, langs.stream().map(Text::literal).collect(Collectors.toList()), textRenderer, this, (i) -> {
+        this.addDrawableChild(new Button(this.width - width / 8, height - 12, width / 8, 12, font, 0, 0xFF000000, 0x7FFFFFFF, 0xFFFFFFFF, Component.literal(language), (btn) -> {
+            int height = langs.size() * (font.lineHeight + 1) + 4;
+            openOverlay(new SelectorDropdownOverlay(btn.getX(), btn.getY() - height, btn.getWidth(), height, langs.stream().map(Component::literal).collect(Collectors.toList()), font, this, (i) -> {
                 setLanguage(langs.get(i));
-                btn.setMessage(Text.literal(langs.get(i)));
+                btn.setMessage(Component.literal(langs.get(i)));
             }));
         }));
 
-        this.addDrawableChild(new Button(this.width - width / 4, height - 12, width / 8, 12, textRenderer, 0, 0xFF000000, 0x7FFFFFFF, 0xFFFFFFFF, Text.translatable("jsmacros.settings"), (btn) -> {
-            openOverlay(new SettingsOverlay(this.width / 4, this.height / 4, this.width / 2, this.height / 2, textRenderer, this));
+        this.addDrawableChild(new Button(this.width - width / 4, height - 12, width / 8, 12, font, 0, 0xFF000000, 0x7FFFFFFF, 0xFFFFFFFF, Component.translatable("jsmacros.settings"), (btn) -> {
+            openOverlay(new SettingsOverlay(this.width / 4, this.height / 4, this.width / 2, this.height / 2, font, this));
         }));
 
-        this.fileName = Text.literal(textRenderer.trimToWidth(file.getName(), (width - 10) / 2));
+        this.fileName = Component.literal(font.plainSubstrByWidth(file.getName(), (width - 10) / 2));
 
         setScroll(0);
         scrollToCursor();
     }
 
     public void copyToClipboard() {
-        assert client != null;
-        client.keyboard.setClipboard(history.current.substring(cursor.startIndex, cursor.endIndex));
+        assert minecraft != null;
+        minecraft.keyboardHandler.setClipboard(history.current.substring(cursor.startIndex, cursor.endIndex));
     }
 
     public void pasteFromClipboard() {
-        assert client != null;
+        assert minecraft != null;
 
-        String pasteContent = client.keyboard.getClipboard();
+        String pasteContent = minecraft.keyboardHandler.getClipboard();
         history.replace(cursor.startIndex, cursor.endIndex - cursor.startIndex, pasteContent);
         compileRenderedText();
     }
 
     public void cutToClipboard() {
-        assert client != null;
+        assert minecraft != null;
 
-        client.keyboard.setClipboard(history.current.substring(cursor.startIndex, cursor.endIndex));
+        minecraft.keyboardHandler.setClipboard(history.current.substring(cursor.startIndex, cursor.endIndex));
         history.replace(cursor.startIndex, cursor.endIndex - cursor.startIndex, "");
         compileRenderedText();
     }
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        assert client != null;
+        assert minecraft != null;
         if (overlay == null) {
             setFocused(null);
         } else if (overlay.keyPressed(keyCode, scanCode, modifiers)) {
@@ -534,11 +539,11 @@ public class EditorScreen extends BaseScreen {
                 return true;
             case GLFW.GLFW_KEY_PAGE_UP:
                 currentPage = scroll / (height - 24.0D);
-                scrollbar.scrollToPercent(MathHelper.clamp((currentPage - 1) / (calcTotalPages() - 1), 0, 1));
+                scrollbar.scrollToPercent(Mth.clamp((currentPage - 1) / (calcTotalPages() - 1), 0, 1));
                 break;
             case GLFW.GLFW_KEY_PAGE_DOWN:
                 currentPage = scroll / (height - 24.0D);
-                scrollbar.scrollToPercent(MathHelper.clamp((currentPage + 1) / (calcTotalPages() - 1), 0, 1));
+                scrollbar.scrollToPercent(Mth.clamp((currentPage + 1) / (calcTotalPages() - 1), 0, 1));
                 return true;
             case GLFW.GLFW_KEY_RIGHT_BRACKET:
                 if (Screen.hasControlDown()) {
@@ -579,19 +584,19 @@ public class EditorScreen extends BaseScreen {
             suggestionList.sort(Comparator.comparing(a -> a.suggestion));
             int startIndex = cursor.startIndex;
             int maxWidth = 0;
-            List<Text> displayList = new LinkedList<>();
+            List<Component> displayList = new LinkedList<>();
             for (AutoCompleteSuggestion sug : suggestionList) {
                 if (sug.startIndex < startIndex) {
                     startIndex = sug.startIndex;
                 }
-                int width = textRenderer.getWidth(sug.displayText);
+                int width = font.width(sug.displayText);
                 if (width > maxWidth) {
                     maxWidth = width;
                 }
                 displayList.add(sug.displayText);
             }
             String[] lines = history.current.substring(0, startIndex).split("\n", -1);
-            int startCol = textRenderer.getWidth(Text.literal(lines[lines.length - 1]).setStyle(defaultStyle));
+            int startCol = font.width(Component.literal(lines[lines.length - 1]).setStyle(defaultStyle));
             int add = lineSpread - scroll % lineSpread;
             if (add == lineSpread) {
                 add = 0;
@@ -599,7 +604,7 @@ public class EditorScreen extends BaseScreen {
             int startRow = (lines.length - firstLine + 1) * lineSpread + add;
 
             openOverlay(
-                    new SelectorDropdownOverlay(startCol + 30, startRow, maxWidth + 8, suggestionList.size() * lineSpread + 4, displayList, textRenderer, this, (i) -> {
+                    new SelectorDropdownOverlay(startCol + 30, startRow, maxWidth + 8, suggestionList.size() * lineSpread + 4, displayList, font, this, (i) -> {
                         if (i == -1) {
                             return;
                         }
@@ -622,7 +627,7 @@ public class EditorScreen extends BaseScreen {
             int pagelength = lastLine - firstLine;
             double scrollLines = history.current.split("\n", -1).length - pagelength;
             cursorLine -= pagelength / 2;
-            scrollbar.scrollToPercent(MathHelper.clamp(cursorLine, 0, scrollLines) / scrollLines);
+            scrollbar.scrollToPercent(Mth.clamp(cursorLine, 0, scrollLines) / scrollLines);
         }
     }
 
@@ -642,7 +647,7 @@ public class EditorScreen extends BaseScreen {
                 saveBtn.setColor(0xFF00A000);
                 saveBtn.setHighlightColor(0xFF707000);
             } catch (IOException e) {
-                openOverlay(new ConfirmOverlay(this.width / 4, height / 4, this.width / 2, height / 2, textRenderer, Text.translatable("jsmacros.errorsaving").append(Text.literal("\n\n" + e.getMessage())), this, null));
+                openOverlay(new ConfirmOverlay(this.width / 4, height / 4, this.width / 2, height / 2, font, Component.translatable("jsmacros.errorsaving").append(Component.literal("\n\n" + e.getMessage())), this, null));
             }
         }
     }
@@ -660,13 +665,13 @@ public class EditorScreen extends BaseScreen {
     }
 
     @Override
-    public void render(DrawContext drawContext, int mouseX, int mouseY, float delta) {
-        assert client != null;
+    public void render(GuiGraphics drawContext, int mouseX, int mouseY, float delta) {
+        assert minecraft != null;
 
-        drawContext.drawTextWithShadow(textRenderer, fileName, 2, 2, 0xFFFFFFFF);
+        drawContext.drawString(font, fileName, 2, 2, 0xFFFFFFFF);
 
-        drawContext.drawTextWithShadow(textRenderer, String.format("%d ms", (int) textRenderTime), 2, height - 10, 0xFFFFFFFF);
-        drawContext.drawTextWithShadow(textRenderer, lineCol, (int) (width - textRenderer.getWidth(lineCol) - (width - 10) / 4F - 2), height - 10, 0xFFFFFFFF);
+        drawContext.drawString(font, String.format("%d ms", (int) textRenderTime), 2, height - 10, 0xFFFFFFFF);
+        drawContext.drawString(font, lineCol, (int) (width - font.width(lineCol) - (width - 10) / 4F - 2), height - 10, 0xFFFFFFFF);
 
         drawContext.fill(0, 12, width - 10, height - 12, 0xFF2B2B2B);
         drawContext.fill(28, 12, 29, height - 12, 0xFF707070);
@@ -682,7 +687,7 @@ public class EditorScreen extends BaseScreen {
         }
         int y = 13;
 
-        final Text[] renderedText = codeCompiler.getRenderedText();
+        final Component[] renderedText = codeCompiler.getRenderedText();
 
         for (int i = 0, j = firstLine; j <= lastLine && j < renderedText.length; ++i, ++j) {
             if (cursor.startLine == j && cursor.endLine == j) {
@@ -694,34 +699,34 @@ public class EditorScreen extends BaseScreen {
             } else if (cursor.endLine == j) {
                 drawContext.fill(29, y + add + i * lineSpread, 30 + cursor.endCol, y + add + (i + 1) * lineSpread, 0xFF33508F);
             }
-            Text lineNum = Text.literal(String.format("%d.", j + 1)).setStyle(lineNumStyle);
-            drawContext.drawText(client.textRenderer, lineNum, 28 - client.textRenderer.getWidth(lineNum), y + add + i * lineSpread, 0xFFFFFFFF, false);
-            drawContext.drawText(client.textRenderer, trim(renderedText[j]), 30, y + add + i * lineSpread, 0xFFFFFFFF, false);
+            Component lineNum = Component.literal(String.format("%d.", j + 1)).setStyle(lineNumStyle);
+            drawContext.drawString(minecraft.font, lineNum, 28 - minecraft.font.width(lineNum), y + add + i * lineSpread, 0xFFFFFFFF, false);
+            drawContext.drawString(minecraft.font, trim(renderedText[j]), 30, y + add + i * lineSpread, 0xFFFFFFFF, false);
         }
 
-        for (Element b : ImmutableList.copyOf(this.children())) {
-            if (b instanceof Drawable) {
-                ((Drawable) b).render(drawContext, mouseX, mouseY, delta);
+        for (GuiEventListener b : ImmutableList.copyOf(this.children())) {
+            if (b instanceof Renderable) {
+                ((Renderable) b).render(drawContext, mouseX, mouseY, delta);
             }
         }
 
         super.render(drawContext, mouseX, mouseY, delta);
     }
 
-    private OrderedText trim(Text text) {
-        assert client != null;
-        if (client.textRenderer.getWidth(text) > width - 30) {
-            OrderedText trimmed = Language.getInstance().reorder(client.textRenderer.trimToWidth(text, width - 40 - ellipsesWidth));
-            return OrderedText.concat(trimmed, ellipses);
+    private FormattedCharSequence trim(Component text) {
+        assert minecraft != null;
+        if (minecraft.font.width(text) > width - 30) {
+            FormattedCharSequence trimmed = Language.getInstance().getVisualOrder(minecraft.font.substrByWidth(text, width - 40 - ellipsesWidth));
+            return FormattedCharSequence.composite(trimmed, ellipses);
         } else {
-            return text.asOrderedText();
+            return text.getVisualOrderText();
         }
     }
 
     @Override
     public void openParent() {
         if (needSave()) {
-            openOverlay(new ConfirmOverlay(width / 4, height / 4, width / 2, height / 2, textRenderer, Text.translatable("jsmacros.nosave"), this, (container) -> super.openParent()));
+            openOverlay(new ConfirmOverlay(width / 4, height / 4, width / 2, height / 2, font, Component.translatable("jsmacros.nosave"), this, (container) -> super.openParent()));
         } else {
             super.openParent();
         }
@@ -773,11 +778,11 @@ public class EditorScreen extends BaseScreen {
         }
         options.put("paste", this::pasteFromClipboard);
         options.putAll(codeCompiler.getRightClickOptions(index));
-        openOverlay(new SelectorDropdownOverlay(mouseX, mouseY, 100, (textRenderer.fontHeight + 1) * options.size() + 4, options.keySet().stream().map(Text::literal).collect(Collectors.toList()), textRenderer, this, i -> options.values().toArray(new Runnable[0])[i].run()));
+        openOverlay(new SelectorDropdownOverlay(mouseX, mouseY, 100, (font.lineHeight + 1) * options.size() + 4, options.keySet().stream().map(Component::literal).collect(Collectors.toList()), font, this, i -> options.values().toArray(new Runnable[0])[i].run()));
     }
 
     private int getIndexPosition(double x, double y) {
-        assert client != null;
+        assert minecraft != null;
         int add = lineSpread - scroll % lineSpread;
         if (add == lineSpread) {
             add = 0;
@@ -792,7 +797,7 @@ public class EditorScreen extends BaseScreen {
             line = lines.length - 1;
             col = lines[lines.length - 1].length();
         } else {
-            col = client.textRenderer.getTextHandler().trimToWidth(lines[line], (int) x, defaultStyle).length();
+            col = minecraft.font.getSplitter().plainHeadByWidth(lines[line], (int) x, defaultStyle).length();
         }
         int count = 0;
         for (int i = 0; i < line; ++i) {
@@ -837,7 +842,7 @@ public class EditorScreen extends BaseScreen {
 
     @Override
     public void updateSettings() {
-        defaultStyle = Style.EMPTY.withFont(Identifier.of(JsMacrosClient.clientCore.config.getOptions(ClientConfigV2.class).editorFont));
+        defaultStyle = Style.EMPTY.withFont(ResourceLocation.parse(JsMacrosClient.clientCore.config.getOptions(ClientConfigV2.class).editorFont));
         cursor.defaultStyle = defaultStyle;
         cursor.updateStartIndex(cursor.startIndex, history.current);
         cursor.updateEndIndex(cursor.endIndex, history.current);

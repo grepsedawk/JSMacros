@@ -1,15 +1,15 @@
 package xyz.wagyourtail.jsmacros.client.api.helper;
 
-import net.minecraft.advancement.AdvancementEntry;
-import net.minecraft.advancement.AdvancementManager;
-import net.minecraft.advancement.AdvancementProgress;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.advancements.AdvancementHolder;
+import net.minecraft.advancements.AdvancementProgress;
+import net.minecraft.advancements.AdvancementTree;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
 import xyz.wagyourtail.doclet.DocletReplaceParams;
 import xyz.wagyourtail.doclet.DocletReplaceReturn;
 import xyz.wagyourtail.jsmacros.client.api.classes.RegistryHelper;
-import xyz.wagyourtail.jsmacros.client.mixin.access.MixinAdvancementManager;
-import xyz.wagyourtail.jsmacros.client.mixin.access.MixinClientAdvancementManager;
+import xyz.wagyourtail.jsmacros.client.mixin.access.MixinAdvancementTree;
+import xyz.wagyourtail.jsmacros.client.mixin.access.MixinClientAdvancements;
 import xyz.wagyourtail.jsmacros.core.helpers.BaseHelper;
 
 import java.util.List;
@@ -23,9 +23,9 @@ import java.util.stream.StreamSupport;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class AdvancementManagerHelper extends BaseHelper<AdvancementManager> {
+public class AdvancementManagerHelper extends BaseHelper<AdvancementTree> {
 
-    public AdvancementManagerHelper(AdvancementManager advancementManager) {
+    public AdvancementManagerHelper(AdvancementTree advancementManager) {
         super(advancementManager);
     }
 
@@ -35,7 +35,7 @@ public class AdvancementManagerHelper extends BaseHelper<AdvancementManager> {
      */
     @DocletReplaceReturn("JavaMap<AdvancementId, AdvancementHelper>")
     public Map<String, AdvancementHelper> getAdvancementsForIdentifiers() {
-        return ((MixinAdvancementManager) base).getAdvancements().entrySet().stream().collect(Collectors.toMap(
+        return ((MixinAdvancementTree) base).getNodes().entrySet().stream().collect(Collectors.toMap(
                 identifierAdvancementEntry -> identifierAdvancementEntry.getKey().toString(),
                 identifierAdvancementEntry -> new AdvancementHelper(identifierAdvancementEntry.getValue())
         ));
@@ -46,7 +46,7 @@ public class AdvancementManagerHelper extends BaseHelper<AdvancementManager> {
      * @since 1.8.4
      */
     public List<AdvancementHelper> getAdvancements() {
-        return base.getAdvancements().stream().map(AdvancementHelper::new).collect(Collectors.toList());
+        return base.nodes().stream().map(AdvancementHelper::new).collect(Collectors.toList());
     }
 
     /**
@@ -57,7 +57,7 @@ public class AdvancementManagerHelper extends BaseHelper<AdvancementManager> {
      * @since 1.8.4
      */
     public List<AdvancementHelper> getStartedAdvancements() {
-        return getProgressStream().filter(progress -> !progress.getValue().isDone() && progress.getValue().isAnyObtained()).map(advancementProgressEntry -> new AdvancementHelper(base.get(advancementProgressEntry.getKey()))).collect(Collectors.toList());
+        return getProgressStream().filter(progress -> !progress.getValue().isDone() && progress.getValue().hasProgress()).map(advancementProgressEntry -> new AdvancementHelper(base.get(advancementProgressEntry.getKey()))).collect(Collectors.toList());
     }
 
     /**
@@ -81,7 +81,7 @@ public class AdvancementManagerHelper extends BaseHelper<AdvancementManager> {
      * @since 1.8.4
      */
     public List<AdvancementHelper> getRootAdvancements() {
-        return StreamSupport.stream(base.getRoots().spliterator(), false).map(AdvancementHelper::new).collect(Collectors.toList());
+        return StreamSupport.stream(base.roots().spliterator(), false).map(AdvancementHelper::new).collect(Collectors.toList());
     }
 
     /**
@@ -89,7 +89,7 @@ public class AdvancementManagerHelper extends BaseHelper<AdvancementManager> {
      * @since 1.8.4
      */
     public List<AdvancementHelper> getSubAdvancements() {
-        return ((MixinAdvancementManager) base).getDependents().stream().map(AdvancementHelper::new).collect(Collectors.toList());
+        return ((MixinAdvancementTree) base).getTasks().stream().map(AdvancementHelper::new).collect(Collectors.toList());
     }
 
     /**
@@ -119,14 +119,14 @@ public class AdvancementManagerHelper extends BaseHelper<AdvancementManager> {
      */
     @DocletReplaceParams("identifier: CanOmitNamespace<AdvancementId>")
     public AdvancementProgressHelper getAdvancementProgress(String identifier) {
-        assert MinecraftClient.getInstance().player != null;
-        return new AdvancementProgressHelper(((MixinClientAdvancementManager) MinecraftClient.getInstance().player.networkHandler.getAdvancementHandler()).getAdvancementProgresses().get(base.get(RegistryHelper.parseIdentifier(identifier)).getAdvancementEntry()));
+        assert Minecraft.getInstance().player != null;
+        return new AdvancementProgressHelper(((MixinClientAdvancements) Minecraft.getInstance().player.connection.getAdvancements()).getProgress().get(base.get(RegistryHelper.parseIdentifier(identifier)).holder()));
     }
 
-    private Stream<Map.Entry<AdvancementEntry, AdvancementProgress>> getProgressStream() {
-        ClientPlayerEntity player = MinecraftClient.getInstance().player;
+    private Stream<Map.Entry<AdvancementHolder, AdvancementProgress>> getProgressStream() {
+        LocalPlayer player = Minecraft.getInstance().player;
         assert player != null;
-        return ((MixinClientAdvancementManager) player.networkHandler.getAdvancementHandler()).getAdvancementProgresses().entrySet().stream();
+        return ((MixinClientAdvancements) player.connection.getAdvancements()).getProgress().entrySet().stream();
     }
 
     @Override

@@ -1,15 +1,15 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive;
 
-import net.minecraft.entity.passive.PolarBearEntity;
+import net.minecraft.world.entity.animal.PolarBear;
 
 /**
  * @author Etheradon
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class PolarBearEntityHelper extends AnimalEntityHelper<PolarBearEntity> {
+public class PolarBearEntityHelper extends AnimalEntityHelper<PolarBear> {
 
-    public PolarBearEntityHelper(PolarBearEntity base) {
+    public PolarBearEntityHelper(PolarBear base) {
         super(base);
     }
 
@@ -18,7 +18,7 @@ public class PolarBearEntityHelper extends AnimalEntityHelper<PolarBearEntity> {
      * @since 1.8.4
      */
     public boolean isAttacking() {
-        return base.isWarning();
+        return base.isStanding();
     }
 
 }

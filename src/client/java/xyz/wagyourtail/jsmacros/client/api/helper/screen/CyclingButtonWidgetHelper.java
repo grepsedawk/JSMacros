@@ -1,7 +1,7 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.screen;
 
-import net.minecraft.client.gui.widget.CyclingButtonWidget;
-import net.minecraft.text.Text;
+import net.minecraft.client.gui.components.CycleButton;
+import net.minecraft.network.chat.Component;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.jsmacros.client.JsMacrosClient;
@@ -20,13 +20,13 @@ import java.util.concurrent.atomic.AtomicReference;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class CyclingButtonWidgetHelper<T> extends ClickableWidgetHelper<CyclingButtonWidgetHelper<T>, CyclingButtonWidget<T>> {
+public class CyclingButtonWidgetHelper<T> extends ClickableWidgetHelper<CyclingButtonWidgetHelper<T>, CycleButton<T>> {
 
-    public CyclingButtonWidgetHelper(CyclingButtonWidget<T> btn) {
+    public CyclingButtonWidgetHelper(CycleButton<T> btn) {
         super(btn);
     }
 
-    public CyclingButtonWidgetHelper(CyclingButtonWidget<T> btn, int zIndex) {
+    public CyclingButtonWidgetHelper(CycleButton<T> btn, int zIndex) {
         super(btn, zIndex);
     }
 
@@ -43,7 +43,7 @@ public class CyclingButtonWidgetHelper<T> extends ClickableWidgetHelper<CyclingB
      * @since 1.8.4
      */
     public String getStringValue() {
-        return ((MixinCyclingButton<T>) this).getValueToText().apply(getValue()).getString();
+        return ((MixinCyclingButton<T>) this).getValueStringifier().apply(getValue()).getString();
     }
 
     /**
@@ -63,7 +63,7 @@ public class CyclingButtonWidgetHelper<T> extends ClickableWidgetHelper<CyclingB
      * @since 1.8.4
      */
     public CyclingButtonWidgetHelper<T> cycle(int amount) {
-        ((MixinCyclingButton) base).invokeCycle(amount);
+        ((MixinCyclingButton) base).invokeCycleValue(amount);
         return this;
     }
 
@@ -92,10 +92,10 @@ public class CyclingButtonWidgetHelper<T> extends ClickableWidgetHelper<CyclingB
      * @author Etheradon
      * @since 1.8.4
      */
-    public static class CyclicButtonBuilder<T> extends AbstractWidgetBuilder<CyclicButtonBuilder<T>, CyclingButtonWidget<T>, CyclingButtonWidgetHelper<T>> {
+    public static class CyclicButtonBuilder<T> extends AbstractWidgetBuilder<CyclicButtonBuilder<T>, CycleButton<T>, CyclingButtonWidgetHelper<T>> {
 
         private T value = null;
-        private Text optionText = Text.empty();
+        private Component optionText = Component.empty();
         @Nullable
         private MethodWrapper<CyclingButtonWidgetHelper<T>, IScreen, Object, ?> action;
         private MethodWrapper<T, ?, TextHelper, ?> valueToText;
@@ -145,7 +145,7 @@ public class CyclingButtonWidgetHelper<T> extends ClickableWidgetHelper<CyclingB
          */
         public CyclicButtonBuilder<T> option(String option) {
             if (option != null) {
-                optionText = Text.literal(option);
+                optionText = Component.literal(option);
             }
             return this;
         }
@@ -312,17 +312,17 @@ public class CyclingButtonWidgetHelper<T> extends ClickableWidgetHelper<CyclingB
         @Override
         public CyclingButtonWidgetHelper<T> createWidget() {
             AtomicReference<CyclingButtonWidgetHelper<T>> b = new AtomicReference<>(null);
-            CyclingButtonWidget.Builder<T> builder = CyclingButtonWidget.builder(obj -> valueToText.apply(obj).getRaw());
+            CycleButton.Builder<T> builder = CycleButton.builder(obj -> valueToText.apply(obj).getRaw());
             if (optionTextOmitted || StringUtils.isBlank(optionText.getString())) {
-                builder.omitKeyText();
+                builder.displayOnlyValue();
             }
             if (alternateToggle != null && !alternateValues.isEmpty()) {
-                builder.values(alternateToggle::get, defaultValues, alternateValues);
+                builder.withValues(alternateToggle::get, defaultValues, alternateValues);
             } else {
-                builder.values(defaultValues);
+                builder.withValues(defaultValues);
             }
-            builder.initially(value);
-            CyclingButtonWidget<T> cyclingButton = builder.build(getX(), getY(), getWidth(), getHeight(), optionText, (btn, val) -> {
+            builder.withInitialValue(value);
+            CycleButton<T> cyclingButton = builder.create(getX(), getY(), getWidth(), getHeight(), optionText, (btn, val) -> {
                 try {
                     if (action != null) {
                         action.accept(b.get(), screen);

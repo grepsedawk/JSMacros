@@ -1,8 +1,8 @@
 package xyz.wagyourtail.jsmacros.client.mixin.events;
 
-import net.minecraft.client.gui.screen.ChatScreen;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.text.Text;
+import net.minecraft.client.gui.screens.ChatScreen;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -13,11 +13,11 @@ import xyz.wagyourtail.jsmacros.client.api.event.impl.EventSendMessage;
 public abstract class MixinChatScreen extends Screen {
 
     //IGNORE
-    protected MixinChatScreen(Text title) {
+    protected MixinChatScreen(Component title) {
         super(title);
     }
 
-    @Inject(method = "sendMessage", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "handleChatInput", at = @At("HEAD"), cancellable = true)
     public void onSendChatMessage(String chatText, boolean addToHistory, CallbackInfo ci) {
         final EventSendMessage event = new EventSendMessage(chatText);
         event.trigger();
@@ -25,12 +25,12 @@ public abstract class MixinChatScreen extends Screen {
             ci.cancel();
         } else if (!event.message.equals(chatText)) {
             ci.cancel();
-            assert this.client != null;
-            assert this.client.player != null;
+            assert this.minecraft != null;
+            assert this.minecraft.player != null;
             if (event.message.startsWith("/")) {
-                this.client.player.networkHandler.sendChatCommand(event.message.substring(1));
+                this.minecraft.player.connection.sendCommand(event.message.substring(1));
             } else {
-                this.client.player.networkHandler.sendChatMessage(event.message);
+                this.minecraft.player.connection.sendChat(event.message);
             }
         }
     }

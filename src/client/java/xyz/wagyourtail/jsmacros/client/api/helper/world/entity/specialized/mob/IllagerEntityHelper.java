@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.mob;
 
-import net.minecraft.entity.mob.IllagerEntity;
+import net.minecraft.world.entity.monster.AbstractIllager;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.MobEntityHelper;
 
 /**
@@ -8,7 +8,7 @@ import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.MobEntityHelper;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class IllagerEntityHelper<T extends IllagerEntity> extends MobEntityHelper<T> {
+public class IllagerEntityHelper<T extends AbstractIllager> extends MobEntityHelper<T> {
 
     public IllagerEntityHelper(T base) {
         super(base);
@@ -20,7 +20,7 @@ public class IllagerEntityHelper<T extends IllagerEntity> extends MobEntityHelpe
 
     public String getState() {
         // Yarn and mojang mappings have the same names
-        switch (base.getState()) {
+        switch (base.getArmPose()) {
             case CROSSED:
                 return "CROSSED";
             case ATTACKING:

@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.mob;
 
-import net.minecraft.entity.mob.PhantomEntity;
+import net.minecraft.world.entity.monster.Phantom;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.MobEntityHelper;
 
 /**
@@ -8,9 +8,9 @@ import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.MobEntityHelper;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class PhantomEntityHelper extends MobEntityHelper<PhantomEntity> {
+public class PhantomEntityHelper extends MobEntityHelper<Phantom> {
 
-    public PhantomEntityHelper(PhantomEntity base) {
+    public PhantomEntityHelper(Phantom base) {
         super(base);
     }
 

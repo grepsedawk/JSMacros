@@ -1,7 +1,7 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world;
 
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3i;
+import net.minecraft.core.Direction;
+import net.minecraft.core.Vec3i;
 import xyz.wagyourtail.jsmacros.api.math.Pos3D;
 import xyz.wagyourtail.jsmacros.core.helpers.BaseHelper;
 
@@ -21,7 +21,7 @@ public class DirectionHelper extends BaseHelper<Direction> {
      * @since 1.8.4
      */
     public String getName() {
-        return base.getId();
+        return base.getName();
     }
 
     /**
@@ -29,7 +29,7 @@ public class DirectionHelper extends BaseHelper<Direction> {
      * @since 1.8.4
      */
     public String getAxis() {
-        return base.getAxis().getId();
+        return base.getAxis().getName();
     }
 
     /**
@@ -54,7 +54,7 @@ public class DirectionHelper extends BaseHelper<Direction> {
      * @since 1.8.4
      */
     public boolean isTowardsPositive() {
-        return base.getDirection().offset() == 1;
+        return base.getAxisDirection().getStep() == 1;
     }
 
     /**
@@ -62,7 +62,7 @@ public class DirectionHelper extends BaseHelper<Direction> {
      * @since 1.8.4
      */
     public float getYaw() {
-        return base.getPositiveHorizontalDegrees();
+        return base.toYRot();
     }
 
     /**
@@ -73,7 +73,7 @@ public class DirectionHelper extends BaseHelper<Direction> {
         if (isHorizontal()) {
             return 0;
         } else {
-            return base.getOffsetY() * 90;
+            return base.getStepY() * 90;
         }
     }
 
@@ -90,7 +90,7 @@ public class DirectionHelper extends BaseHelper<Direction> {
      * @since 1.8.4
      */
     public DirectionHelper getLeft() {
-        return new DirectionHelper(base.rotateYCounterclockwise());
+        return new DirectionHelper(base.getCounterClockWise());
     }
 
     /**
@@ -98,7 +98,7 @@ public class DirectionHelper extends BaseHelper<Direction> {
      * @since 1.8.4
      */
     public DirectionHelper getRight() {
-        return new DirectionHelper(base.rotateYClockwise());
+        return new DirectionHelper(base.getClockWise());
     }
 
     /**
@@ -106,7 +106,7 @@ public class DirectionHelper extends BaseHelper<Direction> {
      * @since 1.8.4
      */
     public Pos3D getVector() {
-        Vec3i vec = base.getVector();
+        Vec3i vec = base.getUnitVec3i();
         return new Pos3D(vec.getX(), vec.getY(), vec.getZ());
     }
 
@@ -117,7 +117,7 @@ public class DirectionHelper extends BaseHelper<Direction> {
      * @since 1.8.4
      */
     public boolean pointsTo(double yaw) {
-        return base.pointsTo((float) yaw);
+        return base.isFacingAngle((float) yaw);
     }
 
     @Override

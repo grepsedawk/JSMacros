@@ -1,8 +1,8 @@
 package xyz.wagyourtail.jsmacros.client.gui.settings.settingfields;
 
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.widget.ClickableWidget;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.AbstractWidget;
 import xyz.wagyourtail.jsmacros.client.gui.settings.SettingsOverlay;
 import xyz.wagyourtail.jsmacros.client.gui.settings.settingcontainer.AbstractSettingContainer;
 import xyz.wagyourtail.wagyourgui.elements.AnnotatedCheckBox;
@@ -11,8 +11,8 @@ import java.lang.reflect.InvocationTargetException;
 
 public class BooleanField extends AbstractSettingField<Boolean> {
 
-    public BooleanField(int x, int y, int width, TextRenderer textRenderer, AbstractSettingContainer parent, SettingsOverlay.SettingField<Boolean> field) {
-        super(x, y, width, textRenderer.fontHeight + 2, textRenderer, parent, field);
+    public BooleanField(int x, int y, int width, Font textRenderer, AbstractSettingContainer parent, SettingsOverlay.SettingField<Boolean> field) {
+        super(x, y, width, textRenderer.lineHeight + 2, textRenderer, parent, field);
     }
 
     @Override
@@ -34,13 +34,13 @@ public class BooleanField extends AbstractSettingField<Boolean> {
     @Override
     public void setPos(int x, int y, int width, int height) {
         super.setPos(x, y, width, height);
-        for (ClickableWidget btn : buttons) {
+        for (AbstractWidget btn : buttons) {
             btn.setY(y);
         }
     }
 
     @Override
-    public void render(DrawContext drawContext, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphics drawContext, int mouseX, int mouseY, float delta) {
 
     }
 

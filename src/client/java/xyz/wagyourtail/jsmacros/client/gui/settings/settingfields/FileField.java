@@ -1,10 +1,10 @@
 package xyz.wagyourtail.jsmacros.client.gui.settings.settingfields;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.widget.ClickableWidget;
-import net.minecraft.text.Text;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.network.chat.Component;
 import xyz.wagyourtail.jsmacros.client.JsMacrosClient;
 import xyz.wagyourtail.jsmacros.client.gui.overlays.FileChooser;
 import xyz.wagyourtail.jsmacros.client.gui.settings.SettingsOverlay;
@@ -17,8 +17,8 @@ import java.lang.reflect.InvocationTargetException;
 
 public class FileField extends AbstractSettingField<String> {
 
-    public FileField(int x, int y, int width, TextRenderer textRenderer, AbstractSettingContainer parent, SettingsOverlay.SettingField<String> field) {
-        super(x, y, width, textRenderer.fontHeight + 2, textRenderer, parent, field);
+    public FileField(int x, int y, int width, Font textRenderer, AbstractSettingContainer parent, SettingsOverlay.SettingField<String> field) {
+        super(x, y, width, textRenderer.lineHeight + 2, textRenderer, parent, field);
     }
 
     public static File getTopLevel(SettingsOverlay.SettingField<?> setting) {
@@ -26,7 +26,7 @@ public class FileField extends AbstractSettingField<String> {
             if (option.startsWith("topLevel=")) {
                 switch (option.replace("topLevel=", "")) {
                     case "MC":
-                        return MinecraftClient.getInstance().runDirectory;
+                        return Minecraft.getInstance().gameDirectory;
                     case "CONFIG":
                         return JsMacrosClient.clientCore.config.configFolder;
                     case "MACRO":
@@ -48,7 +48,7 @@ public class FileField extends AbstractSettingField<String> {
     public void init() {
         super.init();
         try {
-            this.addDrawableChild(new Button(x + width / 2, y, width / 2, height, textRenderer, 0, 0xFF000000, 0x7FFFFFFF, 0xFFFFFFFF, Text.literal(setting.get()), (btn) -> {
+            this.addDrawableChild(new Button(x + width / 2, y, width / 2, height, textRenderer, 0, 0xFF000000, 0x7FFFFFFF, 0xFFFFFFFF, Component.literal(setting.get()), (btn) -> {
                 try {
                     File current = new File(getTopLevel(setting), setting.get());
                     FileChooser fc = new FileChooser(parent.x, parent.y, parent.width, parent.height, textRenderer, current.getParentFile(), current, getFirstOverlayParent(), (file) -> {
@@ -73,14 +73,14 @@ public class FileField extends AbstractSettingField<String> {
     @Override
     public void setPos(int x, int y, int width, int height) {
         super.setPos(x, y, width, height);
-        for (ClickableWidget btn : buttons) {
+        for (AbstractWidget btn : buttons) {
             btn.setY(y);
         }
     }
 
     @Override
-    public void render(DrawContext drawContext, int mouseX, int mouseY, float delta) {
-        drawContext.drawText(textRenderer, BaseScreen.trimmed(textRenderer, settingName, width / 2), x, y + 1, 0xFFFFFFFF, false);
+    public void render(GuiGraphics drawContext, int mouseX, int mouseY, float delta) {
+        drawContext.drawString(textRenderer, BaseScreen.trimmed(textRenderer, settingName, width / 2), x, y + 1, 0xFFFFFFFF, false);
     }
 
 }

@@ -1,11 +1,17 @@
 package xyz.wagyourtail.jsmacros.client.api.classes.render;
 
-import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.screens.Screen;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.jsmacros.api.math.Pos2D;
 import xyz.wagyourtail.jsmacros.api.math.Vec2D;
 import xyz.wagyourtail.jsmacros.client.api.helper.TextHelper;
-import xyz.wagyourtail.jsmacros.client.api.helper.screen.*;
+import xyz.wagyourtail.jsmacros.client.api.helper.screen.ButtonWidgetHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.screen.CheckBoxWidgetHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.screen.ClickableWidgetHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.screen.CyclingButtonWidgetHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.screen.LockButtonWidgetHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.screen.SliderWidgetHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.screen.TextFieldWidgetHelper;
 import xyz.wagyourtail.jsmacros.core.MethodWrapper;
 
 import java.util.List;

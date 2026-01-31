@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive;
 
-import net.minecraft.entity.passive.SheepEntity;
+import net.minecraft.world.entity.animal.sheep.Sheep;
 import xyz.wagyourtail.jsmacros.client.api.helper.DyeColorHelper;
 
 /**
@@ -8,9 +8,9 @@ import xyz.wagyourtail.jsmacros.client.api.helper.DyeColorHelper;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class SheepEntityHelper extends AnimalEntityHelper<SheepEntity> {
+public class SheepEntityHelper extends AnimalEntityHelper<Sheep> {
 
-    public SheepEntityHelper(SheepEntity base) {
+    public SheepEntityHelper(Sheep base) {
         super(base);
     }
 
@@ -27,7 +27,7 @@ public class SheepEntityHelper extends AnimalEntityHelper<SheepEntity> {
      * @since 1.8.4
      */
     public boolean isShearable() {
-        return base.isShearable();
+        return base.readyForShearing();
     }
 
     /**

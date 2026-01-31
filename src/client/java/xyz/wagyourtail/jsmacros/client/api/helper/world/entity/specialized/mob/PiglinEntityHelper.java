@@ -1,16 +1,16 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.mob;
 
-import net.minecraft.entity.mob.PiglinActivity;
-import net.minecraft.entity.mob.PiglinEntity;
+import net.minecraft.world.entity.monster.piglin.Piglin;
+import net.minecraft.world.entity.monster.piglin.PiglinArmPose;
 
 /**
  * @author Etheradon
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class PiglinEntityHelper extends AbstractPiglinEntityHelper<PiglinEntity> {
+public class PiglinEntityHelper extends AbstractPiglinEntityHelper<Piglin> {
 
-    public PiglinEntityHelper(PiglinEntity base) {
+    public PiglinEntityHelper(Piglin base) {
         super(base);
     }
 
@@ -19,7 +19,7 @@ public class PiglinEntityHelper extends AbstractPiglinEntityHelper<PiglinEntity>
      * @since 1.8.4
      */
     public boolean isWandering() {
-        return base.getActivity() == PiglinActivity.DEFAULT;
+        return base.getArmPose() == PiglinArmPose.DEFAULT;
     }
 
     /**
@@ -35,7 +35,7 @@ public class PiglinEntityHelper extends AbstractPiglinEntityHelper<PiglinEntity>
      * @since 1.8.4
      */
     public boolean isAdmiring() {
-        return base.getActivity() == PiglinActivity.ADMIRING_ITEM;
+        return base.getArmPose() == PiglinArmPose.ADMIRING_ITEM;
     }
 
     /**
@@ -43,7 +43,7 @@ public class PiglinEntityHelper extends AbstractPiglinEntityHelper<PiglinEntity>
      * @since 1.8.4
      */
     public boolean isMeleeAttacking() {
-        return base.getActivity() == PiglinActivity.ATTACKING_WITH_MELEE_WEAPON;
+        return base.getArmPose() == PiglinArmPose.ATTACKING_WITH_MELEE_WEAPON;
     }
 
     /**
@@ -52,7 +52,7 @@ public class PiglinEntityHelper extends AbstractPiglinEntityHelper<PiglinEntity>
      * @since 1.8.4
      */
     public boolean isChargingCrossbow() {
-        return base.getActivity() == PiglinActivity.CROSSBOW_CHARGE;
+        return base.getArmPose() == PiglinArmPose.CROSSBOW_CHARGE;
     }
 
     /**
@@ -60,7 +60,7 @@ public class PiglinEntityHelper extends AbstractPiglinEntityHelper<PiglinEntity>
      * @since 1.8.4
      */
     public boolean hasCrossbowReady() {
-        return base.getActivity() == PiglinActivity.CROSSBOW_HOLD;
+        return base.getArmPose() == PiglinArmPose.CROSSBOW_HOLD;
     }
 
 }

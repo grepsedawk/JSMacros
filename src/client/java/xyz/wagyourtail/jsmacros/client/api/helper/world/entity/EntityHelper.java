@@ -1,34 +1,94 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.render.debug.DebugRenderer;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.ItemEntity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.boss.WitherEntity;
-import net.minecraft.entity.boss.dragon.EnderDragonEntity;
-import net.minecraft.entity.decoration.*;
-import net.minecraft.entity.decoration.painting.PaintingEntity;
-import net.minecraft.entity.mob.*;
-import net.minecraft.entity.passive.*;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.projectile.*;
-import net.minecraft.entity.vehicle.BoatEntity;
-import net.minecraft.entity.vehicle.FurnaceMinecartEntity;
-import net.minecraft.entity.vehicle.TntMinecartEntity;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.storage.NbtWriteView;
-import net.minecraft.storage.WriteView;
-import net.minecraft.util.ErrorReporter;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.hit.HitResult;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.renderer.debug.DebugRenderer;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.Mth;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.entity.Display;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.Interaction;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.TamableAnimal;
+import net.minecraft.world.entity.ambient.Bat;
+import net.minecraft.world.entity.animal.AbstractFish;
+import net.minecraft.world.entity.animal.Animal;
+import net.minecraft.world.entity.animal.Bee;
+import net.minecraft.world.entity.animal.Cat;
+import net.minecraft.world.entity.animal.Dolphin;
+import net.minecraft.world.entity.animal.Fox;
+import net.minecraft.world.entity.animal.IronGolem;
+import net.minecraft.world.entity.animal.MushroomCow;
+import net.minecraft.world.entity.animal.Ocelot;
+import net.minecraft.world.entity.animal.Panda;
+import net.minecraft.world.entity.animal.Parrot;
+import net.minecraft.world.entity.animal.Pig;
+import net.minecraft.world.entity.animal.PolarBear;
+import net.minecraft.world.entity.animal.Pufferfish;
+import net.minecraft.world.entity.animal.Rabbit;
+import net.minecraft.world.entity.animal.SnowGolem;
+import net.minecraft.world.entity.animal.TropicalFish;
+import net.minecraft.world.entity.animal.allay.Allay;
+import net.minecraft.world.entity.animal.axolotl.Axolotl;
+import net.minecraft.world.entity.animal.frog.Frog;
+import net.minecraft.world.entity.animal.goat.Goat;
+import net.minecraft.world.entity.animal.horse.AbstractChestedHorse;
+import net.minecraft.world.entity.animal.horse.AbstractHorse;
+import net.minecraft.world.entity.animal.horse.Horse;
+import net.minecraft.world.entity.animal.horse.Llama;
+import net.minecraft.world.entity.animal.sheep.Sheep;
+import net.minecraft.world.entity.animal.wolf.Wolf;
+import net.minecraft.world.entity.boss.enderdragon.EndCrystal;
+import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
+import net.minecraft.world.entity.boss.wither.WitherBoss;
+import net.minecraft.world.entity.decoration.ArmorStand;
+import net.minecraft.world.entity.decoration.ItemFrame;
+import net.minecraft.world.entity.decoration.Painting;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.monster.AbstractIllager;
+import net.minecraft.world.entity.monster.Blaze;
+import net.minecraft.world.entity.monster.Creeper;
+import net.minecraft.world.entity.monster.Drowned;
+import net.minecraft.world.entity.monster.EnderMan;
+import net.minecraft.world.entity.monster.Ghast;
+import net.minecraft.world.entity.monster.Guardian;
+import net.minecraft.world.entity.monster.Phantom;
+import net.minecraft.world.entity.monster.Pillager;
+import net.minecraft.world.entity.monster.Shulker;
+import net.minecraft.world.entity.monster.Slime;
+import net.minecraft.world.entity.monster.SpellcasterIllager;
+import net.minecraft.world.entity.monster.Spider;
+import net.minecraft.world.entity.monster.Strider;
+import net.minecraft.world.entity.monster.Vex;
+import net.minecraft.world.entity.monster.Vindicator;
+import net.minecraft.world.entity.monster.Witch;
+import net.minecraft.world.entity.monster.Zombie;
+import net.minecraft.world.entity.monster.ZombieVillager;
+import net.minecraft.world.entity.monster.piglin.AbstractPiglin;
+import net.minecraft.world.entity.monster.piglin.Piglin;
+import net.minecraft.world.entity.monster.warden.Warden;
+import net.minecraft.world.entity.npc.AbstractVillager;
+import net.minecraft.world.entity.npc.Villager;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.Arrow;
+import net.minecraft.world.entity.projectile.FishingHook;
+import net.minecraft.world.entity.projectile.Projectile;
+import net.minecraft.world.entity.projectile.ThrownTrident;
+import net.minecraft.world.entity.projectile.WitherSkull;
+import net.minecraft.world.entity.vehicle.Boat;
+import net.minecraft.world.entity.vehicle.MinecartFurnace;
+import net.minecraft.world.entity.vehicle.MinecartTNT;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.doclet.DocletReplaceParams;
@@ -54,9 +114,58 @@ import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.displ
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.display.DisplayEntityHelper;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.display.ItemDisplayEntityHelper;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.display.TextDisplayEntityHelper;
-import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.mob.*;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.mob.AbstractPiglinEntityHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.mob.BlazeEntityHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.mob.CreeperEntityHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.mob.DrownedEntityHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.mob.EndermanEntityHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.mob.GhastEntityHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.mob.GuardianEntityHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.mob.IllagerEntityHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.mob.PhantomEntityHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.mob.PiglinEntityHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.mob.PillagerEntityHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.mob.ShulkerEntityHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.mob.SlimeEntityHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.mob.SpellcastingIllagerEntityHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.mob.SpiderEntityHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.mob.VexEntityHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.mob.VindicatorEntityHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.mob.WardenEntityHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.mob.WitchEntityHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.mob.ZombieEntityHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.mob.ZombieVillagerEntityHelper;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.other.InteractionEntityHelper;
-import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive.*;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive.AbstractHorseEntityHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive.AllayEntityHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive.AnimalEntityHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive.AxolotlEntityHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive.BatEntityHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive.BeeEntityHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive.CatEntityHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive.DolphinEntityHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive.DonkeyEntityHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive.FishEntityHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive.FoxEntityHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive.FrogEntityHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive.GoatEntityHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive.HorseEntityHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive.IronGolemEntityHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive.LlamaEntityHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive.MooshroomEntityHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive.OcelotEntityHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive.PandaEntityHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive.ParrotEntityHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive.PigEntityHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive.PolarBearEntityHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive.PufferfishEntityHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive.RabbitEntityHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive.SheepEntityHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive.SnowGolemEntityHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive.StriderEntityHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive.TameableEntityHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive.TropicalFishEntityHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive.WolfEntityHelper;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.projectile.ArrowEntityHelper;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.projectile.FishingBobberEntityHelper;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.projectile.TridentEntityHelper;
@@ -95,7 +204,7 @@ public class EntityHelper<T extends Entity> extends BaseHelper<T> {
      * @since 1.6.5
      */
     public BlockPosHelper getBlockPos() {
-        return new BlockPosHelper(base.getBlockPos());
+        return new BlockPosHelper(base.blockPosition());
     }
 
     /**
@@ -103,7 +212,7 @@ public class EntityHelper<T extends Entity> extends BaseHelper<T> {
      * @since 1.8.4
      */
     public Pos3D getEyePos() {
-        return new Pos3D(base.getEyePos());
+        return new Pos3D(base.getEyePosition());
     }
 
     /**
@@ -111,7 +220,7 @@ public class EntityHelper<T extends Entity> extends BaseHelper<T> {
      * @since 1.6.5
      */
     public Pos2D getChunkPos() {
-        return new Pos2D(base.getChunkPos().x, base.getChunkPos().z);
+        return new Pos2D(base.chunkPosition().x, base.chunkPosition().z);
     }
 
     /**
@@ -151,7 +260,7 @@ public class EntityHelper<T extends Entity> extends BaseHelper<T> {
      * @since 1.0.8
      */
     public float getPitch() {
-        return base.getPitch();
+        return base.getXRot();
     }
 
     /**
@@ -159,7 +268,7 @@ public class EntityHelper<T extends Entity> extends BaseHelper<T> {
      * @since 1.0.8
      */
     public float getYaw() {
-        return MathHelper.wrapDegrees(base.getYaw());
+        return Mth.wrapDegrees(base.getYRot());
     }
 
     /**
@@ -175,7 +284,7 @@ public class EntityHelper<T extends Entity> extends BaseHelper<T> {
      */
     @DocletReplaceReturn("EntityId")
     public String getType() {
-        return EntityType.getId(base.getType()).toString();
+        return EntityType.getKey(base.getType()).toString();
     }
 
     /**
@@ -194,7 +303,7 @@ public class EntityHelper<T extends Entity> extends BaseHelper<T> {
      * @since 1.1.9
      */
     public boolean isGlowing() {
-        return base.isGlowing();
+        return base.isCurrentlyGlowing();
     }
 
     /**
@@ -218,7 +327,7 @@ public class EntityHelper<T extends Entity> extends BaseHelper<T> {
      * @since 1.8.4
      */
     public boolean isSneaking() {
-        return base.isSneaking();
+        return base.isShiftKeyDown();
     }
 
     /**
@@ -247,12 +356,12 @@ public class EntityHelper<T extends Entity> extends BaseHelper<T> {
      */
     @Nullable
     public BlockDataHelper rayTraceBlock(double distance, boolean fluid) {
-        BlockHitResult h = (BlockHitResult) base.raycast(distance, 0, fluid);
+        BlockHitResult h = (BlockHitResult) base.pick(distance, 0, fluid);
         if (h.getType() == HitResult.Type.MISS) {
             return null;
         }
-        BlockState b = base.getWorld().getBlockState(h.getBlockPos());
-        BlockEntity t = base.getWorld().getBlockEntity(h.getBlockPos());
+        BlockState b = base.level().getBlockState(h.getBlockPos());
+        BlockEntity t = base.level().getBlockEntity(h.getBlockPos());
         if (b.getBlock().equals(Blocks.VOID_AIR)) {
             return null;
         }
@@ -276,7 +385,7 @@ public class EntityHelper<T extends Entity> extends BaseHelper<T> {
      */
     @Nullable
     public List<EntityHelper<?>> getPassengers() {
-        List<EntityHelper<?>> entities = base.getPassengerList().stream().map(EntityHelper::create).collect(Collectors.toList());
+        List<EntityHelper<?>> entities = base.getPassengers().stream().map(EntityHelper::create).collect(Collectors.toList());
         return entities.size() == 0 ? null : entities;
 
     }
@@ -286,13 +395,13 @@ public class EntityHelper<T extends Entity> extends BaseHelper<T> {
      * @since 1.2.8, was a {@link String} until 1.5.0
      */
     public NBTElementHelper.NBTCompoundHelper getNBT() {
-        NbtCompound nbt = new NbtCompound();
-        WriteView view = NbtWriteView.create(
-                ErrorReporter.EMPTY,
-                Objects.requireNonNull(mc.getNetworkHandler()).getRegistryManager()
+        CompoundTag nbt = new CompoundTag();
+        ValueOutput view = TagValueOutput.createWithContext(
+                ProblemReporter.DISCARDING,
+                Objects.requireNonNull(mc.getConnection()).registryAccess()
         );
-        base.writeData(view);
-        NbtCompound result = ((NbtWriteView) view).getNbt();
+        base.saveWithoutId(view);
+        CompoundTag result = ((TagValueOutput) view).buildResult();
         return NBTElementHelper.wrapCompound(result);
     }
 
@@ -343,7 +452,7 @@ public class EntityHelper<T extends Entity> extends BaseHelper<T> {
      * @since 1.8.2
      */
     public int getGlowingColor() {
-        return base.getTeamColorValue();
+        return base.getTeamColor();
     }
 
     /**
@@ -384,7 +493,7 @@ public class EntityHelper<T extends Entity> extends BaseHelper<T> {
      * @since 1.6.5
      */
     public String getUUID() {
-        return base.getUuid().toString();
+        return base.getUUID().toString();
     }
 
     /**
@@ -392,7 +501,7 @@ public class EntityHelper<T extends Entity> extends BaseHelper<T> {
      * @since 1.8.4
      */
     public int getMaxAir() {
-        return base.getMaxAir();
+        return base.getMaxAirSupply();
     }
 
     /**
@@ -400,7 +509,7 @@ public class EntityHelper<T extends Entity> extends BaseHelper<T> {
      * @since 1.8.4
      */
     public int getAir() {
-        return base.getAir();
+        return base.getAirSupply();
     }
 
     /**
@@ -408,8 +517,8 @@ public class EntityHelper<T extends Entity> extends BaseHelper<T> {
      * @since 1.8.4
      */
     public double getSpeed() {
-        double dx = Math.abs(base.getX() - base.lastX);
-        double dz = Math.abs(base.getZ() - base.lastZ);
+        double dx = Math.abs(base.getX() - base.xo);
+        double dz = Math.abs(base.getZ() - base.zo);
         return Math.sqrt(dx * dx + dz * dz) * 20;
     }
 
@@ -418,7 +527,7 @@ public class EntityHelper<T extends Entity> extends BaseHelper<T> {
      * @since 1.8.4
      */
     public DirectionHelper getFacingDirection() {
-        return new DirectionHelper(base.getHorizontalFacing());
+        return new DirectionHelper(base.getDirection());
     }
 
     /**
@@ -434,7 +543,7 @@ public class EntityHelper<T extends Entity> extends BaseHelper<T> {
      * @since 1.8.4
      */
     public double distanceTo(BlockPosHelper pos) {
-        return Math.sqrt(pos.getRaw().getSquaredDistance(base.getPos()));
+        return Math.sqrt(pos.getRaw().distToCenterSqr(base.position()));
     }
 
     /**
@@ -442,7 +551,7 @@ public class EntityHelper<T extends Entity> extends BaseHelper<T> {
      * @since 1.8.4
      */
     public double distanceTo(Pos3D pos) {
-        return Math.sqrt(base.squaredDistanceTo(pos.getX(), pos.getY(), pos.getZ()));
+        return Math.sqrt(base.distanceToSqr(pos.getX(), pos.getY(), pos.getZ()));
     }
 
     /**
@@ -450,7 +559,7 @@ public class EntityHelper<T extends Entity> extends BaseHelper<T> {
      * @since 1.8.4
      */
     public double distanceTo(double x, double y, double z) {
-        return Math.sqrt(base.squaredDistanceTo(x, y, z));
+        return Math.sqrt(base.distanceToSqr(x, y, z));
     }
 
     /**
@@ -458,7 +567,7 @@ public class EntityHelper<T extends Entity> extends BaseHelper<T> {
      * @since 1.8.4
      */
     public Pos3D getVelocity() {
-        return new Pos3D(base.getVelocity().x, base.getVelocity().y, base.getVelocity().z);
+        return new Pos3D(base.getDeltaMovement().x, base.getDeltaMovement().y, base.getDeltaMovement().z);
     }
 
     /**
@@ -466,7 +575,7 @@ public class EntityHelper<T extends Entity> extends BaseHelper<T> {
      * @since 1.8.4
      */
     public ChunkHelper getChunk() {
-        return new ChunkHelper(base.getWorld().getChunk(base.getBlockPos()));
+        return new ChunkHelper(base.level().getChunk(base.blockPosition()));
     }
 
     /**
@@ -475,7 +584,7 @@ public class EntityHelper<T extends Entity> extends BaseHelper<T> {
      */
     @DocletReplaceReturn("Biome")
     public String getBiome() {
-        return MinecraftClient.getInstance().world.getRegistryManager().getOrThrow(RegistryKeys.BIOME).getId(MinecraftClient.getInstance().world.getBiome(base.getBlockPos()).value()).toString();
+        return Minecraft.getInstance().level.registryAccess().lookupOrThrow(Registries.BIOME).getKey(Minecraft.getInstance().level.getBiome(base.blockPosition()).value()).toString();
     }
 
     @Override
@@ -493,188 +602,188 @@ public class EntityHelper<T extends Entity> extends BaseHelper<T> {
         Objects.requireNonNull(e, "Entity cannot be null.");
 
         // Players
-        if (e instanceof ClientPlayerEntity) {
-            return new ClientPlayerEntityHelper<>((ClientPlayerEntity) e);
+        if (e instanceof LocalPlayer) {
+            return new ClientPlayerEntityHelper<>((LocalPlayer) e);
         }
-        if (e instanceof PlayerEntity) {
-            return new PlayerEntityHelper<>((PlayerEntity) e);
+        if (e instanceof Player) {
+            return new PlayerEntityHelper<>((Player) e);
         }
 
-        if (e instanceof MobEntity) {
+        if (e instanceof Mob) {
             // Merchants
-            if (e instanceof VillagerEntity) {
-                return new VillagerEntityHelper((VillagerEntity) e);
+            if (e instanceof Villager) {
+                return new VillagerEntityHelper((Villager) e);
             }
-            if (e instanceof MerchantEntity) {
-                return new MerchantEntityHelper<>((MerchantEntity) e);
+            if (e instanceof AbstractVillager) {
+                return new MerchantEntityHelper<>((AbstractVillager) e);
             }
 
             // Bosses
-            if (e instanceof EnderDragonEntity) {
-                return new EnderDragonEntityHelper(((EnderDragonEntity) e));
-            } else if (e instanceof WitherEntity) {
-                return new WitherEntityHelper(((WitherEntity) e));
+            if (e instanceof EnderDragon) {
+                return new EnderDragonEntityHelper(((EnderDragon) e));
+            } else if (e instanceof WitherBoss) {
+                return new WitherEntityHelper(((WitherBoss) e));
             }
 
             // Hostile mobs
-            if (e instanceof AbstractPiglinEntity) {
-                if (e instanceof PiglinEntity) {
-                    return new PiglinEntityHelper(((PiglinEntity) e));
+            if (e instanceof AbstractPiglin) {
+                if (e instanceof Piglin) {
+                    return new PiglinEntityHelper(((Piglin) e));
                 } else {
-                    return new AbstractPiglinEntityHelper<>(((AbstractPiglinEntity) e));
+                    return new AbstractPiglinEntityHelper<>(((AbstractPiglin) e));
                 }
-            } else if (e instanceof CreeperEntity) {
-                return new CreeperEntityHelper(((CreeperEntity) e));
-            } else if (e instanceof ZombieEntity) {
-                if (e instanceof DrownedEntity) {
-                    return new DrownedEntityHelper(((DrownedEntity) e));
-                } else if (e instanceof ZombieVillagerEntity) {
-                    return new ZombieVillagerEntityHelper(((ZombieVillagerEntity) e));
+            } else if (e instanceof Creeper) {
+                return new CreeperEntityHelper(((Creeper) e));
+            } else if (e instanceof Zombie) {
+                if (e instanceof Drowned) {
+                    return new DrownedEntityHelper(((Drowned) e));
+                } else if (e instanceof ZombieVillager) {
+                    return new ZombieVillagerEntityHelper(((ZombieVillager) e));
                 } else {
-                    return new ZombieEntityHelper<>(((ZombieEntity) e));
+                    return new ZombieEntityHelper<>(((Zombie) e));
                 }
-            } else if (e instanceof EndermanEntity) {
-                return new EndermanEntityHelper(((EndermanEntity) e));
-            } else if (e instanceof GhastEntity) {
-                return new GhastEntityHelper(((GhastEntity) e));
-            } else if (e instanceof BlazeEntity) {
-                return new BlazeEntityHelper(((BlazeEntity) e));
-            } else if (e instanceof GuardianEntity) {
-                return new GuardianEntityHelper(((GuardianEntity) e));
-            } else if (e instanceof PhantomEntity) {
-                return new PhantomEntityHelper(((PhantomEntity) e));
-            } else if (e instanceof IllagerEntity) {
-                if (e instanceof VindicatorEntity) {
-                    return new VindicatorEntityHelper(((VindicatorEntity) e));
-                } else if (e instanceof PillagerEntity) {
-                    return new PillagerEntityHelper(((PillagerEntity) e));
-                } else if (e instanceof SpellcastingIllagerEntity) {
-                    return new SpellcastingIllagerEntityHelper<>(((SpellcastingIllagerEntity) e));
+            } else if (e instanceof EnderMan) {
+                return new EndermanEntityHelper(((EnderMan) e));
+            } else if (e instanceof Ghast) {
+                return new GhastEntityHelper(((Ghast) e));
+            } else if (e instanceof Blaze) {
+                return new BlazeEntityHelper(((Blaze) e));
+            } else if (e instanceof Guardian) {
+                return new GuardianEntityHelper(((Guardian) e));
+            } else if (e instanceof Phantom) {
+                return new PhantomEntityHelper(((Phantom) e));
+            } else if (e instanceof AbstractIllager) {
+                if (e instanceof Vindicator) {
+                    return new VindicatorEntityHelper(((Vindicator) e));
+                } else if (e instanceof Pillager) {
+                    return new PillagerEntityHelper(((Pillager) e));
+                } else if (e instanceof SpellcasterIllager) {
+                    return new SpellcastingIllagerEntityHelper<>(((SpellcasterIllager) e));
                 } else {
-                    return new IllagerEntityHelper<>(((IllagerEntity) e));
+                    return new IllagerEntityHelper<>(((AbstractIllager) e));
                 }
-            } else if (e instanceof ShulkerEntity) {
-                return new ShulkerEntityHelper(((ShulkerEntity) e));
-            } else if (e instanceof SlimeEntity) {
-                return new SlimeEntityHelper(((SlimeEntity) e));
-            } else if (e instanceof SpiderEntity) {
-                return new SpiderEntityHelper(((SpiderEntity) e));
-            } else if (e instanceof VexEntity) {
-                return new VexEntityHelper(((VexEntity) e));
-            } else if (e instanceof WardenEntity) {
-                return new WardenEntityHelper(((WardenEntity) e));
-            } else if (e instanceof WitchEntity) {
-                return new WitchEntityHelper(((WitchEntity) e));
+            } else if (e instanceof Shulker) {
+                return new ShulkerEntityHelper(((Shulker) e));
+            } else if (e instanceof Slime) {
+                return new SlimeEntityHelper(((Slime) e));
+            } else if (e instanceof Spider) {
+                return new SpiderEntityHelper(((Spider) e));
+            } else if (e instanceof Vex) {
+                return new VexEntityHelper(((Vex) e));
+            } else if (e instanceof Warden) {
+                return new WardenEntityHelper(((Warden) e));
+            } else if (e instanceof Witch) {
+                return new WitchEntityHelper(((Witch) e));
             }
 
             // Animals
-            if (e instanceof AnimalEntity) {
-                if (e instanceof AbstractHorseEntity) {
-                    if (e instanceof HorseEntity) {
-                        return new HorseEntityHelper(((HorseEntity) e));
-                    } else if (e instanceof AbstractDonkeyEntity) {
-                        if (e instanceof LlamaEntity) {
-                            return new LlamaEntityHelper<>(((LlamaEntity) e));
+            if (e instanceof Animal) {
+                if (e instanceof AbstractHorse) {
+                    if (e instanceof Horse) {
+                        return new HorseEntityHelper(((Horse) e));
+                    } else if (e instanceof AbstractChestedHorse) {
+                        if (e instanceof Llama) {
+                            return new LlamaEntityHelper<>(((Llama) e));
                         } else {
-                            return new DonkeyEntityHelper<>(((AbstractDonkeyEntity) e));
+                            return new DonkeyEntityHelper<>(((AbstractChestedHorse) e));
                         }
                     } else {
-                        return new AbstractHorseEntityHelper<>(((AbstractHorseEntity) e));
+                        return new AbstractHorseEntityHelper<>(((AbstractHorse) e));
                     }
-                } else if (e instanceof AxolotlEntity) {
-                    return new AxolotlEntityHelper(((AxolotlEntity) e));
-                } else if (e instanceof BeeEntity) {
-                    return new BeeEntityHelper(((BeeEntity) e));
-                } else if (e instanceof FoxEntity) {
-                    return new FoxEntityHelper(((FoxEntity) e));
-                } else if (e instanceof FrogEntity) {
-                    return new FrogEntityHelper(((FrogEntity) e));
-                } else if (e instanceof GoatEntity) {
-                    return new GoatEntityHelper(((GoatEntity) e));
-                } else if (e instanceof MooshroomEntity) {
-                    return new MooshroomEntityHelper(((MooshroomEntity) e));
-                } else if (e instanceof OcelotEntity) {
-                    return new OcelotEntityHelper(((OcelotEntity) e));
-                } else if (e instanceof PandaEntity) {
-                    return new PandaEntityHelper(((PandaEntity) e));
-                } else if (e instanceof PigEntity) {
-                    return new PigEntityHelper(((PigEntity) e));
-                } else if (e instanceof PolarBearEntity) {
-                    return new PolarBearEntityHelper(((PolarBearEntity) e));
-                } else if (e instanceof RabbitEntity) {
-                    return new RabbitEntityHelper(((RabbitEntity) e));
-                } else if (e instanceof SheepEntity) {
-                    return new SheepEntityHelper(((SheepEntity) e));
-                } else if (e instanceof StriderEntity) {
-                    return new StriderEntityHelper(((StriderEntity) e));
-                } else if (e instanceof TameableEntity) {
-                    if (e instanceof CatEntity) {
-                        return new CatEntityHelper(((CatEntity) e));
-                    } else if (e instanceof WolfEntity) {
-                        return new WolfEntityHelper(((WolfEntity) e));
-                    } else if (e instanceof ParrotEntity) {
-                        return new ParrotEntityHelper(((ParrotEntity) e));
+                } else if (e instanceof Axolotl) {
+                    return new AxolotlEntityHelper(((Axolotl) e));
+                } else if (e instanceof Bee) {
+                    return new BeeEntityHelper(((Bee) e));
+                } else if (e instanceof Fox) {
+                    return new FoxEntityHelper(((Fox) e));
+                } else if (e instanceof Frog) {
+                    return new FrogEntityHelper(((Frog) e));
+                } else if (e instanceof Goat) {
+                    return new GoatEntityHelper(((Goat) e));
+                } else if (e instanceof MushroomCow) {
+                    return new MooshroomEntityHelper(((MushroomCow) e));
+                } else if (e instanceof Ocelot) {
+                    return new OcelotEntityHelper(((Ocelot) e));
+                } else if (e instanceof Panda) {
+                    return new PandaEntityHelper(((Panda) e));
+                } else if (e instanceof Pig) {
+                    return new PigEntityHelper(((Pig) e));
+                } else if (e instanceof PolarBear) {
+                    return new PolarBearEntityHelper(((PolarBear) e));
+                } else if (e instanceof Rabbit) {
+                    return new RabbitEntityHelper(((Rabbit) e));
+                } else if (e instanceof Sheep) {
+                    return new SheepEntityHelper(((Sheep) e));
+                } else if (e instanceof Strider) {
+                    return new StriderEntityHelper(((Strider) e));
+                } else if (e instanceof TamableAnimal) {
+                    if (e instanceof Cat) {
+                        return new CatEntityHelper(((Cat) e));
+                    } else if (e instanceof Wolf) {
+                        return new WolfEntityHelper(((Wolf) e));
+                    } else if (e instanceof Parrot) {
+                        return new ParrotEntityHelper(((Parrot) e));
                     } else {
-                        return new TameableEntityHelper<>(((TameableEntity) e));
+                        return new TameableEntityHelper<>(((TamableAnimal) e));
                     }
                 } else {
-                    return new AnimalEntityHelper<>(((AnimalEntity) e));
+                    return new AnimalEntityHelper<>(((Animal) e));
                 }
             }
 
             // Neutral mobs
-            if (e instanceof AllayEntity) {
-                return new AllayEntityHelper(((AllayEntity) e));
-            } else if (e instanceof BatEntity) {
-                return new BatEntityHelper(((BatEntity) e));
-            } else if (e instanceof DolphinEntity) {
-                return new DolphinEntityHelper(((DolphinEntity) e));
-            } else if (e instanceof IronGolemEntity) {
-                return new IronGolemEntityHelper(((IronGolemEntity) e));
-            } else if (e instanceof SnowGolemEntity) {
-                return new SnowGolemEntityHelper(((SnowGolemEntity) e));
-            } else if (e instanceof FishEntity) {
-                if (e instanceof PufferfishEntity) {
-                    return new PufferfishEntityHelper(((PufferfishEntity) e));
-                } else if (e instanceof TropicalFishEntity) {
-                    return new TropicalFishEntityHelper(((TropicalFishEntity) e));
+            if (e instanceof Allay) {
+                return new AllayEntityHelper(((Allay) e));
+            } else if (e instanceof Bat) {
+                return new BatEntityHelper(((Bat) e));
+            } else if (e instanceof Dolphin) {
+                return new DolphinEntityHelper(((Dolphin) e));
+            } else if (e instanceof IronGolem) {
+                return new IronGolemEntityHelper(((IronGolem) e));
+            } else if (e instanceof SnowGolem) {
+                return new SnowGolemEntityHelper(((SnowGolem) e));
+            } else if (e instanceof AbstractFish) {
+                if (e instanceof Pufferfish) {
+                    return new PufferfishEntityHelper(((Pufferfish) e));
+                } else if (e instanceof TropicalFish) {
+                    return new TropicalFishEntityHelper(((TropicalFish) e));
                 } else {
-                    return new FishEntityHelper<>(((FishEntity) e));
+                    return new FishEntityHelper<>(((AbstractFish) e));
                 }
             }
         }
 
         // Projectiles
-        if (e instanceof ProjectileEntity) {
-            if (e instanceof ArrowEntity) {
-                return new ArrowEntityHelper(((ArrowEntity) e));
-            } else if (e instanceof FishingBobberEntity) {
-                return new FishingBobberEntityHelper(((FishingBobberEntity) e));
-            } else if (e instanceof TridentEntity) {
-                return new TridentEntityHelper(((TridentEntity) e));
-            } else if (e instanceof WitherSkullEntity) {
-                return new WitherSkullEntityHelper(((WitherSkullEntity) e));
+        if (e instanceof Projectile) {
+            if (e instanceof Arrow) {
+                return new ArrowEntityHelper(((Arrow) e));
+            } else if (e instanceof FishingHook) {
+                return new FishingBobberEntityHelper(((FishingHook) e));
+            } else if (e instanceof ThrownTrident) {
+                return new TridentEntityHelper(((ThrownTrident) e));
+            } else if (e instanceof WitherSkull) {
+                return new WitherSkullEntityHelper(((WitherSkull) e));
             }
         }
 
         // Decorations
-        if (e instanceof ArmorStandEntity) {
-            return new ArmorStandEntityHelper(((ArmorStandEntity) e));
-        } else if (e instanceof EndCrystalEntity) {
-            return new EndCrystalEntityHelper(((EndCrystalEntity) e));
-        } else if (e instanceof ItemFrameEntity) {
-            return new ItemFrameEntityHelper(((ItemFrameEntity) e));
-        } else if (e instanceof PaintingEntity) {
-            return new PaintingEntityHelper(((PaintingEntity) e));
+        if (e instanceof ArmorStand) {
+            return new ArmorStandEntityHelper(((ArmorStand) e));
+        } else if (e instanceof EndCrystal) {
+            return new EndCrystalEntityHelper(((EndCrystal) e));
+        } else if (e instanceof ItemFrame) {
+            return new ItemFrameEntityHelper(((ItemFrame) e));
+        } else if (e instanceof Painting) {
+            return new PaintingEntityHelper(((Painting) e));
         }
 
         // Vehicles
-        if (e instanceof BoatEntity) {
-            return new BoatEntityHelper(((BoatEntity) e));
-        } else if (e instanceof FurnaceMinecartEntity) {
-            return new FurnaceMinecartEntityHelper(((FurnaceMinecartEntity) e));
-        } else if (e instanceof TntMinecartEntity) {
-            return new TntMinecartEntityHelper(((TntMinecartEntity) e));
+        if (e instanceof Boat) {
+            return new BoatEntityHelper(((Boat) e));
+        } else if (e instanceof MinecartFurnace) {
+            return new FurnaceMinecartEntityHelper(((MinecartFurnace) e));
+        } else if (e instanceof MinecartTNT) {
+            return new TntMinecartEntityHelper(((MinecartTNT) e));
         }
 
         if (e instanceof LivingEntity) {
@@ -683,18 +792,18 @@ public class EntityHelper<T extends Entity> extends BaseHelper<T> {
         if (e instanceof ItemEntity) {
             return new ItemEntityHelper((ItemEntity) e);
         }
-        if (e instanceof DisplayEntity) {
-            if (e instanceof DisplayEntity.ItemDisplayEntity) {
-                return new ItemDisplayEntityHelper((DisplayEntity.ItemDisplayEntity) e);
-            } else if (e instanceof DisplayEntity.TextDisplayEntity) {
-                return new TextDisplayEntityHelper((DisplayEntity.TextDisplayEntity) e);
-            } else if (e instanceof DisplayEntity.BlockDisplayEntity) {
-                return new BlockDisplayEntityHelper((DisplayEntity.BlockDisplayEntity) e);
+        if (e instanceof Display) {
+            if (e instanceof Display.ItemDisplay) {
+                return new ItemDisplayEntityHelper((Display.ItemDisplay) e);
+            } else if (e instanceof Display.TextDisplay) {
+                return new TextDisplayEntityHelper((Display.TextDisplay) e);
+            } else if (e instanceof Display.BlockDisplay) {
+                return new BlockDisplayEntityHelper((Display.BlockDisplay) e);
             }
-            return new DisplayEntityHelper<>((DisplayEntity) e);
+            return new DisplayEntityHelper<>((Display) e);
         }
-        if (e instanceof InteractionEntity) {
-            return new InteractionEntityHelper((InteractionEntity) e);
+        if (e instanceof Interaction) {
+            return new InteractionEntityHelper((Interaction) e);
         }
         return new EntityHelper<>(e);
     }
@@ -761,11 +870,11 @@ public class EntityHelper<T extends Entity> extends BaseHelper<T> {
      */
     @Nullable
     public EntityHelper<?> asServerEntity() {
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (!client.isIntegratedServerRunning()) {
+        Minecraft client = Minecraft.getInstance();
+        if (!client.hasSingleplayerServer()) {
             return null;
         }
-        Entity entity = client.getServer().getPlayerManager().getPlayer(client.player.getUuid()).getWorld().getEntity(base.getUuid());
+        Entity entity = client.getSingleplayerServer().getPlayerList().getPlayer(client.player.getUUID()).level().getEntity(base.getUUID());
         if (entity == null) {
             return null;
         } else {

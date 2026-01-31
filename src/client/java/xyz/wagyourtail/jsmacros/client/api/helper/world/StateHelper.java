@@ -1,8 +1,8 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world;
 
-import net.minecraft.state.State;
-import net.minecraft.state.property.Property;
-import net.minecraft.util.Util;
+import net.minecraft.Util;
+import net.minecraft.world.level.block.state.StateHolder;
+import net.minecraft.world.level.block.state.properties.Property;
 import xyz.wagyourtail.jsmacros.core.helpers.BaseHelper;
 
 import java.util.Map;
@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public abstract class StateHelper<U extends State<?, ?>> extends BaseHelper<U> {
+public abstract class StateHelper<U extends StateHolder<?, ?>> extends BaseHelper<U> {
 
     public StateHelper(U base) {
         super(base);
@@ -25,7 +25,7 @@ public abstract class StateHelper<U extends State<?, ?>> extends BaseHelper<U> {
      * @since 1.8.4
      */
     public Map<String, String> toMap() {
-        return base.getEntries().entrySet().stream().collect(Collectors.toMap(entry -> entry.getKey().getName(), entry -> Util.getValueAsString(entry.getKey(), entry.getValue())));
+        return base.getValues().entrySet().stream().collect(Collectors.toMap(entry -> entry.getKey().getName(), entry -> Util.getPropertyName(entry.getKey(), entry.getValue())));
     }
 
     public <T extends Comparable<?>> StateHelper<U> with(String property, String value) {
@@ -37,11 +37,11 @@ public abstract class StateHelper<U extends State<?, ?>> extends BaseHelper<U> {
     }
 
     private <T extends Comparable<T>> StateHelper<U> with(Property<T> property, String value) {
-        Optional<T> arg = property.parse(value);
+        Optional<T> arg = property.getValue(value);
         if (arg.isEmpty()) {
             throw new IllegalArgumentException("Value " + value + " is not valid for the property " + property);
         }
-        return create((U) base.with(property, arg.get()));
+        return create((U) base.setValue(property, arg.get()));
     }
 
     protected abstract StateHelper<U> create(U base);

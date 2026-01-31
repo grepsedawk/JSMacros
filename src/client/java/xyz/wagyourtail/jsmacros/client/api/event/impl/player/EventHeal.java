@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.event.impl.player;
 
-import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.world.damagesource.DamageSource;
 import xyz.wagyourtail.doclet.DocletDeclareType;
 import xyz.wagyourtail.doclet.DocletReplaceReturn;
 import xyz.wagyourtail.jsmacros.client.JsMacrosClient;
@@ -21,7 +21,7 @@ public class EventHeal extends BaseEvent {
 
     public EventHeal(DamageSource source, float health, float change) {
         super(JsMacrosClient.clientCore);
-        this.source = source.getName();
+        this.source = source.getMsgId();
         this.health = health;
         this.change = change;
     }

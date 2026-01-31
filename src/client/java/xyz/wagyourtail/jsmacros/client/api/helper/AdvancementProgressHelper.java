@@ -1,8 +1,8 @@
 package xyz.wagyourtail.jsmacros.client.api.helper;
 
 import com.google.common.collect.Iterables;
-import net.minecraft.advancement.AdvancementProgress;
-import net.minecraft.advancement.criterion.CriterionProgress;
+import net.minecraft.advancements.AdvancementProgress;
+import net.minecraft.advancements.CriterionProgress;
 import xyz.wagyourtail.jsmacros.client.mixin.access.MixinAdvancementProgress;
 import xyz.wagyourtail.jsmacros.core.helpers.BaseHelper;
 
@@ -34,7 +34,7 @@ public class AdvancementProgressHelper extends BaseHelper<AdvancementProgress> {
      * @since 1.8.4
      */
     public boolean isAnyObtained() {
-        return base.isAnyObtained();
+        return base.hasProgress();
     }
 
     /**
@@ -42,9 +42,9 @@ public class AdvancementProgressHelper extends BaseHelper<AdvancementProgress> {
      * @since 1.8.4
      */
     public Map<String, Long> getCriteria() {
-        return ((MixinAdvancementProgress) base).getCriteriaProgresses().entrySet().stream().filter(e -> e.getValue().getObtainedTime() != null).collect(Collectors.toMap(
+        return ((MixinAdvancementProgress) base).getCriteria().entrySet().stream().filter(e -> e.getValue().getObtained() != null).collect(Collectors.toMap(
                 Map.Entry::getKey,
-                criterionProgressEntry -> criterionProgressEntry.getValue().getObtainedTime().toEpochMilli()
+                criterionProgressEntry -> criterionProgressEntry.getValue().getObtained().toEpochMilli()
         ));
     }
 
@@ -61,7 +61,7 @@ public class AdvancementProgressHelper extends BaseHelper<AdvancementProgress> {
      * @since 1.8.4
      */
     public float getPercentage() {
-        return base.getProgressBarPercentage();
+        return base.getPercent();
     }
 
     /**
@@ -69,7 +69,7 @@ public class AdvancementProgressHelper extends BaseHelper<AdvancementProgress> {
      * @since 1.8.4
      */
     public TextHelper getFraction() {
-        return TextHelper.wrap(base.getProgressBarFraction());
+        return TextHelper.wrap(base.getProgressText());
     }
 
     /**
@@ -77,7 +77,7 @@ public class AdvancementProgressHelper extends BaseHelper<AdvancementProgress> {
      * @since 1.8.4
      */
     public int countObtainedRequirements() {
-        return ((MixinAdvancementProgress) base).invokeCountObtainedRequirements();
+        return ((MixinAdvancementProgress) base).invokeCountCompletedRequirements();
     }
 
     /**
@@ -85,7 +85,7 @@ public class AdvancementProgressHelper extends BaseHelper<AdvancementProgress> {
      * @since 1.8.4
      */
     public String[] getUnobtainedCriteria() {
-        return Iterables.toArray(base.getUnobtainedCriteria(), String.class);
+        return Iterables.toArray(base.getRemainingCriteria(), String.class);
     }
 
     /**
@@ -93,7 +93,7 @@ public class AdvancementProgressHelper extends BaseHelper<AdvancementProgress> {
      * @since 1.8.4
      */
     public String[] getObtainedCriteria() {
-        return Iterables.toArray(base.getObtainedCriteria(), String.class);
+        return Iterables.toArray(base.getCompletedCriteria(), String.class);
     }
 
     /**
@@ -101,7 +101,7 @@ public class AdvancementProgressHelper extends BaseHelper<AdvancementProgress> {
      * @since 1.8.4
      */
     public long getEarliestProgressObtainDate() {
-        return base.getEarliestProgressObtainDate().toEpochMilli();
+        return base.getFirstProgressDate().toEpochMilli();
     }
 
     /**
@@ -111,8 +111,8 @@ public class AdvancementProgressHelper extends BaseHelper<AdvancementProgress> {
      * @since 1.8.4
      */
     public long getCriterionProgress(String criteria) {
-        CriterionProgress progress = base.getCriterionProgress(criteria);
-        return progress == null ? -1 : progress.getObtainedTime().toEpochMilli();
+        CriterionProgress progress = base.getCriterion(criteria);
+        return progress == null ? -1 : progress.getObtained().toEpochMilli();
     }
 
     /**
@@ -121,7 +121,7 @@ public class AdvancementProgressHelper extends BaseHelper<AdvancementProgress> {
      * @since 1.8.4
      */
     public boolean isCriteriaObtained(String criteria) {
-        return base.getCriterionProgress(criteria).isObtained();
+        return base.getCriterion(criteria).isDone();
     }
 
     @Override

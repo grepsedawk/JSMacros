@@ -1,14 +1,14 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.inventory;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.ingame.HandledScreen;
-import net.minecraft.client.gui.screen.ingame.RecipeBookScreen;
-import net.minecraft.item.ItemStack;
-import net.minecraft.recipe.Ingredient;
-import net.minecraft.recipe.RecipeDisplayEntry;
-import net.minecraft.recipe.RecipeFinder;
-import net.minecraft.recipe.display.SlotDisplayContexts;
-import net.minecraft.registry.Registries;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.gui.screens.inventory.AbstractRecipeBookScreen;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.entity.player.StackedItemContents;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.display.RecipeDisplayEntry;
+import net.minecraft.world.item.crafting.display.SlotDisplayContext;
 import xyz.wagyourtail.jsmacros.core.helpers.BaseHelper;
 
 import java.util.ArrayList;
@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
  */
 @SuppressWarnings("unused")
 public class RecipeHelper extends BaseHelper<RecipeDisplayEntry> {
-    private static final MinecraftClient mc = MinecraftClient.getInstance();
+    private static final Minecraft mc = Minecraft.getInstance();
     protected int syncId;
 
     public RecipeHelper(RecipeDisplayEntry base, int syncId) {
@@ -48,7 +48,7 @@ public class RecipeHelper extends BaseHelper<RecipeDisplayEntry> {
         List<List<ItemStackHelper>> ingredients = new ArrayList<>();
 
         for (Ingredient in : base.craftingRequirements().orElseGet(List::of)) {
-            ingredients.add(in.getMatchingItems().map(ItemStack::new).map(ItemStackHelper::new).collect(Collectors.toList()));
+            ingredients.add(in.items().map(ItemStack::new).map(ItemStackHelper::new).collect(Collectors.toList()));
         }
 
         return ingredients;
@@ -59,8 +59,8 @@ public class RecipeHelper extends BaseHelper<RecipeDisplayEntry> {
      * @since 1.3.1
      */
     public ItemStackHelper getOutput() {
-        assert mc.world != null;
-        return new ItemStackHelper(base.getStacks(SlotDisplayContexts.createParameters(mc.world)).getFirst());
+        assert mc.level != null;
+        return new ItemStackHelper(base.resultItems(SlotDisplayContext.fromLevel(mc.level)).getFirst());
     }
 
     /**
@@ -68,12 +68,12 @@ public class RecipeHelper extends BaseHelper<RecipeDisplayEntry> {
      * @since 1.3.1
      */
     public RecipeHelper craft(boolean craftAll) {
-        MinecraftClient mc = MinecraftClient.getInstance();
+        Minecraft mc = Minecraft.getInstance();
         assert mc.player != null;
-        if ((mc.currentScreen instanceof HandledScreen && ((HandledScreen<?>) mc.currentScreen).getScreenHandler().syncId == syncId) ||
-                (mc.currentScreen == null && syncId == mc.player.playerScreenHandler.syncId)) {
-            assert mc.interactionManager != null;
-            mc.interactionManager.clickRecipe(syncId, base.id(), craftAll);
+        if ((mc.screen instanceof AbstractContainerScreen && ((AbstractContainerScreen<?>) mc.screen).getMenu().containerId == syncId) ||
+                (mc.screen == null && syncId == mc.player.inventoryMenu.containerId)) {
+            assert mc.gameMode != null;
+            mc.gameMode.handlePlaceRecipe(syncId, base.id(), craftAll);
             return this;
         }
         throw new AssertionError("Crafting Screen no longer open!");
@@ -84,7 +84,7 @@ public class RecipeHelper extends BaseHelper<RecipeDisplayEntry> {
      * @since 1.8.4
      */
     public String getGroup() {
-        return Registries.RECIPE_BOOK_CATEGORY.getId(base.category()).toString();
+        return BuiltInRegistries.RECIPE_BOOK_CATEGORY.getKey(base.category()).toString();
     }
 
 //    /**
@@ -125,12 +125,12 @@ public class RecipeHelper extends BaseHelper<RecipeDisplayEntry> {
      * @since 1.8.4
      */
     public boolean canCraft() {
-        RecipeFinder recipeFinder = new RecipeFinder();
-        mc.player.getInventory().populateRecipeFinder(recipeFinder);
-        if (mc.currentScreen instanceof RecipeBookScreen<?> screen) {
-            screen.getScreenHandler().populateRecipeFinder(recipeFinder);
+        StackedItemContents recipeFinder = new StackedItemContents();
+        mc.player.getInventory().fillStackedContents(recipeFinder);
+        if (mc.screen instanceof AbstractRecipeBookScreen<?> screen) {
+            screen.getMenu().fillCraftSlotsStackedContents(recipeFinder);
         }
-        return base.isCraftable(recipeFinder);
+        return base.canCraft(recipeFinder);
     }
 
     /**
@@ -148,12 +148,12 @@ public class RecipeHelper extends BaseHelper<RecipeDisplayEntry> {
      * @since 1.8.4
      */
     public int getCraftableAmount() {
-        RecipeFinder recipeFinder = new RecipeFinder();
-        mc.player.getInventory().populateRecipeFinder(recipeFinder);
-        if (mc.currentScreen instanceof RecipeBookScreen<?> screen) {
-            screen.getScreenHandler().populateRecipeFinder(recipeFinder);
+        StackedItemContents recipeFinder = new StackedItemContents();
+        mc.player.getInventory().fillStackedContents(recipeFinder);
+        if (mc.screen instanceof AbstractRecipeBookScreen<?> screen) {
+            screen.getMenu().fillCraftSlotsStackedContents(recipeFinder);
         }
-        return recipeFinder.recipeMatcher.countCrafts(base.craftingRequirements().get(), Integer.MAX_VALUE, null);
+        return recipeFinder.raw.tryPickAll(base.craftingRequirements().get(), Integer.MAX_VALUE, null);
     }
 
     @Override

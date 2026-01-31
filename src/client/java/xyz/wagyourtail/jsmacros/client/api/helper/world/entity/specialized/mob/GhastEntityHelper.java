@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.mob;
 
-import net.minecraft.entity.mob.GhastEntity;
+import net.minecraft.world.entity.monster.Ghast;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.MobEntityHelper;
 
 /**
@@ -8,9 +8,9 @@ import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.MobEntityHelper;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class GhastEntityHelper extends MobEntityHelper<GhastEntity> {
+public class GhastEntityHelper extends MobEntityHelper<Ghast> {
 
-    public GhastEntityHelper(GhastEntity base) {
+    public GhastEntityHelper(Ghast base) {
         super(base);
     }
 
@@ -20,7 +20,7 @@ public class GhastEntityHelper extends MobEntityHelper<GhastEntity> {
      * @since 1.8.4
      */
     public boolean isShooting() {
-        return base.isShooting();
+        return base.isCharging();
     }
 
 }

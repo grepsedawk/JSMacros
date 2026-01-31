@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.decoration;
 
-import net.minecraft.entity.decoration.EndCrystalEntity;
+import net.minecraft.world.entity.boss.enderdragon.EndCrystal;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.BlockPosHelper;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.EntityHelper;
@@ -10,9 +10,9 @@ import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.EntityHelper;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class EndCrystalEntityHelper extends EntityHelper<EndCrystalEntity> {
+public class EndCrystalEntityHelper extends EntityHelper<EndCrystal> {
 
-    public EndCrystalEntityHelper(EndCrystalEntity base) {
+    public EndCrystalEntityHelper(EndCrystal base) {
         super(base);
     }
 
@@ -24,7 +24,7 @@ public class EndCrystalEntityHelper extends EntityHelper<EndCrystalEntity> {
      * @since 1.8.4
      */
     public boolean isNatural() {
-        return base.shouldShowBottom();
+        return base.showsBottom();
     }
 
     /**

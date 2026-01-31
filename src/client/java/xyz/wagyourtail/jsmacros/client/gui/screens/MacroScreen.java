@@ -1,12 +1,12 @@
 package xyz.wagyourtail.jsmacros.client.gui.screens;
 
 import com.google.common.collect.ImmutableList;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.Drawable;
-import net.minecraft.client.gui.Element;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.ClickableWidget;
-import net.minecraft.text.Text;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.components.Renderable;
+import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
 import xyz.wagyourtail.jsmacros.client.JsMacrosClient;
 import xyz.wagyourtail.jsmacros.client.config.ClientConfigV2;
 import xyz.wagyourtail.jsmacros.client.gui.containers.MacroContainer;
@@ -39,36 +39,36 @@ public class MacroScreen extends BaseScreen {
     protected Button aboutBtn;
 
     public MacroScreen(Screen parent) {
-        super(Text.translatable("jsmacros.title"), parent);
+        super(Component.translatable("jsmacros.title"), parent);
     }
 
     @Override
     protected void init() {
         super.init();
         macros.clear();
-        keyScreen = this.addDrawableChild(new Button(0, 0, this.width / 6 - 1, 20, textRenderer, 0, 0xFF000000, 0x7FFFFFFF, 0xFFFFFFFF, Text.translatable("jsmacros.keys"), btn -> {
-            assert client != null;
-            if (client.currentScreen.getClass() != KeyMacrosScreen.class) {
-                client.setScreen(new KeyMacrosScreen(this));
+        keyScreen = this.addDrawableChild(new Button(0, 0, this.width / 6 - 1, 20, font, 0, 0xFF000000, 0x7FFFFFFF, 0xFFFFFFFF, Component.translatable("jsmacros.keys"), btn -> {
+            assert minecraft != null;
+            if (minecraft.screen.getClass() != KeyMacrosScreen.class) {
+                minecraft.setScreen(new KeyMacrosScreen(this));
             }
         }));
 
-        eventScreen = this.addDrawableChild(new Button(this.width / 6 + 1, 0, this.width / 6 - 1, 20, textRenderer, 0, 0xFF000000, 0x7FFFFFFF, 0xFFFFFFFF, Text.translatable("jsmacros.events"), btn -> {
-            assert client != null;
-            if (client.currentScreen.getClass() != EventMacrosScreen.class) {
-                client.setScreen(new EventMacrosScreen(this));
+        eventScreen = this.addDrawableChild(new Button(this.width / 6 + 1, 0, this.width / 6 - 1, 20, font, 0, 0xFF000000, 0x7FFFFFFF, 0xFFFFFFFF, Component.translatable("jsmacros.events"), btn -> {
+            assert minecraft != null;
+            if (minecraft.screen.getClass() != EventMacrosScreen.class) {
+                minecraft.setScreen(new EventMacrosScreen(this));
             }
         }));
 
-        serviceScreen = this.addDrawableChild(new Button(2 * this.width / 6 + 2, 0, this.width / 6 - 1, 20, textRenderer, 0, 0xFF000000, 0x7FFFFFFF, 0xFFFFFFFF, Text.translatable("jsmacros.services"), btn -> {
-            assert client != null;
-            if (client.currentScreen.getClass() != ServiceScreen.class) {
-                client.setScreen(new ServiceScreen(this));
+        serviceScreen = this.addDrawableChild(new Button(2 * this.width / 6 + 2, 0, this.width / 6 - 1, 20, font, 0, 0xFF000000, 0x7FFFFFFF, 0xFFFFFFFF, Component.translatable("jsmacros.services"), btn -> {
+            assert minecraft != null;
+            if (minecraft.screen.getClass() != ServiceScreen.class) {
+                minecraft.setScreen(new ServiceScreen(this));
             }
         }));
 
-        this.addDrawableChild(new Button(this.width * 5 / 6 + 1, 0, this.width / 6 - 1, 20, textRenderer, 0, 0xFF000000, 0x7FFFFFFF, 0xFFFFFFFF, Text.translatable("jsmacros.settings"), (btn) -> {
-            openOverlay(new SettingsOverlay(this.width / 4, this.height / 4, this.width / 2, this.height / 2, textRenderer, this));
+        this.addDrawableChild(new Button(this.width * 5 / 6 + 1, 0, this.width / 6 - 1, 20, font, 0, 0xFF000000, 0x7FFFFFFF, 0xFFFFFFFF, Component.translatable("jsmacros.settings"), (btn) -> {
+            openOverlay(new SettingsOverlay(this.width / 4, this.height / 4, this.width / 2, this.height / 2, font, this));
         }));
 
         topbar = createTopbar();
@@ -76,16 +76,16 @@ public class MacroScreen extends BaseScreen {
         topScroll = 40;
         macroScroll = this.addDrawableChild(new Scrollbar(this.width * 23 / 24 - 4, 50, 8, this.height - 75, 0, 0xFF000000, 0xFFFFFFFF, 2, this::onScrollbar));
 
-        runningBtn = this.addDrawableChild(new Button(0, this.height - 12, this.width / 12, 12, textRenderer, 0, 0xFF000000, 0x7FFFFFFF, 0xFFFFFFFF, Text.translatable("jsmacros.running"), (btn) -> {
-            assert client != null;
-            client.setScreen(new CancelScreen(this));
+        runningBtn = this.addDrawableChild(new Button(0, this.height - 12, this.width / 12, 12, font, 0, 0xFF000000, 0x7FFFFFFF, 0xFFFFFFFF, Component.translatable("jsmacros.running"), (btn) -> {
+            assert minecraft != null;
+            minecraft.setScreen(new CancelScreen(this));
         }));
 
-        aboutBtn = this.addDrawableChild(new Button(this.width * 11 / 12, this.height - 12, this.width / 12, 12, textRenderer, 0, 0xFF000000, 0x7FFFFFFF, 0xFFFFFFFF, Text.translatable("jsmacros.about"), (btn) -> this.openOverlay(new AboutOverlay(this.width / 4, this.height / 4, this.width / 2, this.height / 2, textRenderer, this))));
+        aboutBtn = this.addDrawableChild(new Button(this.width * 11 / 12, this.height - 12, this.width / 12, 12, font, 0, 0xFF000000, 0x7FFFFFFF, 0xFFFFFFFF, Component.translatable("jsmacros.about"), (btn) -> this.openOverlay(new AboutOverlay(this.width / 4, this.height / 4, this.width / 2, this.height / 2, font, this))));
     }
 
     protected MultiElementContainer<MacroScreen> createTopbar() {
-        return new MacroListTopbar(this, this.width / 12, 25, this.width * 5 / 6, 14, this.textRenderer, ScriptTrigger.TriggerType.KEY_RISING);
+        return new MacroListTopbar(this, this.width / 12, 25, this.width * 5 / 6, 14, this.font, ScriptTrigger.TriggerType.KEY_RISING);
     }
 
     @Override
@@ -97,7 +97,7 @@ public class MacroScreen extends BaseScreen {
     }
 
     public void addMacro(ScriptTrigger macro) {
-        macros.add(new MacroContainer(this.width / 12, topScroll + macros.size() * 16, this.width * 5 / 6, 14, this.textRenderer, macro, this));
+        macros.add(new MacroContainer(this.width / 12, topScroll + macros.size() * 16, this.width * 5 / 6, 14, this.font, macro, this));
         macroScroll.setScrollPages(((macros.size() + 1) * 16) / (double) Math.max(1, this.height - 40));
     }
 
@@ -113,26 +113,26 @@ public class MacroScreen extends BaseScreen {
         if (!file.equals(JsMacrosClient.clientCore.config.macroFolder)) {
             dir = file.getParentFile();
         }
-        openOverlay(new FileChooser(width / 4, height / 4, width / 2, height / 2, this.textRenderer, dir, file, this, ((MacroContainer) macro)::setFile, this::editFile));
+        openOverlay(new FileChooser(width / 4, height / 4, width / 2, height / 2, this.font, dir, file, this, ((MacroContainer) macro)::setFile, this::editFile));
     }
 
     public void setEvent(MacroContainer macro) {
-        openOverlay(new EventChooser(width / 4, height / 4, width / 2, height / 2, this.textRenderer, macro.getRawMacro().event, this, macro::setEventType));
+        openOverlay(new EventChooser(width / 4, height / 4, width / 2, height / 2, this.font, macro.getRawMacro().event, this, macro::setEventType));
     }
 
     public void runFile() {
-        openOverlay(new FileChooser(width / 4, height / 4, width / 2, height / 2, this.textRenderer, JsMacrosClient.clientCore.config.macroFolder, null, this, (file) -> {
+        openOverlay(new FileChooser(width / 4, height / 4, width / 2, height / 2, this.font, JsMacrosClient.clientCore.config.macroFolder, null, this, (file) -> {
             JsMacrosClient.clientCore.exec(new ScriptTrigger(ScriptTrigger.TriggerType.EVENT, "", file.toPath(), true, false), null);
         }, this::editFile));
     }
 
     public void confirmRemoveMacro(MultiElementContainer<MacroScreen> macro) {
-        openOverlay(new ConfirmOverlay(width / 2 - 100, height / 2 - 50, 200, 100, this.textRenderer, Text.translatable("jsmacros.confirmdeletemacro"), this, (conf) -> removeMacro(macro)));
+        openOverlay(new ConfirmOverlay(width / 2 - 100, height / 2 - 50, 200, 100, this.font, Component.translatable("jsmacros.confirmdeletemacro"), this, (conf) -> removeMacro(macro)));
     }
 
     public void removeMacro(MultiElementContainer<MacroScreen> macro) {
         JsMacrosClient.clientCore.eventRegistry.removeScriptTrigger(((MacroContainer) macro).getRawMacro());
-        for (ClickableWidget b : macro.getButtons()) {
+        for (AbstractWidget b : macro.getButtons()) {
             remove(b);
         }
         macros.remove(macro);
@@ -188,22 +188,22 @@ public class MacroScreen extends BaseScreen {
                 System.out.println(System.getenv("PATH"));
                 System.out.printf("Failed to run cmd '%s'", JsMacrosClient.clientCore.config.getOptions(ClientConfigV2.class).externalEditorCommand);
             }
-            assert client != null;
-            client.setScreen(new EditorScreen(this, file));
+            assert minecraft != null;
+            minecraft.setScreen(new EditorScreen(this, file));
         }
     }
 
     @Override
-    public void render(DrawContext drawContext, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphics drawContext, int mouseX, int mouseY, float delta) {
         if (drawContext == null) {
             return;
         }
 
         topbar.render(drawContext, mouseX, mouseY, delta);
 
-        for (Element b : ImmutableList.copyOf(this.children())) {
-            if (b instanceof Drawable) {
-                ((Drawable) b).render(drawContext, mouseX, mouseY, delta);
+        for (GuiEventListener b : ImmutableList.copyOf(this.children())) {
+            if (b instanceof Renderable) {
+                ((Renderable) b).render(drawContext, mouseX, mouseY, delta);
             }
         }
 
@@ -215,7 +215,7 @@ public class MacroScreen extends BaseScreen {
         drawContext.fill(this.width / 6 * 2, 0, this.width / 6 * 2 + 2, 20, 0xFFFFFFFF);
         drawContext.fill(this.width / 6 * 3 + 1, 0, this.width / 6 * 3 + 3, 20, 0xFFFFFFFF);
         drawContext.fill(0, 20, width, 22, 0xFFFFFFFF);
-        drawContext.drawCenteredTextWithShadow(this.textRenderer, JsMacrosClient.clientCore.profile.getCurrentProfileName(), this.width * 8 / 12, 5, 0xFF7F7F7F);
+        drawContext.drawCenteredString(this.font, JsMacrosClient.clientCore.profile.getCurrentProfileName(), this.width * 8 / 12, 5, 0xFF7F7F7F);
         
         super.render(drawContext, mouseX, mouseY, delta);
     }

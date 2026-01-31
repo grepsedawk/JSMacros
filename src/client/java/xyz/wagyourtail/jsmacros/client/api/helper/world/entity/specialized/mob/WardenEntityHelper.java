@@ -1,7 +1,7 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.mob;
 
-import net.minecraft.entity.EntityPose;
-import net.minecraft.entity.mob.WardenEntity;
+import net.minecraft.world.entity.Pose;
+import net.minecraft.world.entity.monster.warden.Warden;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.MobEntityHelper;
 
 /**
@@ -9,9 +9,9 @@ import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.MobEntityHelper;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class WardenEntityHelper extends MobEntityHelper<WardenEntity> {
+public class WardenEntityHelper extends MobEntityHelper<Warden> {
 
-    public WardenEntityHelper(WardenEntity base) {
+    public WardenEntityHelper(Warden base) {
         super(base);
     }
 
@@ -20,7 +20,7 @@ public class WardenEntityHelper extends MobEntityHelper<WardenEntity> {
      * @since 1.8.4
      */
     public int getAnger() {
-        return base.getAnger();
+        return base.getClientAngerLevel();
     }
 
     /**
@@ -28,7 +28,7 @@ public class WardenEntityHelper extends MobEntityHelper<WardenEntity> {
      * @since 1.8.4
      */
     public boolean isDigging() {
-        return base.isInPose(EntityPose.DIGGING);
+        return base.hasPose(Pose.DIGGING);
     }
 
     /**
@@ -36,7 +36,7 @@ public class WardenEntityHelper extends MobEntityHelper<WardenEntity> {
      * @since 1.8.4
      */
     public boolean isEmerging() {
-        return base.isInPose(EntityPose.EMERGING);
+        return base.hasPose(Pose.EMERGING);
     }
 
     /**
@@ -44,7 +44,7 @@ public class WardenEntityHelper extends MobEntityHelper<WardenEntity> {
      * @since 1.8.4
      */
     public boolean isRoaring() {
-        return base.isInPose(EntityPose.ROARING);
+        return base.hasPose(Pose.ROARING);
     }
 
     /**
@@ -52,7 +52,7 @@ public class WardenEntityHelper extends MobEntityHelper<WardenEntity> {
      * @since 1.8.4
      */
     public boolean isSniffing() {
-        return base.isInPose(EntityPose.SNIFFING);
+        return base.hasPose(Pose.SNIFFING);
     }
 
     /**
@@ -61,7 +61,7 @@ public class WardenEntityHelper extends MobEntityHelper<WardenEntity> {
      * @since 1.8.4
      */
     public boolean isChargingSonicBoom() {
-        return base.chargingSonicBoomAnimationState.isRunning();
+        return base.sonicBoomAnimationState.isStarted();
     }
 
 }

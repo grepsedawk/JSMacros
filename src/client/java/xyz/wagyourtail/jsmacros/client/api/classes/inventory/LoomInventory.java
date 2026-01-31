@@ -1,14 +1,14 @@
 package xyz.wagyourtail.jsmacros.client.api.classes.inventory;
 
 import com.google.common.collect.ImmutableList;
-import net.minecraft.block.entity.BannerPattern;
-import net.minecraft.client.gui.screen.ingame.LoomScreen;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.item.ItemStack;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.registry.tag.BannerPatternTags;
-import net.minecraft.registry.tag.TagKey;
+import net.minecraft.client.gui.screens.inventory.LoomScreen;
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.tags.BannerPatternTags;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BannerPattern;
 import xyz.wagyourtail.jsmacros.client.access.ILoomScreen;
 
 import java.util.List;
@@ -26,14 +26,14 @@ public class LoomInventory extends Inventory<LoomScreen> {
         super(inventory);
     }
 
-    private List<RegistryEntry<BannerPattern>> getPatternsFor(ItemStack stack) {
-        var bannerPatternLookup = mc.getNetworkHandler().getRegistryManager().getOrThrow(RegistryKeys.BANNER_PATTERN);
+    private List<Holder<BannerPattern>> getPatternsFor(ItemStack stack) {
+        var bannerPatternLookup = mc.getConnection().registryAccess().lookupOrThrow(Registries.BANNER_PATTERN);
         // Taken from LoomScreenHandler#getPatternsFor
         if (stack.isEmpty()) {
-            return bannerPatternLookup.getOptional(BannerPatternTags.NO_ITEM_REQUIRED).map(ImmutableList::copyOf).orElse(ImmutableList.of());
+            return bannerPatternLookup.get(BannerPatternTags.NO_ITEM_REQUIRED).map(ImmutableList::copyOf).orElse(ImmutableList.of());
         } else {
-            TagKey<BannerPattern> tagKey = stack.get(DataComponentTypes.PROVIDES_BANNER_PATTERNS);
-            return tagKey != null ? bannerPatternLookup.getOptional(tagKey).map(ImmutableList::copyOf).orElse(ImmutableList.of()) : List.of();
+            TagKey<BannerPattern> tagKey = stack.get(DataComponents.PROVIDES_BANNER_PATTERNS);
+            return tagKey != null ? bannerPatternLookup.get(tagKey).map(ImmutableList::copyOf).orElse(ImmutableList.of()) : List.of();
         }
     }
 
@@ -52,8 +52,8 @@ public class LoomInventory extends Inventory<LoomScreen> {
      * @since 1.7.0
      */
     public List<String> listAvailablePatterns() {
-        Iterable<RegistryEntry<BannerPattern>> patterns = getPatternsFor(inventory.getScreenHandler().getSlot(2).getStack());
-        return StreamSupport.stream(patterns.spliterator(), false).map(e -> Objects.requireNonNull(mc.getNetworkHandler()).getRegistryManager().getOrThrow(RegistryKeys.BANNER_PATTERN).getId(e.value()).toString()).collect(Collectors.toList());
+        Iterable<Holder<BannerPattern>> patterns = getPatternsFor(inventory.getMenu().getSlot(2).getItem());
+        return StreamSupport.stream(patterns.spliterator(), false).map(e -> Objects.requireNonNull(mc.getConnection()).registryAccess().lookupOrThrow(Registries.BANNER_PATTERN).getKey(e.value()).toString()).collect(Collectors.toList());
     }
 
     /**
@@ -62,14 +62,14 @@ public class LoomInventory extends Inventory<LoomScreen> {
      * @since 1.5.1
      */
     public boolean selectPatternId(String id) {
-        List<RegistryEntry<BannerPattern>> patterns = getPatternsFor(inventory.getScreenHandler().getSlot(2).getStack());
-        RegistryEntry<BannerPattern> pattern = StreamSupport.stream(patterns.spliterator(), false).filter(e -> Objects.requireNonNull(mc.getNetworkHandler()).getRegistryManager().getOrThrow(RegistryKeys.BANNER_PATTERN).getId(e.value()).toString().equals(id)).findFirst().orElse(null);
+        List<Holder<BannerPattern>> patterns = getPatternsFor(inventory.getMenu().getSlot(2).getItem());
+        Holder<BannerPattern> pattern = StreamSupport.stream(patterns.spliterator(), false).filter(e -> Objects.requireNonNull(mc.getConnection()).registryAccess().lookupOrThrow(Registries.BANNER_PATTERN).getKey(e.value()).toString().equals(id)).findFirst().orElse(null);
 
         int iid = patterns.indexOf(pattern);
         if (pattern != null && ((ILoomScreen) inventory).jsmacros_canApplyDyePattern() &&
-                inventory.getScreenHandler().onButtonClick(player, iid)) {
-            assert mc.interactionManager != null;
-            mc.interactionManager.clickButton(syncId, iid);
+                inventory.getMenu().clickMenuButton(player, iid)) {
+            assert mc.gameMode != null;
+            mc.gameMode.handleInventoryButtonClick(syncId, iid);
             return true;
         }
         return false;
@@ -81,12 +81,12 @@ public class LoomInventory extends Inventory<LoomScreen> {
      * @since 1.5.1
      */
     public boolean selectPattern(int index) {
-        List<RegistryEntry<BannerPattern>> patterns = getPatternsFor(inventory.getScreenHandler().getSlot(2).getStack());
+        List<Holder<BannerPattern>> patterns = getPatternsFor(inventory.getMenu().getSlot(2).getItem());
 
         if (index >= 0 && index <= patterns.size() && ((ILoomScreen) inventory).jsmacros_canApplyDyePattern() &&
-                inventory.getScreenHandler().onButtonClick(player, index)) {
-            assert mc.interactionManager != null;
-            mc.interactionManager.clickButton(syncId, index);
+                inventory.getMenu().clickMenuButton(player, index)) {
+            assert mc.gameMode != null;
+            mc.gameMode.handleInventoryButtonClick(syncId, index);
             return true;
         }
         return false;

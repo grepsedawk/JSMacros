@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.mob;
 
-import net.minecraft.entity.mob.SlimeEntity;
+import net.minecraft.world.entity.monster.Slime;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.MobEntityHelper;
 
 /**
@@ -8,9 +8,9 @@ import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.MobEntityHelper;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class SlimeEntityHelper extends MobEntityHelper<SlimeEntity> {
+public class SlimeEntityHelper extends MobEntityHelper<Slime> {
 
-    public SlimeEntityHelper(SlimeEntity base) {
+    public SlimeEntityHelper(Slime base) {
         super(base);
     }
 
@@ -29,7 +29,7 @@ public class SlimeEntityHelper extends MobEntityHelper<SlimeEntity> {
      * @since 1.8.4
      */
     public boolean isSmall() {
-        return base.isSmall();
+        return base.isTiny();
     }
 
 }

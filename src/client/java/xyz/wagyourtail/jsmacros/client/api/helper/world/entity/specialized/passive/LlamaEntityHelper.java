@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive;
 
-import net.minecraft.entity.passive.LlamaEntity;
+import net.minecraft.world.entity.animal.horse.Llama;
 import xyz.wagyourtail.doclet.DocletReplaceReturn;
 
 /**
@@ -8,7 +8,7 @@ import xyz.wagyourtail.doclet.DocletReplaceReturn;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class LlamaEntityHelper<T extends LlamaEntity> extends DonkeyEntityHelper<T> {
+public class LlamaEntityHelper<T extends Llama> extends DonkeyEntityHelper<T> {
 
     public LlamaEntityHelper(T base) {
         super(base);
@@ -20,7 +20,7 @@ public class LlamaEntityHelper<T extends LlamaEntity> extends DonkeyEntityHelper
      */
     @DocletReplaceReturn("LlamaVariant")
     public String getVariant() {
-        return base.getVariant().asString();
+        return base.getVariant().getSerializedName();
     }
 
     /**
@@ -36,7 +36,7 @@ public class LlamaEntityHelper<T extends LlamaEntity> extends DonkeyEntityHelper
      * @since 1.8.4
      */
     public boolean isTraderLlama() {
-        return base.isTrader();
+        return base.isTraderLlama();
     }
 
 }

@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive;
 
-import net.minecraft.entity.passive.AxolotlEntity;
+import net.minecraft.world.entity.animal.axolotl.Axolotl;
 import xyz.wagyourtail.doclet.DocletReplaceReturn;
 
 /**
@@ -8,9 +8,9 @@ import xyz.wagyourtail.doclet.DocletReplaceReturn;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class AxolotlEntityHelper extends AnimalEntityHelper<AxolotlEntity> {
+public class AxolotlEntityHelper extends AnimalEntityHelper<Axolotl> {
 
-    public AxolotlEntityHelper(AxolotlEntity base) {
+    public AxolotlEntityHelper(Axolotl base) {
         super(base);
     }
 
@@ -19,7 +19,7 @@ public class AxolotlEntityHelper extends AnimalEntityHelper<AxolotlEntity> {
      * @since 1.8.4
      */
     public int getVariantId() {
-        return base.getVariant().getIndex();
+        return base.getVariant().getId();
     }
 
     /**
@@ -28,7 +28,7 @@ public class AxolotlEntityHelper extends AnimalEntityHelper<AxolotlEntity> {
      */
     @DocletReplaceReturn("AxolotlVariant")
     public String getVariantName() {
-        return base.getVariant().getId();
+        return base.getVariant().getName();
     }
 
     /**
@@ -44,7 +44,7 @@ public class AxolotlEntityHelper extends AnimalEntityHelper<AxolotlEntity> {
      * @since 1.8.4
      */
     public boolean isFromBucket() {
-        return base.isFromBucket();
+        return base.fromBucket();
     }
 
 }

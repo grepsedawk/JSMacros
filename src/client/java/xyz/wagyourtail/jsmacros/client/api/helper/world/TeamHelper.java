@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world;
 
-import net.minecraft.scoreboard.Team;
+import net.minecraft.world.scores.PlayerTeam;
 import xyz.wagyourtail.doclet.DocletReplaceReturn;
 import xyz.wagyourtail.jsmacros.client.api.helper.FormattingHelper;
 import xyz.wagyourtail.jsmacros.client.api.helper.TextHelper;
@@ -14,8 +14,8 @@ import java.util.List;
  * @since 1.3.0
  */
 @SuppressWarnings("unused")
-public class TeamHelper extends BaseHelper<Team> {
-    public TeamHelper(Team t) {
+public class TeamHelper extends BaseHelper<PlayerTeam> {
+    public TeamHelper(PlayerTeam t) {
         super(t);
     }
 
@@ -40,7 +40,7 @@ public class TeamHelper extends BaseHelper<Team> {
      * @since 1.3.0
      */
     public List<String> getPlayerList() {
-        return new ArrayList<>(base.getPlayerList());
+        return new ArrayList<>(base.getPlayers());
     }
 
     /**
@@ -66,7 +66,7 @@ public class TeamHelper extends BaseHelper<Team> {
      * @since 1.8.4
      */
     public int getColorIndex() {
-        return base.getColor().getColorIndex();
+        return base.getColor().getId();
     }
 
     /**
@@ -74,7 +74,7 @@ public class TeamHelper extends BaseHelper<Team> {
      * @since 1.8.4
      */
     public int getColorValue() {
-        return base.getColor().getColorValue() == null ? -1 : base.getColor().getColorValue();
+        return base.getColor().getColor() == null ? -1 : base.getColor().getColor();
     }
 
     /**
@@ -99,7 +99,7 @@ public class TeamHelper extends BaseHelper<Team> {
      * @since 1.3.0
      */
     public TextHelper getPrefix() {
-        return TextHelper.wrap(base.getPrefix());
+        return TextHelper.wrap(base.getPlayerPrefix());
     }
 
     /**
@@ -107,7 +107,7 @@ public class TeamHelper extends BaseHelper<Team> {
      * @since 1.3.0
      */
     public TextHelper getSuffix() {
-        return TextHelper.wrap(base.getSuffix());
+        return TextHelper.wrap(base.getPlayerSuffix());
     }
 
     /**
@@ -124,7 +124,7 @@ public class TeamHelper extends BaseHelper<Team> {
      * @since 1.3.0
      */
     public boolean isFriendlyFire() {
-        return base.isFriendlyFireAllowed();
+        return base.isAllowFriendlyFire();
     }
 
     /**
@@ -132,7 +132,7 @@ public class TeamHelper extends BaseHelper<Team> {
      * @since 1.3.0
      */
     public boolean showFriendlyInvisibles() {
-        return base.shouldShowFriendlyInvisibles();
+        return base.canSeeFriendlyInvisibles();
     }
 
     /**
@@ -141,7 +141,7 @@ public class TeamHelper extends BaseHelper<Team> {
      */
     @DocletReplaceReturn("TeamVisibilityRule")
     public String nametagVisibility() {
-        return base.getNameTagVisibilityRule().name;
+        return base.getNameTagVisibility().name;
     }
 
     /**
@@ -150,7 +150,7 @@ public class TeamHelper extends BaseHelper<Team> {
      */
     @DocletReplaceReturn("TeamVisibilityRule")
     public String deathMessageVisibility() {
-        return base.getDeathMessageVisibilityRule().name;
+        return base.getDeathMessageVisibility().name;
     }
 
     @Override

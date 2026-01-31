@@ -1,22 +1,22 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity;
 
 import com.google.common.collect.ImmutableList;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.effect.StatusEffect;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.item.BowItem;
-import net.minecraft.item.Item;
-import net.minecraft.item.Items;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.tag.EntityTypeTags;
-import net.minecraft.registry.tag.TagKey;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.hit.HitResult;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.RaycastContext;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.EntityTypeTags;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.BowItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
 import xyz.wagyourtail.doclet.DocletReplaceParams;
 import xyz.wagyourtail.doclet.DocletReplaceReturn;
 import xyz.wagyourtail.jsmacros.client.api.classes.RegistryHelper;
@@ -40,7 +40,7 @@ public class LivingEntityHelper<T extends LivingEntity> extends EntityHelper<T> 
      */
     public List<StatusEffectHelper> getStatusEffects() {
         List<StatusEffectHelper> l = new ArrayList<>();
-        for (StatusEffectInstance i : ImmutableList.copyOf(base.getStatusEffects())) {
+        for (MobEffectInstance i : ImmutableList.copyOf(base.getActiveEffects())) {
             l.add(new StatusEffectHelper(i));
         }
         return l;
@@ -51,8 +51,8 @@ public class LivingEntityHelper<T extends LivingEntity> extends EntityHelper<T> 
      * @return if the entity can have a certain status effect
      * @since 1.8.4
      */
-    private boolean canHaveStatusEffect(StatusEffectInstance effect) {
-        return base.canHaveStatusEffect(effect);
+    private boolean canHaveStatusEffect(MobEffectInstance effect) {
+        return base.canBeAffected(effect);
     }
 
     /**
@@ -73,8 +73,8 @@ public class LivingEntityHelper<T extends LivingEntity> extends EntityHelper<T> 
      */
     @DocletReplaceParams("id: CanOmitNamespace<StatusEffectId>")
     public boolean hasStatusEffect(String id) {
-        StatusEffect effect = Registries.STATUS_EFFECT.get(RegistryHelper.parseIdentifier(id));
-        return base.getStatusEffects().stream().anyMatch(statusEffectInstance -> statusEffectInstance.getEffectType().value().equals(effect));
+        MobEffect effect = BuiltInRegistries.MOB_EFFECT.getValue(RegistryHelper.parseIdentifier(id));
+        return base.getActiveEffects().stream().anyMatch(statusEffectInstance -> statusEffectInstance.getEffect().value().equals(effect));
     }
 
     /**
@@ -83,9 +83,9 @@ public class LivingEntityHelper<T extends LivingEntity> extends EntityHelper<T> 
      */
     @DocletReplaceParams("item: ItemId")
     public boolean isHolding(String item) {
-        Identifier id = Identifier.of(item);
-        if (id.equals(Registries.ITEM.getDefaultId())) return base.isHolding(Items.AIR);
-        Item it = Registries.ITEM.get(id);
+        ResourceLocation id = ResourceLocation.parse(item);
+        if (id.equals(BuiltInRegistries.ITEM.getDefaultKey())) return base.isHolding(Items.AIR);
+        Item it = BuiltInRegistries.ITEM.getValue(id);
         return it != Items.AIR && base.isHolding(it);
     }
 
@@ -95,7 +95,7 @@ public class LivingEntityHelper<T extends LivingEntity> extends EntityHelper<T> 
      * @since 1.2.7
      */
     public ItemStackHelper getMainHand() {
-        return new ItemStackHelper(base.getEquippedStack(EquipmentSlot.MAINHAND));
+        return new ItemStackHelper(base.getItemBySlot(EquipmentSlot.MAINHAND));
     }
 
     /**
@@ -103,7 +103,7 @@ public class LivingEntityHelper<T extends LivingEntity> extends EntityHelper<T> 
      * @since 1.2.7
      */
     public ItemStackHelper getOffHand() {
-        return new ItemStackHelper(base.getEquippedStack(EquipmentSlot.OFFHAND));
+        return new ItemStackHelper(base.getItemBySlot(EquipmentSlot.OFFHAND));
     }
 
     /**
@@ -111,7 +111,7 @@ public class LivingEntityHelper<T extends LivingEntity> extends EntityHelper<T> 
      * @since 1.2.7
      */
     public ItemStackHelper getHeadArmor() {
-        return new ItemStackHelper(base.getEquippedStack(EquipmentSlot.HEAD));
+        return new ItemStackHelper(base.getItemBySlot(EquipmentSlot.HEAD));
     }
 
     /**
@@ -119,7 +119,7 @@ public class LivingEntityHelper<T extends LivingEntity> extends EntityHelper<T> 
      * @since 1.2.7
      */
     public ItemStackHelper getChestArmor() {
-        return new ItemStackHelper(base.getEquippedStack(EquipmentSlot.CHEST));
+        return new ItemStackHelper(base.getItemBySlot(EquipmentSlot.CHEST));
     }
 
     /**
@@ -127,7 +127,7 @@ public class LivingEntityHelper<T extends LivingEntity> extends EntityHelper<T> 
      * @since 1.2.7
      */
     public ItemStackHelper getLegArmor() {
-        return new ItemStackHelper(base.getEquippedStack(EquipmentSlot.LEGS));
+        return new ItemStackHelper(base.getItemBySlot(EquipmentSlot.LEGS));
     }
 
     /**
@@ -135,7 +135,7 @@ public class LivingEntityHelper<T extends LivingEntity> extends EntityHelper<T> 
      * @since 1.2.7
      */
     public ItemStackHelper getFootArmor() {
-        return new ItemStackHelper(base.getEquippedStack(EquipmentSlot.FEET));
+        return new ItemStackHelper(base.getItemBySlot(EquipmentSlot.FEET));
     }
 
     /**
@@ -167,7 +167,7 @@ public class LivingEntityHelper<T extends LivingEntity> extends EntityHelper<T> 
      * @since 1.8.4
      */
     public int getArmor() {
-        return base.getArmor();
+        return base.getArmorValue();
     }
 
     /**
@@ -175,7 +175,7 @@ public class LivingEntityHelper<T extends LivingEntity> extends EntityHelper<T> 
      * @since 1.8.4
      */
     public int getDefaultHealth() {
-        return base.defaultMaxHealth;
+        return base.invulnerableDuration;
     }
 
     /**
@@ -184,7 +184,7 @@ public class LivingEntityHelper<T extends LivingEntity> extends EntityHelper<T> 
      */
     @DocletReplaceReturn("JavaList<MobTag>")
     public List<String> getMobTags() {
-        return base.getType().getRegistryEntry().streamTags().map(TagKey::id).map(Identifier::toString).toList();
+        return base.getType().builtInRegistryHolder().tags().map(TagKey::location).map(ResourceLocation::toString).toList();
     }
 
     /**
@@ -200,7 +200,7 @@ public class LivingEntityHelper<T extends LivingEntity> extends EntityHelper<T> 
      * @since 1.5.0
      */
     public boolean isFallFlying() {
-        return base.isGliding();
+        return base.isFallFlying();
     }
 
     /**
@@ -208,7 +208,7 @@ public class LivingEntityHelper<T extends LivingEntity> extends EntityHelper<T> 
      * @since 1.8.4
      */
     public boolean isOnGround() {
-        return base.isOnGround();
+        return base.onGround();
     }
 
     /**
@@ -216,7 +216,7 @@ public class LivingEntityHelper<T extends LivingEntity> extends EntityHelper<T> 
      * @since 1.8.4
      */
     public boolean canBreatheInWater() {
-        return base.canBreatheInWater();
+        return base.canBreatheUnderwater();
     }
 
     /**
@@ -224,7 +224,7 @@ public class LivingEntityHelper<T extends LivingEntity> extends EntityHelper<T> 
      * @since 1.8.4
      */
     public boolean hasNoDrag() {
-        return base.hasNoDrag();
+        return base.shouldDiscardFriction();
     }
 
     /**
@@ -232,7 +232,7 @@ public class LivingEntityHelper<T extends LivingEntity> extends EntityHelper<T> 
      * @since 1.8.4
      */
     public boolean hasNoGravity() {
-        return base.hasNoGravity();
+        return base.isNoGravity();
     }
 
     /**
@@ -241,7 +241,7 @@ public class LivingEntityHelper<T extends LivingEntity> extends EntityHelper<T> 
      * @since 1.8.4
      */
     private boolean canTarget(LivingEntity target) {
-        return base.canTarget(target);
+        return base.canAttack(target);
     }
 
     /**
@@ -258,7 +258,7 @@ public class LivingEntityHelper<T extends LivingEntity> extends EntityHelper<T> 
      * @since 1.8.4
      */
     public boolean canTakeDamage() {
-        return base.canTakeDamage();
+        return base.canBeSeenAsEnemy();
     }
 
     /**
@@ -266,7 +266,7 @@ public class LivingEntityHelper<T extends LivingEntity> extends EntityHelper<T> 
      * @since 1.8.4
      */
     public boolean isPartOfGame() {
-        return base.isPartOfGame();
+        return base.canBeSeenByAnyone();
     }
 
     /**
@@ -282,7 +282,7 @@ public class LivingEntityHelper<T extends LivingEntity> extends EntityHelper<T> 
      * @since 1.8.4
      */
     public boolean isUndead() {
-        return base.getType().getRegistryEntry().streamTags().anyMatch(e -> EntityTypeTags.UNDEAD.id().equals(e.id()));
+        return base.getType().builtInRegistryHolder().tags().anyMatch(e -> EntityTypeTags.UNDEAD.location().equals(e.location()));
     }
 
     /**
@@ -290,8 +290,8 @@ public class LivingEntityHelper<T extends LivingEntity> extends EntityHelper<T> 
      * @since 1.8.4
      */
     public double getBowPullProgress() {
-        if (base.getMainHandStack().getItem() instanceof BowItem) {
-            return BowItem.getPullProgress(base.getItemUseTime());
+        if (base.getMainHandItem().getItem() instanceof BowItem) {
+            return BowItem.getPowerForTime(base.getTicksUsingItem());
         } else {
             return 0;
         }
@@ -301,7 +301,7 @@ public class LivingEntityHelper<T extends LivingEntity> extends EntityHelper<T> 
      * @since 1.9.0
      */
     public int getItemUseTimeLeft() {
-        return base.getItemUseTimeLeft();
+        return base.getUseItemRemainingTicks();
     }
 
     /**
@@ -332,17 +332,17 @@ public class LivingEntityHelper<T extends LivingEntity> extends EntityHelper<T> 
     public boolean canSeeEntity(EntityHelper<?> entity, boolean simpleCast) {
         Entity rawEntity = entity.getRaw();
 
-        Vec3d baseEyePos = new Vec3d(base.getX(), base.getEyeY(), base.getZ());
-        Vec3d vec3d = base.getEyePos();
-        Vec3d vec3d2 = base.getRotationVec(1.0F).multiply(10);
-        Vec3d vec3d3 = vec3d.add(vec3d2);
-        Box box = base.getBoundingBox().stretch(vec3d2).expand(1.0);
+        Vec3 baseEyePos = new Vec3(base.getX(), base.getEyeY(), base.getZ());
+        Vec3 vec3d = base.getEyePosition();
+        Vec3 vec3d2 = base.getViewVector(1.0F).scale(10);
+        Vec3 vec3d3 = vec3d.add(vec3d2);
+        AABB box = base.getBoundingBox().expandTowards(vec3d2).inflate(1.0);
 
-        Function<Vec3d, Boolean> canSee = pos -> base.getWorld().raycast(new RaycastContext(baseEyePos, pos, RaycastContext.ShapeType.VISUAL, RaycastContext.FluidHandling.NONE, base)).getType() == HitResult.Type.MISS;
+        Function<Vec3, Boolean> canSee = pos -> base.level().clip(new ClipContext(baseEyePos, pos, ClipContext.Block.VISUAL, ClipContext.Fluid.NONE, base)).getType() == HitResult.Type.MISS;
 
-        if (canSee.apply(new Vec3d(rawEntity.getX(), rawEntity.getEyeY(), rawEntity.getZ()))
-                || canSee.apply(new Vec3d(rawEntity.getX(), rawEntity.getY() + 0.5, rawEntity.getZ()))
-                || canSee.apply(new Vec3d(rawEntity.getX(), rawEntity.getY(), rawEntity.getZ()))) {
+        if (canSee.apply(new Vec3(rawEntity.getX(), rawEntity.getEyeY(), rawEntity.getZ()))
+                || canSee.apply(new Vec3(rawEntity.getX(), rawEntity.getY() + 0.5, rawEntity.getZ()))
+                || canSee.apply(new Vec3(rawEntity.getX(), rawEntity.getY(), rawEntity.getZ()))) {
             return true;
         }
 
@@ -350,7 +350,7 @@ public class LivingEntityHelper<T extends LivingEntity> extends EntityHelper<T> 
             return false;
         }
 
-        Box boundingBox = rawEntity.getBoundingBox();
+        AABB boundingBox = rawEntity.getBoundingBox();
         double bHeight = boundingBox.maxY - boundingBox.minY;
         int steps = (int) (bHeight / 0.1);
         double diffX = (boundingBox.maxX - boundingBox.minX) / 2;
@@ -358,10 +358,10 @@ public class LivingEntityHelper<T extends LivingEntity> extends EntityHelper<T> 
         // Create 4 pillars around the mob to check for visibility
         for (int i = 0; i < steps; i++) {
             double y = i * 0.1;
-            if (canSee.apply(new Vec3d(rawEntity.getX() + diffX, rawEntity.getY() + y, rawEntity.getZ()))
-                    || canSee.apply(new Vec3d(rawEntity.getX() - diffX, rawEntity.getY() + y, rawEntity.getZ()))
-                    || canSee.apply(new Vec3d(rawEntity.getX(), rawEntity.getY() + y, rawEntity.getZ() + diffZ))
-                    || canSee.apply(new Vec3d(rawEntity.getX(), rawEntity.getY() + y, rawEntity.getZ() - diffZ))) {
+            if (canSee.apply(new Vec3(rawEntity.getX() + diffX, rawEntity.getY() + y, rawEntity.getZ()))
+                    || canSee.apply(new Vec3(rawEntity.getX() - diffX, rawEntity.getY() + y, rawEntity.getZ()))
+                    || canSee.apply(new Vec3(rawEntity.getX(), rawEntity.getY() + y, rawEntity.getZ() + diffZ))
+                    || canSee.apply(new Vec3(rawEntity.getX(), rawEntity.getY() + y, rawEntity.getZ() - diffZ))) {
                 return true;
             }
         }

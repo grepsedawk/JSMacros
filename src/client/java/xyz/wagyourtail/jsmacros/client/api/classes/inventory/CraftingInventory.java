@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.classes.inventory;
 
-import net.minecraft.client.gui.screen.ingame.CraftingScreen;
+import net.minecraft.client.gui.screens.inventory.CraftingScreen;
 import xyz.wagyourtail.jsmacros.client.api.helper.inventory.ItemStackHelper;
 
 /**
@@ -15,9 +15,9 @@ public class CraftingInventory extends RecipeInventory<CraftingScreen> {
 
     @Override
     public ItemStackHelper getOutput() {
-        var handler = inventory.getScreenHandler();
-        handler.getOutputSlot();
-        return new ItemStackHelper(inventory.getScreenHandler().getOutputSlot().getStack());
+        var handler = inventory.getMenu();
+        handler.getResultSlot();
+        return new ItemStackHelper(inventory.getMenu().getResultSlot().getItem());
     }
 
     /**
@@ -27,18 +27,18 @@ public class CraftingInventory extends RecipeInventory<CraftingScreen> {
      * @since 1.8.4
      */
     public ItemStackHelper getInput(int x, int y) {
-        var handler = inventory.getScreenHandler();
-        return new ItemStackHelper(handler.getInputSlots().get(x + y * 3).getStack());
+        var handler = inventory.getMenu();
+        return new ItemStackHelper(handler.getInputGridSlots().get(x + y * 3).getItem());
     }
 
     @Override
     public int getCraftingWidth() {
-        return inventory.getScreenHandler().getWidth();
+        return inventory.getMenu().getGridWidth();
     }
 
     @Override
     public int getCraftingHeight() {
-        return inventory.getScreenHandler().getHeight();
+        return inventory.getMenu().getGridHeight();
     }
 
     @Override

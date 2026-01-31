@@ -1,17 +1,17 @@
 package xyz.wagyourtail.jsmacros.client.api.library.impl;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.ingame.SignEditScreen;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.render.debug.DebugRenderer;
-import net.minecraft.client.util.ScreenshotRecorder;
-import net.minecraft.text.Text;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.hit.HitResult;
-import net.minecraft.world.GameMode;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.Screenshot;
+import net.minecraft.client.gui.screens.inventory.SignEditScreen;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.renderer.debug.DebugRenderer;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.doclet.DocletReplaceParams;
 import xyz.wagyourtail.doclet.DocletReplaceReturn;
@@ -49,7 +49,7 @@ import java.util.function.Consumer;
 @Library("Player")
 @SuppressWarnings("unused")
 public class FPlayer extends BaseLibrary {
-    private static final MinecraftClient mc = MinecraftClient.getInstance();
+    private static final Minecraft mc = Minecraft.getInstance();
 
     public FPlayer(Core<?, ?> runner) {
         super(runner);
@@ -70,7 +70,7 @@ public class FPlayer extends BaseLibrary {
      * @since 1.0.3
      */
     @Nullable
-    public ClientPlayerEntityHelper<ClientPlayerEntity> getPlayer() {
+    public ClientPlayerEntityHelper<LocalPlayer> getPlayer() {
         if (mc.player == null) {
             return null;
         }
@@ -82,7 +82,7 @@ public class FPlayer extends BaseLibrary {
      */
     @Nullable
     public InteractionManagerHelper getInteractionManager() {
-        return mc.interactionManager == null ? null : new InteractionManagerHelper(mc.interactionManager);
+        return mc.gameMode == null ? null : new InteractionManagerHelper(mc.gameMode);
     }
 
     /**
@@ -100,9 +100,9 @@ public class FPlayer extends BaseLibrary {
      */
     @DocletReplaceReturn("Gamemode")
     public String getGameMode() {
-        assert mc.interactionManager != null;
-        GameMode mode = mc.interactionManager.getCurrentGameMode();
-        return mode.getId();
+        assert mc.gameMode != null;
+        GameType mode = mc.gameMode.getPlayerMode();
+        return mode.getName();
     }
 
     /**
@@ -111,8 +111,8 @@ public class FPlayer extends BaseLibrary {
      */
     @DocletReplaceParams("gameMode: Gamemode")
     public void setGameMode(String gameMode) {
-        assert mc.interactionManager != null;
-        mc.interactionManager.setGameMode(GameMode.byId(gameMode.toLowerCase(Locale.ROOT), mc.interactionManager.getCurrentGameMode()));
+        assert mc.gameMode != null;
+        mc.gameMode.setLocalMode(GameType.byName(gameMode.toLowerCase(Locale.ROOT), mc.gameMode.getPlayerMode()));
     }
 
     /**
@@ -124,14 +124,14 @@ public class FPlayer extends BaseLibrary {
      */
     @Nullable
     public BlockDataHelper rayTraceBlock(double distance, boolean fluid) {
-        assert mc.world != null;
+        assert mc.level != null;
         assert mc.player != null;
-        BlockHitResult h = (BlockHitResult) mc.player.raycast(distance, 0, fluid);
+        BlockHitResult h = (BlockHitResult) mc.player.pick(distance, 0, fluid);
         if (h.getType() == HitResult.Type.MISS) {
             return null;
         }
-        BlockState b = mc.world.getBlockState(h.getBlockPos());
-        BlockEntity t = mc.world.getBlockEntity(h.getBlockPos());
+        BlockState b = mc.level.getBlockState(h.getBlockPos());
+        BlockEntity t = mc.level.getBlockEntity(h.getBlockPos());
         if (b.getBlock().equals(Blocks.VOID_AIR)) {
             return null;
         }
@@ -143,9 +143,9 @@ public class FPlayer extends BaseLibrary {
      * @since 1.9.1
      */
     public HitResultHelper.Block detailedRayTraceBlock(double distance, boolean fluid) {
-        assert mc.world != null;
+        assert mc.level != null;
         assert mc.player != null;
-        return new HitResultHelper.Block((BlockHitResult) mc.player.raycast(distance, 0, fluid));
+        return new HitResultHelper.Block((BlockHitResult) mc.player.pick(distance, 0, fluid));
     }
 
     /**
@@ -157,8 +157,8 @@ public class FPlayer extends BaseLibrary {
     @Deprecated
     @Nullable
     public EntityHelper<?> rayTraceEntity() {
-        if (mc.targetedEntity != null) {
-            return EntityHelper.create(mc.targetedEntity);
+        if (mc.crosshairPickEntity != null) {
+            return EntityHelper.create(mc.crosshairPickEntity);
         } else {
             return null;
         }
@@ -185,7 +185,7 @@ public class FPlayer extends BaseLibrary {
      * @since 1.2.2
      */
     public boolean writeSign(@Nullable String l1, @Nullable String l2, @Nullable String l3, @Nullable String l4) {
-        if (mc.currentScreen instanceof SignEditScreen screen) {
+        if (mc.screen instanceof SignEditScreen screen) {
             if (l1 != null) ((ISignEditScreen) screen).jsmacros_setLine(0, l1);
             if (l2 != null) ((ISignEditScreen) screen).jsmacros_setLine(1, l2);
             if (l3 != null) ((ISignEditScreen) screen).jsmacros_setLine(2, l3);
@@ -206,7 +206,7 @@ public class FPlayer extends BaseLibrary {
         if ((index & ~3) != 0) {
             throw new IndexOutOfBoundsException("Index should be in between 0 and 3!!  provided: " + index);
         }
-        if (mc.currentScreen instanceof SignEditScreen screen) {
+        if (mc.screen instanceof SignEditScreen screen) {
             ((ISignEditScreen) screen).jsmacros_setLine(index, message);
             return true;
         }
@@ -221,7 +221,7 @@ public class FPlayer extends BaseLibrary {
      */
     public void takeScreenshot(String folder, @Nullable MethodWrapper<TextHelper, Object, Object, ?> callback) {
         assert folder != null;
-        ScreenshotRecorder.saveScreenshot(new File(runner.config.macroFolder, folder), mc.getFramebuffer(),
+        Screenshot.grab(new File(runner.config.macroFolder, folder), mc.getMainRenderTarget(),
                 (text) -> {
                     if (callback != null) {
                         callback.accept(TextHelper.wrap(text));
@@ -241,7 +241,7 @@ public class FPlayer extends BaseLibrary {
      */
     public void takeScreenshot(String folder, String file, @Nullable MethodWrapper<TextHelper, Object, Object, ?> callback) {
         assert folder != null && file != null;
-        ScreenshotRecorder.saveScreenshot(new File(runner.config.macroFolder, folder), file, mc.getFramebuffer(), 0,
+        Screenshot.grab(new File(runner.config.macroFolder, folder), file, mc.getMainRenderTarget(), 0,
                 (text) -> {
                     if (callback != null) {
                         callback.accept(TextHelper.wrap(text));
@@ -258,7 +258,7 @@ public class FPlayer extends BaseLibrary {
      */
     public void takePanorama(String folder, int width, int height, @Nullable MethodWrapper<TextHelper, Object, Object, ?> callback) {
         assert folder != null;
-        Text result = mc.takePanorama(new File(runner.config.macroFolder, folder));
+        Component result = mc.grabPanoramixScreenshot(new File(runner.config.macroFolder, folder));
         if (callback != null) {
             callback.accept(TextHelper.wrap(result));
         }
@@ -266,7 +266,7 @@ public class FPlayer extends BaseLibrary {
 
     public StatsHelper getStatistics() {
         assert mc.player != null;
-        return new StatsHelper(mc.player.getStatHandler());
+        return new StatsHelper(mc.player.getStats());
     }
 
     /**
@@ -275,7 +275,7 @@ public class FPlayer extends BaseLibrary {
      */
     public double getReach() {
         assert mc.player != null;
-        return mc.player.getBlockInteractionRange();
+        return mc.player.blockInteractionRange();
     }
 
     /**
@@ -368,10 +368,10 @@ public class FPlayer extends BaseLibrary {
      */
     public PlayerInput getCurrentPlayerInput() {
         assert mc.player != null;
-        var plIn = mc.player.input.playerInput;
+        var plIn = mc.player.input.keyPresses;
         int forward = (plIn.forward() ? 1 : 0) + (plIn.backward() ? -1 : 0);
         int sideways = (plIn.left() ? 1 : 0) + (plIn.right() ? -1 : 0);
-        return new PlayerInput(forward, sideways, mc.player.getYaw(), mc.player.getPitch(), mc.player.input.playerInput.jump(), mc.player.input.playerInput.sneak(), mc.player.isSprinting());
+        return new PlayerInput(forward, sideways, mc.player.getYRot(), mc.player.getXRot(), mc.player.input.keyPresses.jump(), mc.player.input.keyPresses.shift(), mc.player.isSprinting());
     }
 
     /**
@@ -456,8 +456,8 @@ public class FPlayer extends BaseLibrary {
      */
     @Deprecated
     public boolean isBreakingBlock() {
-        assert mc.interactionManager != null;
-        return mc.interactionManager.isBreakingBlock();
+        assert mc.gameMode != null;
+        return mc.gameMode.isDestroying();
     }
 
     /**

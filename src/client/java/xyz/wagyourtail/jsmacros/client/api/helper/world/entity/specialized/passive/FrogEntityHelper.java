@@ -1,8 +1,8 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.entity.passive.FrogEntity;
-import net.minecraft.registry.RegistryKeys;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.world.entity.animal.frog.Frog;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.doclet.DocletReplaceReturn;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.EntityHelper;
@@ -12,10 +12,10 @@ import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.EntityHelper;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class FrogEntityHelper extends AnimalEntityHelper<FrogEntity> {
-    MinecraftClient mc = MinecraftClient.getInstance();
+public class FrogEntityHelper extends AnimalEntityHelper<Frog> {
+    Minecraft mc = Minecraft.getInstance();
 
-    public FrogEntityHelper(FrogEntity base) {
+    public FrogEntityHelper(Frog base) {
         super(base);
     }
 
@@ -25,7 +25,7 @@ public class FrogEntityHelper extends AnimalEntityHelper<FrogEntity> {
      */
     @DocletReplaceReturn("FrogVariant")
     public String getVariant() {
-        return mc.getNetworkHandler().getRegistryManager().getOrThrow(RegistryKeys.FROG_VARIANT).getId(base.getVariant().value()).toString();
+        return mc.getConnection().registryAccess().lookupOrThrow(Registries.FROG_VARIANT).getKey(base.getVariant().value()).toString();
     }
 
     /**
@@ -34,7 +34,7 @@ public class FrogEntityHelper extends AnimalEntityHelper<FrogEntity> {
      */
     @Nullable
     public EntityHelper<?> getTarget() {
-        return base.getFrogTarget().map(EntityHelper::create).orElse(null);
+        return base.getTongueTarget().map(EntityHelper::create).orElse(null);
     }
 
     /**
@@ -42,7 +42,7 @@ public class FrogEntityHelper extends AnimalEntityHelper<FrogEntity> {
      * @since 1.8.4
      */
     public boolean isCroaking() {
-        return base.croakingAnimationState.isRunning();
+        return base.croakAnimationState.isStarted();
     }
 
 }

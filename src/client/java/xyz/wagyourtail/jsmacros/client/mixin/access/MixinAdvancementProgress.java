@@ -1,8 +1,8 @@
 package xyz.wagyourtail.jsmacros.client.mixin.access;
 
-import net.minecraft.advancement.AdvancementProgress;
-import net.minecraft.advancement.AdvancementRequirements;
-import net.minecraft.advancement.criterion.CriterionProgress;
+import net.minecraft.advancements.AdvancementProgress;
+import net.minecraft.advancements.AdvancementRequirements;
+import net.minecraft.advancements.CriterionProgress;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.gen.Invoker;
@@ -20,9 +20,9 @@ public interface MixinAdvancementProgress {
     AdvancementRequirements getRequirements();
 
     @Invoker
-    int invokeCountObtainedRequirements();
+    int invokeCountCompletedRequirements();
 
     @Accessor
-    Map<String, CriterionProgress> getCriteriaProgresses();
+    Map<String, CriterionProgress> getCriteria();
 
 }

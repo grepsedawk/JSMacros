@@ -3,17 +3,22 @@ package xyz.wagyourtail.jsmacros.client.api.classes;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.serialization.DynamicOps;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.command.argument.BlockArgumentParser;
-import net.minecraft.command.argument.ItemStringReader;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.SpawnReason;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtElement;
+import net.minecraft.client.Minecraft;
+import net.minecraft.commands.arguments.blocks.BlockStateParser;
+import net.minecraft.commands.arguments.item.ItemParser;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.HolderOwner;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.NbtOps;
-import net.minecraft.registry.*;
-import net.minecraft.registry.entry.RegistryEntryOwner;
-import net.minecraft.util.Identifier;
+import net.minecraft.nbt.Tag;
+import net.minecraft.resources.RegistryOps;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.item.ItemStack;
 import xyz.wagyourtail.doclet.DocletReplaceParams;
 import xyz.wagyourtail.doclet.DocletReplaceReturn;
 import xyz.wagyourtail.doclet.DocletReplaceTypeParams;
@@ -39,21 +44,21 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("unused")
 public class RegistryHelper {
-    MinecraftClient mc = MinecraftClient.getInstance();
+    Minecraft mc = Minecraft.getInstance();
     /**
      * implemented in mixins to make this equal to any owner. used by NBT_PASS_OPS
      */
-    public static final RegistryEntryOwner<?> ALL_EQUALITY_OWNER = new RegistryEntryOwner<>() {
+    public static final HolderOwner<?> ALL_EQUALITY_OWNER = new HolderOwner<>() {
         @Override
-        public boolean ownerEquals(RegistryEntryOwner<Object> other) {
+        public boolean canSerializeIn(HolderOwner<Object> other) {
             return true;
         }
     };
-    private static final RegistryOps.RegistryInfoGetter REGISTRY_INFO_GETTER_UNLIMITED = new RegistryOps.RegistryInfoGetter() {
+    private static final RegistryOps.RegistryInfoLookup REGISTRY_INFO_GETTER_UNLIMITED = new RegistryOps.RegistryInfoLookup() {
         private final RegistryOps.RegistryInfo<?> INFO = new RegistryOps.RegistryInfo<>(ALL_EQUALITY_OWNER, null, null);
 
         @Override
-        public <T> Optional<RegistryOps.RegistryInfo<T>> getRegistryInfo(RegistryKey<? extends Registry<? extends T>> registryRef) {
+        public <T> Optional<RegistryOps.RegistryInfo<T>> lookup(ResourceKey<? extends Registry<? extends T>> registryRef) {
             //noinspection unchecked
             return Optional.of((RegistryOps.RegistryInfo<T>) INFO);
         }
@@ -62,25 +67,25 @@ public class RegistryHelper {
     /**
      * for encoding unlimited data into NbtElement for getNBT methods
      */
-    public static final RegistryOps<NbtElement> NBT_OPS_UNLIMITED = RegistryOps.of(NbtOps.INSTANCE, REGISTRY_INFO_GETTER_UNLIMITED);
+    public static final RegistryOps<Tag> NBT_OPS_UNLIMITED = RegistryOps.create(NbtOps.INSTANCE, REGISTRY_INFO_GETTER_UNLIMITED);
     /**
      * for encoding unlimited data into NbtElement for getNBT methods<br>
      * for methods accepts WrapperLookup and only uses WrapperLookup#getOps()
      */
-    public static final RegistryWrapper.WrapperLookup WRAPPER_LOOKUP_UNLIMITED = new RegistryWrapper.WrapperLookup() {
+    public static final HolderLookup.Provider WRAPPER_LOOKUP_UNLIMITED = new HolderLookup.Provider() {
         @Override
-        public Stream<RegistryKey<? extends Registry<?>>> streamAllRegistryKeys() {
+        public Stream<ResourceKey<? extends Registry<?>>> listRegistryKeys() {
             throw new RuntimeException("Unsupported operation.");
         }
 
         @Override
-        public <T> Optional<? extends RegistryWrapper.Impl<T>> getOptional(RegistryKey<? extends Registry<? extends T>> registryKey) {
+        public <T> Optional<? extends HolderLookup.RegistryLookup<T>> lookup(ResourceKey<? extends Registry<? extends T>> registryKey) {
             throw new RuntimeException("Unsupported operation.");
         }
 
         @Override
-        public <V> RegistryOps<V> getOps(DynamicOps<V> delegate) {
-            return RegistryOps.of(delegate, REGISTRY_INFO_GETTER_UNLIMITED);
+        public <V> RegistryOps<V> createSerializationContext(DynamicOps<V> delegate) {
+            return RegistryOps.create(delegate, REGISTRY_INFO_GETTER_UNLIMITED);
         }
 
     };
@@ -92,7 +97,7 @@ public class RegistryHelper {
      */
     @DocletReplaceParams("id: CanOmitNamespace<ItemId>")
     public ItemHelper getItem(String id) {
-        return new ItemHelper(Registries.ITEM.get(parseIdentifier(id)));
+        return new ItemHelper(BuiltInRegistries.ITEM.getValue(parseIdentifier(id)));
     }
 
     /**
@@ -102,7 +107,7 @@ public class RegistryHelper {
      */
     @DocletReplaceParams("id: CanOmitNamespace<ItemId>")
     public ItemStackHelper getItemStack(String id) {
-        return new CreativeItemStackHelper(new ItemStack(Registries.ITEM.get(parseIdentifier(id))));
+        return new CreativeItemStackHelper(new ItemStack(BuiltInRegistries.ITEM.getValue(parseIdentifier(id))));
     }
 
     /**
@@ -114,10 +119,10 @@ public class RegistryHelper {
      */
     @DocletReplaceParams("id: CanOmitNamespace<ItemId>, nbt: string")
     public ItemStackHelper getItemStack(String id, String nbt) throws CommandSyntaxException {
-        ItemStringReader reader = new ItemStringReader(Objects.requireNonNull(mc.getNetworkHandler()).getRegistryManager());
-        ItemStringReader.ItemResult itemResult = reader.consume(new StringReader(parseNameSpace(id) + nbt));
+        ItemParser reader = new ItemParser(Objects.requireNonNull(mc.getConnection()).registryAccess());
+        ItemParser.ItemResult itemResult = reader.parse(new StringReader(parseNameSpace(id) + nbt));
         ItemStack stack = new ItemStack(itemResult.item());
-        stack.applyUnvalidatedChanges(itemResult.components());
+        stack.applyComponents(itemResult.components());
         return new CreativeItemStackHelper(stack);
     }
 
@@ -127,7 +132,7 @@ public class RegistryHelper {
      */
     @DocletReplaceReturn("JavaList<ItemId>")
     public List<String> getItemIds() {
-        return Registries.ITEM.getIds().stream().map(Identifier::toString).collect(Collectors.toList());
+        return BuiltInRegistries.ITEM.keySet().stream().map(ResourceLocation::toString).collect(Collectors.toList());
     }
 
     /**
@@ -135,7 +140,7 @@ public class RegistryHelper {
      * @since 1.8.4
      */
     public List<ItemHelper> getItems() {
-        return Registries.ITEM.stream().map(ItemHelper::new).collect(Collectors.toList());
+        return BuiltInRegistries.ITEM.stream().map(ItemHelper::new).collect(Collectors.toList());
     }
 
     /**
@@ -145,7 +150,7 @@ public class RegistryHelper {
      */
     @DocletReplaceParams("id: CanOmitNamespace<BlockId>")
     public BlockHelper getBlock(String id) {
-        return new BlockHelper(Registries.BLOCK.get(parseIdentifier(id)));
+        return new BlockHelper(BuiltInRegistries.BLOCK.getValue(parseIdentifier(id)));
     }
 
     /**
@@ -155,7 +160,7 @@ public class RegistryHelper {
      */
     @DocletReplaceParams("id: CanOmitNamespace<BlockId>")
     public BlockStateHelper getBlockState(String id) {
-        return new BlockStateHelper(Registries.BLOCK.get(parseIdentifier(id)).getDefaultState());
+        return new BlockStateHelper(BuiltInRegistries.BLOCK.getValue(parseIdentifier(id)).defaultBlockState());
     }
 
     /**
@@ -164,7 +169,7 @@ public class RegistryHelper {
      */
     @DocletReplaceParams("id: CanOmitNamespace<StatusEffectId>")
     public StatusEffectHelper getStatusEffect(String id) {
-        return new StatusEffectHelper(Registries.STATUS_EFFECT.get(parseIdentifier(id)));
+        return new StatusEffectHelper(BuiltInRegistries.MOB_EFFECT.getValue(parseIdentifier(id)));
     }
 
     /**
@@ -172,7 +177,7 @@ public class RegistryHelper {
      * @since 1.8.4
      */
     public List<StatusEffectHelper> getStatusEffects() {
-        return Registries.STATUS_EFFECT.stream().map(StatusEffectHelper::new).collect(Collectors.toList());
+        return BuiltInRegistries.MOB_EFFECT.stream().map(StatusEffectHelper::new).collect(Collectors.toList());
     }
 
     /**
@@ -184,7 +189,7 @@ public class RegistryHelper {
      */
     @DocletReplaceParams("id: CanOmitNamespace<BlockId>, nbt: string")
     public BlockStateHelper getBlockState(String id, String nbt) throws CommandSyntaxException {
-        return new BlockStateHelper(BlockArgumentParser.block(Registries.BLOCK.freeze(), parseNameSpace(id) + nbt, false).blockState());
+        return new BlockStateHelper(BlockStateParser.parseForBlock(BuiltInRegistries.BLOCK.freeze(), parseNameSpace(id) + nbt, false).blockState());
     }
 
     /**
@@ -193,7 +198,7 @@ public class RegistryHelper {
      */
     @DocletReplaceReturn("JavaList<BlockId>")
     public List<String> getBlockIds() {
-        return Registries.BLOCK.getIds().stream().map(Identifier::toString).collect(Collectors.toList());
+        return BuiltInRegistries.BLOCK.keySet().stream().map(ResourceLocation::toString).collect(Collectors.toList());
     }
 
     /**
@@ -201,7 +206,7 @@ public class RegistryHelper {
      * @since 1.8.4
      */
     public List<BlockHelper> getBlocks() {
-        return Registries.BLOCK.stream().map(BlockHelper::new).collect(Collectors.toList());
+        return BuiltInRegistries.BLOCK.stream().map(BlockHelper::new).collect(Collectors.toList());
     }
 
     /**
@@ -222,7 +227,7 @@ public class RegistryHelper {
      */
     @DocletReplaceParams("id: CanOmitNamespace<EnchantmentId>, level: int")
     public EnchantmentHelper getEnchantment(String id, int level) {
-        return new EnchantmentHelper(mc.getNetworkHandler().getRegistryManager().getOrThrow(RegistryKeys.ENCHANTMENT).getEntry(parseIdentifier(id)).orElseThrow(), level);
+        return new EnchantmentHelper(mc.getConnection().registryAccess().lookupOrThrow(Registries.ENCHANTMENT).get(parseIdentifier(id)).orElseThrow(), level);
     }
 
     /**
@@ -231,7 +236,7 @@ public class RegistryHelper {
      */
     @DocletReplaceReturn("JavaList<EnchantmentId>")
     public List<String> getEnchantmentIds() {
-        return mc.getNetworkHandler().getRegistryManager().getOrThrow(RegistryKeys.ENCHANTMENT).getIds().stream().map(Identifier::toString).collect(Collectors.toList());
+        return mc.getConnection().registryAccess().lookupOrThrow(Registries.ENCHANTMENT).keySet().stream().map(ResourceLocation::toString).collect(Collectors.toList());
     }
 
     /**
@@ -239,7 +244,7 @@ public class RegistryHelper {
      * @since 1.8.4
      */
     public List<EnchantmentHelper> getEnchantments() {
-        return mc.getNetworkHandler().getRegistryManager().getOrThrow(RegistryKeys.ENCHANTMENT).streamEntries().map(EnchantmentHelper::new).collect(Collectors.toList());
+        return mc.getConnection().registryAccess().lookupOrThrow(Registries.ENCHANTMENT).listElements().map(EnchantmentHelper::new).collect(Collectors.toList());
     }
 
     /**
@@ -251,7 +256,7 @@ public class RegistryHelper {
     @DocletReplaceParams("type: E")
     @DocletReplaceReturn("EntityTypeFromId<E>")
     public EntityHelper<?> getEntity(String type) {
-        return EntityHelper.create(Registries.ENTITY_TYPE.get(parseIdentifier(type)).create(MinecraftClient.getInstance().world, SpawnReason.COMMAND));
+        return EntityHelper.create(BuiltInRegistries.ENTITY_TYPE.getValue(parseIdentifier(type)).create(Minecraft.getInstance().level, EntitySpawnReason.COMMAND));
     }
 
     /**
@@ -261,7 +266,7 @@ public class RegistryHelper {
      */
     @DocletReplaceParams("type: CanOmitNamespace<EntityId>")
     public EntityType<?> getRawEntityType(String type) {
-        return Registries.ENTITY_TYPE.get(parseIdentifier(type));
+        return BuiltInRegistries.ENTITY_TYPE.getValue(parseIdentifier(type));
     }
 
     /**
@@ -270,7 +275,7 @@ public class RegistryHelper {
      */
     @DocletReplaceReturn("JavaList<EntityId>")
     public List<String> getEntityTypeIds() {
-        return Registries.ENTITY_TYPE.getIds().stream().map(Identifier::toString).collect(Collectors.toList());
+        return BuiltInRegistries.ENTITY_TYPE.keySet().stream().map(ResourceLocation::toString).collect(Collectors.toList());
     }
 
     /**
@@ -280,7 +285,7 @@ public class RegistryHelper {
      */
     @DocletReplaceParams("id: CanOmitNamespace<FluidId>")
     public FluidStateHelper getFluidState(String id) {
-        return new FluidStateHelper(Registries.FLUID.get(parseIdentifier(id)).getDefaultState());
+        return new FluidStateHelper(BuiltInRegistries.FLUID.getValue(parseIdentifier(id)).defaultFluidState());
     }
 
     /**
@@ -289,7 +294,7 @@ public class RegistryHelper {
      */
     @DocletReplaceReturn("JavaList<FeatureId>")
     public List<String> getFeatureIds() {
-        return Registries.FEATURE.getIds().stream().map(Identifier::toString).collect(Collectors.toList());
+        return BuiltInRegistries.FEATURE.keySet().stream().map(ResourceLocation::toString).collect(Collectors.toList());
     }
 
     /**
@@ -298,7 +303,7 @@ public class RegistryHelper {
      */
     @DocletReplaceReturn("JavaList<StructureFeatureId>")
     public List<String> getStructureFeatureIds() {
-        return Registries.STRUCTURE_PIECE.getIds().stream().map(Identifier::toString).collect(Collectors.toList());
+        return BuiltInRegistries.STRUCTURE_PIECE.keySet().stream().map(ResourceLocation::toString).collect(Collectors.toList());
     }
 
     /**
@@ -307,7 +312,7 @@ public class RegistryHelper {
      */
     @DocletReplaceReturn("JavaList<PaintingId>")
     public List<String> getPaintingIds() {
-        return mc.getNetworkHandler().getRegistryManager().getOrThrow(RegistryKeys.PAINTING_VARIANT).getIds().stream().map(Identifier::toString).collect(Collectors.toList());
+        return mc.getConnection().registryAccess().lookupOrThrow(Registries.PAINTING_VARIANT).keySet().stream().map(ResourceLocation::toString).collect(Collectors.toList());
     }
 
     /**
@@ -316,7 +321,7 @@ public class RegistryHelper {
      */
     @DocletReplaceReturn("JavaList<ParticleTypeId>")
     public List<String> getParticleTypeIds() {
-        return Registries.PARTICLE_TYPE.getIds().stream().map(Identifier::toString).collect(Collectors.toList());
+        return BuiltInRegistries.PARTICLE_TYPE.keySet().stream().map(ResourceLocation::toString).collect(Collectors.toList());
     }
 
     /**
@@ -325,7 +330,7 @@ public class RegistryHelper {
      */
     @DocletReplaceReturn("JavaList<GameEventName>")
     public List<String> getGameEventNames() {
-        return Registries.GAME_EVENT.getIds().stream().map(Identifier::toString).collect(Collectors.toList());
+        return BuiltInRegistries.GAME_EVENT.keySet().stream().map(ResourceLocation::toString).collect(Collectors.toList());
     }
 
     /**
@@ -334,7 +339,7 @@ public class RegistryHelper {
      */
     @DocletReplaceReturn("JavaList<StatusEffectId>")
     public List<String> getStatusEffectIds() {
-        return Registries.STATUS_EFFECT.getIds().stream().map(Identifier::toString).collect(Collectors.toList());
+        return BuiltInRegistries.MOB_EFFECT.keySet().stream().map(ResourceLocation::toString).collect(Collectors.toList());
     }
 
     /**
@@ -343,7 +348,7 @@ public class RegistryHelper {
      */
     @DocletReplaceReturn("JavaList<BlockEntityTypeId>")
     public List<String> getBlockEntityTypeIds() {
-        return Registries.BLOCK_ENTITY_TYPE.getIds().stream().map(Identifier::toString).collect(Collectors.toList());
+        return BuiltInRegistries.BLOCK_ENTITY_TYPE.keySet().stream().map(ResourceLocation::toString).collect(Collectors.toList());
     }
 
     /**
@@ -352,7 +357,7 @@ public class RegistryHelper {
      */
     @DocletReplaceReturn("JavaList<ScreenHandlerId>")
     public List<String> getScreenHandlerIds() {
-        return Registries.SCREEN_HANDLER.getIds().stream().map(Identifier::toString).collect(Collectors.toList());
+        return BuiltInRegistries.MENU.keySet().stream().map(ResourceLocation::toString).collect(Collectors.toList());
     }
 
     /**
@@ -361,7 +366,7 @@ public class RegistryHelper {
      */
     @DocletReplaceReturn("JavaList<RecipeTypeId>")
     public List<String> getRecipeTypeIds() {
-        return Registries.RECIPE_TYPE.getIds().stream().map(Identifier::toString).collect(Collectors.toList());
+        return BuiltInRegistries.RECIPE_TYPE.keySet().stream().map(ResourceLocation::toString).collect(Collectors.toList());
     }
 
     /**
@@ -370,7 +375,7 @@ public class RegistryHelper {
      */
     @DocletReplaceReturn("JavaList<VillagerTypeId>")
     public List<String> getVillagerTypeIds() {
-        return Registries.VILLAGER_TYPE.getIds().stream().map(Identifier::toString).collect(Collectors.toList());
+        return BuiltInRegistries.VILLAGER_TYPE.keySet().stream().map(ResourceLocation::toString).collect(Collectors.toList());
     }
 
     /**
@@ -379,7 +384,7 @@ public class RegistryHelper {
      */
     @DocletReplaceReturn("JavaList<VillagerProfession>")
     public List<String> getVillagerProfessionIds() {
-        return Registries.VILLAGER_PROFESSION.getIds().stream().map(Identifier::toString).collect(Collectors.toList());
+        return BuiltInRegistries.VILLAGER_PROFESSION.keySet().stream().map(ResourceLocation::toString).collect(Collectors.toList());
     }
 
     /**
@@ -388,7 +393,7 @@ public class RegistryHelper {
      */
     @DocletReplaceReturn("JavaList<PointOfInterestTypeId>")
     public List<String> getPointOfInterestTypeIds() {
-        return Registries.POINT_OF_INTEREST_TYPE.getIds().stream().map(Identifier::toString).collect(Collectors.toList());
+        return BuiltInRegistries.POINT_OF_INTEREST_TYPE.keySet().stream().map(ResourceLocation::toString).collect(Collectors.toList());
     }
 
     /**
@@ -397,7 +402,7 @@ public class RegistryHelper {
      */
     @DocletReplaceReturn("JavaList<MemoryModuleTypeId>")
     public List<String> getMemoryModuleTypeIds() {
-        return Registries.MEMORY_MODULE_TYPE.getIds().stream().map(Identifier::toString).collect(Collectors.toList());
+        return BuiltInRegistries.MEMORY_MODULE_TYPE.keySet().stream().map(ResourceLocation::toString).collect(Collectors.toList());
     }
 
     /**
@@ -406,7 +411,7 @@ public class RegistryHelper {
      */
     @DocletReplaceReturn("JavaList<SensorTypeId>")
     public List<String> getSensorTypeIds() {
-        return Registries.SENSOR_TYPE.getIds().stream().map(Identifier::toString).collect(Collectors.toList());
+        return BuiltInRegistries.SENSOR_TYPE.keySet().stream().map(ResourceLocation::toString).collect(Collectors.toList());
     }
 
     /**
@@ -415,7 +420,7 @@ public class RegistryHelper {
      */
     @DocletReplaceReturn("JavaList<ActivityTypeId>")
     public List<String> getActivityTypeIds() {
-        return Registries.ACTIVITY.getIds().stream().map(Identifier::toString).collect(Collectors.toList());
+        return BuiltInRegistries.ACTIVITY.keySet().stream().map(ResourceLocation::toString).collect(Collectors.toList());
     }
 
     /**
@@ -424,7 +429,7 @@ public class RegistryHelper {
      */
     @DocletReplaceReturn("JavaList<StatTypeId>")
     public List<String> getStatTypeIds() {
-        return Registries.STAT_TYPE.getIds().stream().map(Identifier::toString).collect(Collectors.toList());
+        return BuiltInRegistries.STAT_TYPE.keySet().stream().map(ResourceLocation::toString).collect(Collectors.toList());
     }
 
     /**
@@ -433,7 +438,7 @@ public class RegistryHelper {
      */
     @DocletReplaceReturn("JavaList<EntityAttributeId>")
     public List<String> getEntityAttributeIds() {
-        return Registries.ATTRIBUTE.getIds().stream().map(Identifier::toString).collect(Collectors.toList());
+        return BuiltInRegistries.ATTRIBUTE.keySet().stream().map(ResourceLocation::toString).collect(Collectors.toList());
     }
 
     /**
@@ -442,7 +447,7 @@ public class RegistryHelper {
      */
     @DocletReplaceReturn("JavaList<PotionTypeId>")
     public List<String> getPotionTypeIds() {
-        return Registries.POTION.getIds().stream().map(Identifier::toString).collect(Collectors.toList());
+        return BuiltInRegistries.POTION.keySet().stream().map(ResourceLocation::toString).collect(Collectors.toList());
     }
 
     /**
@@ -450,12 +455,12 @@ public class RegistryHelper {
      * @return the raw minecraft Identifier.
      * @since 1.8.4
      */
-    public Identifier getIdentifier(String identifier) {
+    public ResourceLocation getIdentifier(String identifier) {
         return parseIdentifier(identifier);
     }
 
-    public static Identifier parseIdentifier(String id) {
-        return Identifier.of(parseNameSpace(id));
+    public static ResourceLocation parseIdentifier(String id) {
+        return ResourceLocation.parse(parseNameSpace(id));
     }
 
     public static String parseNameSpace(String id) {

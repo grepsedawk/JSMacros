@@ -1,8 +1,8 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.entity.passive.CatEntity;
-import net.minecraft.registry.RegistryKeys;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.world.entity.animal.Cat;
 import xyz.wagyourtail.jsmacros.client.api.helper.DyeColorHelper;
 
 /**
@@ -10,10 +10,10 @@ import xyz.wagyourtail.jsmacros.client.api.helper.DyeColorHelper;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class CatEntityHelper extends TameableEntityHelper<CatEntity> {
-    private static final MinecraftClient mc = MinecraftClient.getInstance();
+public class CatEntityHelper extends TameableEntityHelper<Cat> {
+    private static final Minecraft mc = Minecraft.getInstance();
 
-    public CatEntityHelper(CatEntity base) {
+    public CatEntityHelper(Cat base) {
         super(base);
     }
 
@@ -38,7 +38,7 @@ public class CatEntityHelper extends TameableEntityHelper<CatEntity> {
      * @since 1.8.4
      */
     public String getVariant() {
-        return mc.getNetworkHandler().getRegistryManager().getOrThrow(RegistryKeys.CAT_VARIANT).getId(base.getVariant().value()).toString();
+        return mc.getConnection().registryAccess().lookupOrThrow(Registries.CAT_VARIANT).getKey(base.getVariant().value()).toString();
     }
 
 }

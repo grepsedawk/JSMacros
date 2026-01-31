@@ -1,20 +1,20 @@
 package xyz.wagyourtail.jsmacros.client.api.library.impl;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.MessageScreen;
-import net.minecraft.client.gui.screen.TitleScreen;
-import net.minecraft.client.gui.screen.multiplayer.ConnectScreen;
-import net.minecraft.client.gui.screen.multiplayer.MultiplayerScreen;
-import net.minecraft.client.network.ClientPlayNetworkHandler;
-import net.minecraft.client.network.ServerAddress;
-import net.minecraft.client.network.ServerInfo;
-import net.minecraft.client.realms.gui.screen.RealmsMainScreen;
-import net.minecraft.network.listener.ClientPlayPacketListener;
-import net.minecraft.network.packet.Packet;
-import net.minecraft.registry.Registries;
-import net.minecraft.text.Text;
-import net.minecraft.world.level.storage.LevelStorage;
+import com.mojang.realmsclient.RealmsMainScreen;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.ConnectScreen;
+import net.minecraft.client.gui.screens.GenericMessageScreen;
+import net.minecraft.client.gui.screens.TitleScreen;
+import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
+import net.minecraft.client.multiplayer.ClientPacketListener;
+import net.minecraft.client.multiplayer.ServerData;
+import net.minecraft.client.multiplayer.resolver.ServerAddress;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.world.level.storage.LevelStorageException;
+import net.minecraft.world.level.storage.LevelStorageSource;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.doclet.DocletReplaceParams;
 import xyz.wagyourtail.doclet.DocletReplaceReturn;
@@ -56,7 +56,7 @@ import java.util.stream.Collectors;
 @Library("Client")
 @SuppressWarnings("unused")
 public class FClient extends PerExecLibrary {
-    private static final MinecraftClient mc = MinecraftClient.getInstance();
+    private static final Minecraft mc = Minecraft.getInstance();
     /**
      * Don't touch this plz xd.
      */
@@ -70,7 +70,7 @@ public class FClient extends PerExecLibrary {
      * @return the raw minecraft client class, it may be useful to use <a target="_blank" href="https://wagyourtail.xyz/Projects/Minecraft%20Mappings%20Viewer/App">Minecraft Mappings Viewer</a> for this.
      * @since 1.0.0 (was in the {@code jsmacros} library until 1.2.9)
      */
-    public MinecraftClient getMinecraft() {
+    public Minecraft getMinecraft() {
         return mc;
     }
 
@@ -118,7 +118,7 @@ public class FClient extends PerExecLibrary {
      * @since 1.9.1
      */
     public void runOnMainThread(MethodWrapper<Object, Object, Object, ?> runnable, boolean await, long watchdogMaxTime) throws InterruptedException {
-        if (mc.isOnThread()) {
+        if (mc.isSameThread()) {
             runnable.run();
         } else if (runner.profile.checkJoinedThreadStack()) {
             throw new IllegalThreadStateException("Attempted to wait on main thread while currently joined to main!");
@@ -173,7 +173,7 @@ public class FClient extends PerExecLibrary {
      * @since 1.1.2 (was in the {@code jsmacros} library until 1.2.9)
      */
     public String mcVersion() {
-        return mc.getGameVersion();
+        return mc.getLaunchedVersion();
     }
 
     /**
@@ -181,7 +181,7 @@ public class FClient extends PerExecLibrary {
      * @since 1.2.0 (was in the {@code jsmacros} library until 1.2.9)
      */
     public String getFPS() {
-        return mc.fpsDebugString;
+        return mc.fpsString;
     }
 
     /**
@@ -192,23 +192,23 @@ public class FClient extends PerExecLibrary {
      */
     public void loadWorld(String folderName) throws LevelStorageException {
 
-        LevelStorage levelstoragesource = mc.getLevelStorage();
-        List<LevelStorage.LevelSave> levels = levelstoragesource.getLevelList().levels();
-        if (levels.stream().noneMatch(e -> e.getRootPath().equals(folderName))) {
+        LevelStorageSource levelstoragesource = mc.getLevelSource();
+        List<LevelStorageSource.LevelDirectory> levels = levelstoragesource.findLevelCandidates().levels();
+        if (levels.stream().noneMatch(e -> e.directoryName().equals(folderName))) {
             throw new RuntimeException("Level Not Found!");
         }
 
         mc.execute(() -> {
-            boolean bl = mc.isInSingleplayer();
-            if (mc.world != null) {
-                mc.world.disconnect(Text.of(""));
+            boolean bl = mc.isLocalServer();
+            if (mc.level != null) {
+                mc.level.disconnect(Component.nullToEmpty(""));
             }
             if (bl) {
-                mc.disconnect(new MessageScreen(Text.translatable("menu.savingLevel")), false);
+                mc.disconnect(new GenericMessageScreen(Component.translatable("menu.savingLevel")), false);
             } else {
                 mc.disconnect(null, false);
             }
-            mc.createIntegratedServerLoader().start(folderName, () -> mc.setScreen(new TitleScreen()));
+            mc.createWorldOpenFlows().openWorld(folderName, () -> mc.setScreen(new TitleScreen()));
         });
     }
 
@@ -218,8 +218,8 @@ public class FClient extends PerExecLibrary {
      * @since 1.2.3 (was in the {@code jsmacros} library until 1.2.9)
      */
     public void connect(String ip) {
-        ServerAddress a = ServerAddress.parse(ip);
-        connect(a.getAddress(), a.getPort());
+        ServerAddress a = ServerAddress.parseString(ip);
+        connect(a.getHost(), a.getPort());
     }
 
     /**
@@ -231,16 +231,16 @@ public class FClient extends PerExecLibrary {
      */
     public void connect(String ip, int port) {
         mc.execute(() -> {
-            boolean bl = mc.isInSingleplayer();
-            if (mc.world != null) {
-                mc.world.disconnect(Text.of(""));
+            boolean bl = mc.isLocalServer();
+            if (mc.level != null) {
+                mc.level.disconnect(Component.nullToEmpty(""));
             }
             if (bl) {
-                mc.disconnect(new MessageScreen(Text.of("Saving World")),false);
+                mc.disconnect(new GenericMessageScreen(Component.nullToEmpty("Saving World")),false);
             } else {
-                mc.disconnect(new MessageScreen(Text.of("")),false);
+                mc.disconnect(new GenericMessageScreen(Component.nullToEmpty("")),false);
             }
-            ConnectScreen.connect(null, mc, new ServerAddress(ip, port), new ServerInfo("server", new ServerAddress(ip, port).toString(), ServerInfo.ServerType.OTHER), false, null);
+            ConnectScreen.startConnecting(null, mc, new ServerAddress(ip, port), new ServerData("server", new ServerAddress(ip, port).toString(), ServerData.Type.OTHER), false, null);
         });
     }
 
@@ -262,23 +262,23 @@ public class FClient extends PerExecLibrary {
      */
     public void disconnect(@Nullable MethodWrapper<Boolean, Object, Object, ?> callback) {
         mc.execute(() -> {
-            boolean isWorld = mc.world != null;
-            boolean isInSingleplayer = mc.isInSingleplayer();
+            boolean isWorld = mc.level != null;
+            boolean isInSingleplayer = mc.isLocalServer();
             if (isWorld) {
                 // logic in death screen disconnect button
-                if (mc.world != null) {
-                    mc.world.disconnect(Text.of(""));
+                if (mc.level != null) {
+                    mc.level.disconnect(Component.nullToEmpty(""));
                 }
-                mc.disconnect(new MessageScreen(Text.translatable("menu.savingLevel")), false);
+                mc.disconnect(new GenericMessageScreen(Component.translatable("menu.savingLevel")), false);
                 mc.setScreen(new TitleScreen());
             }
             if (isInSingleplayer) {
                 mc.setScreen(new TitleScreen());
-            } else if (mc.getCurrentServerEntry() != null) {
-                if (mc.getCurrentServerEntry().isRealm()) {
+            } else if (mc.getCurrentServer() != null) {
+                if (mc.getCurrentServer().isRealm()) {
                     mc.setScreen(new RealmsMainScreen(new TitleScreen()));
                 } else {
-                    mc.setScreen(new MultiplayerScreen(new TitleScreen()));
+                    mc.setScreen(new JoinMultiplayerScreen(new TitleScreen()));
                 }
             }
             try {
@@ -300,7 +300,7 @@ public class FClient extends PerExecLibrary {
      */
     @DocletReplaceReturn("never")
     public void shutdown() {
-        mc.execute(mc::scheduleStop);
+        mc.execute(mc::stop);
 
         if (!runner.profile.checkJoinedThreadStack()) {
             // Wait until the game stops
@@ -350,12 +350,12 @@ public class FClient extends PerExecLibrary {
      * @since 1.6.5
      */
     public ServerInfoHelper ping(String ip) throws UnknownHostException, InterruptedException {
-        ServerInfo info = new ServerInfo("", ip, ServerInfo.ServerType.OTHER);
+        ServerData info = new ServerData("", ip, ServerData.Type.OTHER);
         if (runner.profile.checkJoinedThreadStack()) {
             throw new IllegalThreadStateException("pinging from main thread is not supported!");
         }
         Semaphore semaphore = new Semaphore(0);
-        TickBasedEvents.serverListPinger.add(info, () -> {}, semaphore::release);
+        TickBasedEvents.serverListPinger.pingServer(info, () -> {}, semaphore::release);
         semaphore.acquire();
         return new ServerInfoHelper(info);
     }
@@ -369,9 +369,9 @@ public class FClient extends PerExecLibrary {
     @DocletReplaceParams("ip: string, callback: MethodWrapper<ServerInfoHelper | null, java.io.IOException | null>")
     public void pingAsync(String ip, MethodWrapper<ServerInfoHelper, IOException, Object, ?> callback) {
         CompletableFuture.runAsync(() -> {
-            ServerInfo info = new ServerInfo("", ip, ServerInfo.ServerType.OTHER);
+            ServerData info = new ServerData("", ip, ServerData.Type.OTHER);
             try {
-                TickBasedEvents.serverListPinger.add(info, () -> {}, () -> callback.accept(new ServerInfoHelper(info), null));
+                TickBasedEvents.serverListPinger.pingServer(info, () -> {}, () -> callback.accept(new ServerInfoHelper(info), null));
             } catch (IOException e) {
                 callback.accept(null, e);
             }
@@ -382,7 +382,7 @@ public class FClient extends PerExecLibrary {
      * @since 1.6.5
      */
     public void cancelAllPings() {
-        TickBasedEvents.serverListPinger.cancel();
+        TickBasedEvents.serverListPinger.removeAll();
     }
 
     /**
@@ -420,8 +420,8 @@ public class FClient extends PerExecLibrary {
      */
     public void grabMouse() {
         mc.options.pauseOnLostFocus = false;
-        mc.onWindowFocusChanged(true);
-        mc.mouse.lockCursor();
+        mc.setWindowActive(true);
+        mc.mouseHandler.grabMouse();
     }
 
     /**
@@ -445,7 +445,7 @@ public class FClient extends PerExecLibrary {
      * @since 1.8.4
      */
     public List<BlockHelper> getRegisteredBlocks() {
-        return Registries.BLOCK.stream().map(BlockHelper::new).collect(Collectors.toList());
+        return BuiltInRegistries.BLOCK.stream().map(BlockHelper::new).collect(Collectors.toList());
     }
 
     /**
@@ -453,7 +453,7 @@ public class FClient extends PerExecLibrary {
      * @since 1.8.4
      */
     public List<ItemHelper> getRegisteredItems() {
-        return Registries.ITEM.stream().map(ItemHelper::new).collect(Collectors.toList());
+        return BuiltInRegistries.ITEM.stream().map(ItemHelper::new).collect(Collectors.toList());
     }
 
     /**
@@ -462,7 +462,7 @@ public class FClient extends PerExecLibrary {
      * @since 1.8.4
      */
     public void exitGamePeacefully() {
-        mc.scheduleStop();
+        mc.stop();
     }
 
     /**
@@ -481,9 +481,9 @@ public class FClient extends PerExecLibrary {
      * @since 1.8.4
      */
     public void sendPacket(Packet<?> packet) {
-        ClientPlayNetworkHandler network = mc.getNetworkHandler();
+        ClientPacketListener network = mc.getConnection();
         if (network != null) {
-            network.sendPacket(packet);
+            network.send(packet);
         }
     }
 
@@ -492,8 +492,8 @@ public class FClient extends PerExecLibrary {
      * @see #createPacketByteBuffer()
      * @since 1.8.4
      */
-    public void receivePacket(Packet<ClientPlayPacketListener> packet) {
-        packet.apply(mc.getNetworkHandler());
+    public void receivePacket(Packet<ClientGamePacketListener> packet) {
+        packet.handle(mc.getConnection());
     }
 
     /**
@@ -501,7 +501,7 @@ public class FClient extends PerExecLibrary {
      * @since 2.0.0
      */
     public String getClipboard() {
-        return mc.keyboard.getClipboard();
+        return mc.keyboardHandler.getClipboard();
     }
 
     /**
@@ -509,7 +509,7 @@ public class FClient extends PerExecLibrary {
      * @since 2.0.0
      */
     public void setClipboard(String text) {
-        mc.keyboard.setClipboard(text);
+        mc.keyboardHandler.setClipboard(text);
     }
 
 }

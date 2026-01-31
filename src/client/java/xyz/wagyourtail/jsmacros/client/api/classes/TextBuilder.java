@@ -1,13 +1,16 @@
 package xyz.wagyourtail.jsmacros.client.api.classes;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.entity.Entity;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.text.*;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Identifier;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.TextColor;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Entity;
 import xyz.wagyourtail.doclet.DocletReplaceParams;
 import xyz.wagyourtail.jsmacros.access.CustomClickEvent;
 import xyz.wagyourtail.jsmacros.client.JsMacrosClient;
@@ -19,7 +22,11 @@ import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.EntityHelper;
 import xyz.wagyourtail.jsmacros.core.MethodWrapper;
 
 import java.net.URI;
-import java.util.*;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
 
 /**
  * usage: {@code builder.append("hello,").withColor(0xc).append(" World!").withColor(0x6)}
@@ -29,8 +36,8 @@ import java.util.*;
  */
 @SuppressWarnings("unused")
 public class TextBuilder {
-    private final MutableText head = Text.literal("");
-    private MutableText self = head;
+    private final MutableComponent head = Component.literal("");
+    private MutableComponent self = head;
 
     public TextBuilder() {
 
@@ -55,12 +62,12 @@ public class TextBuilder {
     }
 
     private void appendInternal(String text) {
-        head.append(self = Text.literal(text));
+        head.append(self = Component.literal(text));
     }
 
     private void appendInternal(TextHelper helper) {
-        assert helper.getRaw() instanceof MutableText;
-        head.append(self = (MutableText) helper.getRaw());
+        assert helper.getRaw() instanceof MutableComponent;
+        head.append(self = (MutableComponent) helper.getRaw());
     }
 
     /**
@@ -72,7 +79,7 @@ public class TextBuilder {
      * @since 1.3.0
      */
     public TextBuilder withColor(int color) {
-        self.styled(style -> style.withColor(Formatting.byColorIndex(color)));
+        self.withStyle(style -> style.withColor(ChatFormatting.getById(color)));
         return this;
     }
 
@@ -86,7 +93,7 @@ public class TextBuilder {
      * @since 1.3.1
      */
     public TextBuilder withColor(int r, int g, int b) {
-        self.styled(style -> style.withColor(TextColor.fromRgb((r & 255) << 16 | (g & 255) << 8 | (b & 255))));
+        self.withStyle(style -> style.withColor(TextColor.fromRgb((r & 255) << 16 | (g & 255) << 8 | (b & 255))));
         return this;
     }
 
@@ -102,23 +109,23 @@ public class TextBuilder {
      * @since 1.3.0
      */
     public TextBuilder withFormatting(boolean underline, boolean bold, boolean italic, boolean strikethrough, boolean magic) {
-        List<Formatting> formattings = new LinkedList<>();
+        List<ChatFormatting> formattings = new LinkedList<>();
         if (underline) {
-            formattings.add(Formatting.UNDERLINE);
+            formattings.add(ChatFormatting.UNDERLINE);
         }
         if (bold) {
-            formattings.add(Formatting.BOLD);
+            formattings.add(ChatFormatting.BOLD);
         }
         if (italic) {
-            formattings.add(Formatting.ITALIC);
+            formattings.add(ChatFormatting.ITALIC);
         }
         if (strikethrough) {
-            formattings.add(Formatting.STRIKETHROUGH);
+            formattings.add(ChatFormatting.STRIKETHROUGH);
         }
         if (magic) {
-            formattings.add(Formatting.OBFUSCATED);
+            formattings.add(ChatFormatting.OBFUSCATED);
         }
-        self.styled(style -> style.withFormatting(formattings.toArray(new Formatting[0])));
+        self.withStyle(style -> style.applyFormats(formattings.toArray(new ChatFormatting[0])));
         return this;
     }
 
@@ -128,7 +135,7 @@ public class TextBuilder {
      * @since 1.8.4
      */
     public TextBuilder withFormatting(FormattingHelper... formattings) {
-        self.styled(style -> style.withFormatting(Arrays.stream(formattings).map(FormattingHelper::getRaw).toArray(Formatting[]::new)));
+        self.withStyle(style -> style.applyFormats(Arrays.stream(formattings).map(FormattingHelper::getRaw).toArray(ChatFormatting[]::new)));
         return this;
     }
 
@@ -140,7 +147,7 @@ public class TextBuilder {
      * @since 1.3.0
      */
     public TextBuilder withShowTextHover(TextHelper text) {
-        self.styled(style -> style.withHoverEvent(new HoverEvent.ShowText(text.getRaw())));
+        self.withStyle(style -> style.withHoverEvent(new HoverEvent.ShowText(text.getRaw())));
         return this;
     }
 
@@ -152,7 +159,7 @@ public class TextBuilder {
      * @since 1.3.0
      */
     public TextBuilder withShowItemHover(ItemStackHelper item) {
-        self.styled(style -> style.withHoverEvent(new HoverEvent.ShowItem(item.getRaw())));
+        self.withStyle(style -> style.withHoverEvent(new HoverEvent.ShowItem(item.getRaw())));
         return this;
     }
 
@@ -165,7 +172,7 @@ public class TextBuilder {
      */
     public TextBuilder withShowEntityHover(EntityHelper<Entity> entity) {
         Entity raw = entity.getRaw();
-        self.styled(style -> style.withHoverEvent(new HoverEvent.ShowEntity(new HoverEvent.EntityContent(raw.getType(), raw.getUuid(), raw.getName()))));
+        self.withStyle(style -> style.withHoverEvent(new HoverEvent.ShowEntity(new HoverEvent.EntityTooltipInfo(raw.getType(), raw.getUUID(), raw.getName()))));
         return this;
     }
 
@@ -177,7 +184,7 @@ public class TextBuilder {
      * @since 1.3.0
      */
     public TextBuilder withCustomClickEvent(MethodWrapper<Object, Object, Object, ?> action) {
-        self.styled(style -> style.withClickEvent(new CustomClickEvent(() -> {
+        self.withStyle(style -> style.withClickEvent(new CustomClickEvent(() -> {
             try {
                 action.run();
             } catch (Throwable ex) {
@@ -198,24 +205,24 @@ public class TextBuilder {
     @DocletReplaceParams("action: TextClickAction, value: string")
     public TextBuilder withClickEvent(String action, String value) {
         ClickEvent.Action clickAction = ClickEvent.Action.valueOf(action.toUpperCase(Locale.ROOT));
-        Identifier id = Identifier.of(value);
-        RegistryWrapper.WrapperLookup lookup = Objects
-                .requireNonNull(MinecraftClient.getInstance().getNetworkHandler())
-                .getRegistryManager();
-        self.styled(style -> style.withClickEvent(switch (clickAction) {
+        ResourceLocation id = ResourceLocation.parse(value);
+        var lookup = Objects
+                .requireNonNull(Minecraft.getInstance().getConnection())
+                .registryAccess();
+        self.withStyle(style -> style.withClickEvent(switch (clickAction) {
             case OPEN_URL -> new ClickEvent.OpenUrl(URI.create(value));
             case OPEN_FILE -> new ClickEvent.OpenFile(value);
             case RUN_COMMAND -> new ClickEvent.RunCommand(value);
             case SUGGEST_COMMAND -> new ClickEvent.SuggestCommand(value);
             case SHOW_DIALOG -> {
-                var registryWrapper = lookup.getOrThrow(RegistryKeys.DIALOG);
-                var dialogKey = RegistryKey.of(RegistryKeys.DIALOG, Identifier.of(value));
-                var entry = registryWrapper.getOptional(dialogKey).orElseThrow(() -> new IllegalArgumentException("Unknown dialog type: " + value));
+                var registryWrapper = lookup.lookupOrThrow(Registries.DIALOG);
+                var dialogKey = ResourceKey.create(Registries.DIALOG, ResourceLocation.parse(value));
+                var entry = registryWrapper.get(dialogKey).orElseThrow(() -> new IllegalArgumentException("Unknown dialog type: " + value));
                 yield new ClickEvent.ShowDialog(entry);
             }
             case CHANGE_PAGE -> new ClickEvent.ChangePage(Integer.parseInt(value));
             case COPY_TO_CLIPBOARD -> new ClickEvent.CopyToClipboard(value);
-            case CUSTOM -> new ClickEvent.Custom(Identifier.of(value),null);
+            case CUSTOM -> new ClickEvent.Custom(ResourceLocation.parse(value),null);
         }));
         return this;
     }
@@ -230,7 +237,7 @@ public class TextBuilder {
      * @since 1.8.4
      */
     public int getWidth() {
-        return MinecraftClient.getInstance().textRenderer.getWidth(head);
+        return Minecraft.getInstance().font.width(head);
     }
 
     /**

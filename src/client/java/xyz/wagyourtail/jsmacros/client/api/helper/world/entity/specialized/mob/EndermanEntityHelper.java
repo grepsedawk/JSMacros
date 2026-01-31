@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.mob;
 
-import net.minecraft.entity.mob.EndermanEntity;
+import net.minecraft.world.entity.monster.EnderMan;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.BlockStateHelper;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.MobEntityHelper;
@@ -10,9 +10,9 @@ import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.MobEntityHelper;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class EndermanEntityHelper extends MobEntityHelper<EndermanEntity> {
+public class EndermanEntityHelper extends MobEntityHelper<EnderMan> {
 
-    public EndermanEntityHelper(EndermanEntity base) {
+    public EndermanEntityHelper(EnderMan base) {
         super(base);
     }
 
@@ -21,7 +21,7 @@ public class EndermanEntityHelper extends MobEntityHelper<EndermanEntity> {
      * @since 1.8.4
      */
     public boolean isScreaming() {
-        return base.isAngry();
+        return base.isCreepy();
     }
 
     /**
@@ -29,7 +29,7 @@ public class EndermanEntityHelper extends MobEntityHelper<EndermanEntity> {
      * @since 1.8.4
      */
     public boolean isProvoked() {
-        return base.isProvoked();
+        return base.hasBeenStaredAt();
     }
 
     /**

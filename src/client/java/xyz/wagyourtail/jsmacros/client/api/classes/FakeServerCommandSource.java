@@ -2,15 +2,15 @@ package xyz.wagyourtail.jsmacros.client.api.classes;
 
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.Suggestions;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientCommandSource;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.registry.DynamicRegistryManager;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.World;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientSuggestionProvider;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.Level;
 
 import java.util.Collection;
 import java.util.Set;
@@ -22,68 +22,68 @@ import java.util.stream.Stream;
  * @author Etheradon
  * @since 1.8.4
  */
-public class FakeServerCommandSource extends ServerCommandSource {
+public class FakeServerCommandSource extends CommandSourceStack {
 
-    private final ClientCommandSource source;
+    private final ClientSuggestionProvider source;
 
-    public FakeServerCommandSource(ClientCommandSource source, ClientPlayerEntity player) {
-        super(null, player.getPos(), player.getRotationClient(), null, 100, player.getName().getString(), player.getDisplayName(), null, player);
+    public FakeServerCommandSource(ClientSuggestionProvider source, LocalPlayer player) {
+        super(null, player.position(), player.getRotationVector(), null, 100, player.getName().getString(), player.getDisplayName(), null, player);
         this.source = source;
     }
 
     @Override
-    public Collection<String> getEntitySuggestions() {
-        return source.getEntitySuggestions();
+    public Collection<String> getSelectedEntities() {
+        return source.getSelectedEntities();
     }
 
     @Override
-    public Collection<String> getChatSuggestions() {
-        return source.getChatSuggestions();
+    public Collection<String> getCustomTabSugggestions() {
+        return source.getCustomTabSugggestions();
     }
 
     @Override
-    public Collection<String> getPlayerNames() {
-        return source.getPlayerNames();
+    public Collection<String> getOnlinePlayerNames() {
+        return source.getOnlinePlayerNames();
     }
 
     @Override
-    public Collection<String> getTeamNames() {
-        return source.getTeamNames();
+    public Collection<String> getAllTeams() {
+        return source.getAllTeams();
     }
 
     @Override
-    public Stream<Identifier> getSoundIds() {
-        return source.getSoundIds();
+    public Stream<ResourceLocation> getAvailableSounds() {
+        return source.getAvailableSounds();
     }
 
     @Override
-    public CompletableFuture<Suggestions> getCompletions(CommandContext<?> context) {
-        return source.getCompletions(context);
+    public CompletableFuture<Suggestions> customSuggestion(CommandContext<?> context) {
+        return source.customSuggestion(context);
     }
 
     @Override
-    public Collection<RelativePosition> getBlockPositionSuggestions() {
-        return source.getBlockPositionSuggestions();
+    public Collection<TextCoordinates> getRelevantCoordinates() {
+        return source.getRelevantCoordinates();
     }
 
     @Override
-    public Collection<RelativePosition> getPositionSuggestions() {
-        return source.getPositionSuggestions();
+    public Collection<TextCoordinates> getAbsoluteCoordinates() {
+        return source.getAbsoluteCoordinates();
     }
 
     @Override
-    public Set<RegistryKey<World>> getWorldKeys() {
-        return source.getWorldKeys();
+    public Set<ResourceKey<Level>> levels() {
+        return source.levels();
     }
 
     @Override
-    public DynamicRegistryManager getRegistryManager() {
-        return source.getRegistryManager();
+    public RegistryAccess registryAccess() {
+        return source.registryAccess();
     }
 
     @Override
-    public void sendFeedback(Supplier<Text> feedbackSupplier, boolean broadcastToOps) {
-        MinecraftClient.getInstance().player.sendMessage(feedbackSupplier.get(), false);
+    public void sendSuccess(Supplier<Component> feedbackSupplier, boolean broadcastToOps) {
+        Minecraft.getInstance().player.displayClientMessage(feedbackSupplier.get(), false);
     }
 
 }

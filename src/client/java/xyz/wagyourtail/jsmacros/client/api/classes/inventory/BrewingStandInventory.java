@@ -1,11 +1,11 @@
 package xyz.wagyourtail.jsmacros.client.api.classes.inventory;
 
-import net.minecraft.block.entity.BrewingStandBlockEntity;
-import net.minecraft.client.gui.screen.ingame.BrewingStandScreen;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.PotionContentsComponent;
-import net.minecraft.item.ItemStack;
-import net.minecraft.recipe.BrewingRecipeRegistry;
+import net.minecraft.client.gui.screens.inventory.BrewingStandScreen;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.alchemy.PotionBrewing;
+import net.minecraft.world.item.alchemy.PotionContents;
+import net.minecraft.world.level.block.entity.BrewingStandBlockEntity;
 import xyz.wagyourtail.jsmacros.client.api.helper.inventory.ItemStackHelper;
 
 import java.util.Arrays;
@@ -30,9 +30,9 @@ public class BrewingStandInventory extends Inventory<BrewingStandScreen> {
      * @since 1.8.4
      */
     public boolean isBrewablePotion(ItemStackHelper potion) {
-        PotionContentsComponent pot = potion.getRaw().get(DataComponentTypes.POTION_CONTENTS);
+        PotionContents pot = potion.getRaw().get(DataComponents.POTION_CONTENTS);
         if (pot != null && pot.potion().isPresent()) {
-            return Objects.requireNonNull(mc.getNetworkHandler()).getBrewingRecipeRegistry().isBrewable(pot.potion().get());
+            return Objects.requireNonNull(mc.getConnection()).potionBrewing().isBrewablePotion(pot.potion().get());
         }
         return false;
     }
@@ -43,7 +43,7 @@ public class BrewingStandInventory extends Inventory<BrewingStandScreen> {
      * @since 1.8.4
      */
     public boolean isValidIngredient(ItemStackHelper ingredient) {
-        return Objects.requireNonNull(mc.getNetworkHandler()).getBrewingRecipeRegistry().isValidIngredient(ingredient.getRaw());
+        return Objects.requireNonNull(mc.getConnection()).potionBrewing().isIngredient(ingredient.getRaw());
     }
 
     /**
@@ -54,7 +54,7 @@ public class BrewingStandInventory extends Inventory<BrewingStandScreen> {
      * @since 1.8.4
      */
     public boolean isValidRecipe(ItemStackHelper potion, ItemStackHelper ingredient) {
-        return Objects.requireNonNull(mc.getNetworkHandler()).getBrewingRecipeRegistry().hasRecipe(potion.getRaw(), ingredient.getRaw());
+        return Objects.requireNonNull(mc.getConnection()).potionBrewing().hasMix(potion.getRaw(), ingredient.getRaw());
     }
 
     /**
@@ -62,7 +62,7 @@ public class BrewingStandInventory extends Inventory<BrewingStandScreen> {
      * @since 1.8.4
      */
     public int getFuelCount() {
-        return inventory.getScreenHandler().getFuel();
+        return inventory.getMenu().getFuel();
     }
 
     /**
@@ -72,7 +72,7 @@ public class BrewingStandInventory extends Inventory<BrewingStandScreen> {
      * @since 1.8.4
      */
     public int getMaxFuelUses() {
-        return BrewingStandBlockEntity.MAX_FUEL_USES;
+        return BrewingStandBlockEntity.FUEL_USES;
     }
 
     /**
@@ -101,7 +101,7 @@ public class BrewingStandInventory extends Inventory<BrewingStandScreen> {
      * @since 1.8.4
      */
     public int getBrewTime() {
-        return BrewingRecipeRegistry.field_30942 * 20 - inventory.getScreenHandler().getBrewTime();
+        return PotionBrewing.BREWING_TIME_SECONDS * 20 - inventory.getMenu().getBrewingTicks();
     }
 
     /**
@@ -109,7 +109,7 @@ public class BrewingStandInventory extends Inventory<BrewingStandScreen> {
      * @since 1.8.4
      */
     public int getRemainingTicks() {
-        return inventory.getScreenHandler().getBrewTime();
+        return inventory.getMenu().getBrewingTicks();
     }
 
     /**
@@ -120,7 +120,7 @@ public class BrewingStandInventory extends Inventory<BrewingStandScreen> {
      * @since 1.8.4
      */
     public ItemStackHelper previewPotion(ItemStackHelper potion, ItemStackHelper ingredient) {
-        return new ItemStackHelper(Objects.requireNonNull(mc.getNetworkHandler()).getBrewingRecipeRegistry().craft(ingredient.getRaw(), potion.getRaw()));
+        return new ItemStackHelper(Objects.requireNonNull(mc.getConnection()).potionBrewing().mix(ingredient.getRaw(), potion.getRaw()));
     }
 
     /**
@@ -129,7 +129,7 @@ public class BrewingStandInventory extends Inventory<BrewingStandScreen> {
      */
     public List<ItemStackHelper> previewPotions() {
         ItemStack ingredient = getIngredient().getRaw();
-        return getPotions().stream().map(stack -> new ItemStackHelper(Objects.requireNonNull(mc.getNetworkHandler()).getBrewingRecipeRegistry().craft(ingredient, stack.getRaw()))).collect(Collectors.toList());
+        return getPotions().stream().map(stack -> new ItemStackHelper(Objects.requireNonNull(mc.getConnection()).potionBrewing().mix(ingredient, stack.getRaw()))).collect(Collectors.toList());
     }
 
     /**

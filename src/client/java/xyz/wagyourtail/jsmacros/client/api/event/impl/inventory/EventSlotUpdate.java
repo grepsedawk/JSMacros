@@ -1,7 +1,7 @@
 package xyz.wagyourtail.jsmacros.client.api.event.impl.inventory;
 
-import net.minecraft.client.gui.screen.ingame.HandledScreen;
-import net.minecraft.item.ItemStack;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.world.item.ItemStack;
 import xyz.wagyourtail.doclet.DocletDeclareType;
 import xyz.wagyourtail.doclet.DocletReplaceReturn;
 import xyz.wagyourtail.jsmacros.client.JsMacrosClient;
@@ -15,7 +15,7 @@ import xyz.wagyourtail.jsmacros.core.event.Event;
  */
 @Event(value = "SlotUpdate")
 public class EventSlotUpdate extends BaseEvent {
-    protected final HandledScreen<?> screen;
+    protected final AbstractContainerScreen<?> screen;
     @DocletReplaceReturn("SlotUpdateType")
     @DocletDeclareType(name = "SlotUpdateType", type = "'HELD' | 'INVENTORY' | 'SCREEN'")
     public final String type;
@@ -23,7 +23,7 @@ public class EventSlotUpdate extends BaseEvent {
     public final ItemStackHelper oldStack;
     public final ItemStackHelper newStack;
 
-    public EventSlotUpdate(HandledScreen<?> screen, String type, int slot, ItemStack oldStack, ItemStack newStack) {
+    public EventSlotUpdate(AbstractContainerScreen<?> screen, String type, int slot, ItemStack oldStack, ItemStack newStack) {
         super(JsMacrosClient.clientCore);
         this.screen = screen;
         this.type = type;

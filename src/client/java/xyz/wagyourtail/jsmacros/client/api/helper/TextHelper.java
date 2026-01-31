@@ -1,9 +1,9 @@
 package xyz.wagyourtail.jsmacros.client.api.helper;
 
 import com.mojang.serialization.JsonOps;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.text.Text;
-import net.minecraft.text.TextCodecs;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentSerialization;
 import xyz.wagyourtail.jsmacros.core.MethodWrapper;
 import xyz.wagyourtail.jsmacros.core.helpers.BaseHelper;
 
@@ -16,16 +16,16 @@ import java.util.regex.Pattern;
  * @since 1.0.8
  */
 @SuppressWarnings("unused")
-public class TextHelper extends BaseHelper<Text> {
-    private static final MinecraftClient mc = MinecraftClient.getInstance();
+public class TextHelper extends BaseHelper<Component> {
+    private static final Minecraft mc = Minecraft.getInstance();
 
     public static final Pattern STRIP_FORMATTING_PATTERN = Pattern.compile("\u00a7[0-9A-FK-OR]", Pattern.CASE_INSENSITIVE);
 
-    private TextHelper(Text t) {
+    private TextHelper(Component t) {
         super(t);
     }
 
-    public static TextHelper wrap(Text t) {
+    public static TextHelper wrap(Component t) {
         if (t != null) {
             return new TextHelper(t);
         } else {
@@ -56,7 +56,7 @@ public class TextHelper extends BaseHelper<Text> {
      */
     @Deprecated
     public TextHelper replaceFromString(String content) {
-        base = Text.literal(content);
+        base = Component.literal(content);
         return this;
     }
 
@@ -65,8 +65,8 @@ public class TextHelper extends BaseHelper<Text> {
      * @since 1.2.7
      */
     public String getJson() {
-        var registryManager = Objects.requireNonNull(mc.player).getRegistryManager();
-        return String.valueOf(TextCodecs.CODEC.encodeStart(registryManager.getOps(JsonOps.INSTANCE), base).getOrThrow());
+        var registryManager = Objects.requireNonNull(mc.player).registryAccess();
+        return String.valueOf(ComponentSerialization.CODEC.encodeStart(registryManager.createSerializationContext(JsonOps.INSTANCE), base).getOrThrow());
     }
 
     /**
@@ -90,7 +90,7 @@ public class TextHelper extends BaseHelper<Text> {
      * @since 1.8.4
      */
     public TextHelper withoutFormatting() {
-        return TextHelper.wrap(Text.literal(getStringStripFormatting()));
+        return TextHelper.wrap(Component.literal(getStringStripFormatting()));
     }
 
     /**
@@ -110,7 +110,7 @@ public class TextHelper extends BaseHelper<Text> {
      * @since 1.8.4
      */
     public int getWidth() {
-        return MinecraftClient.getInstance().textRenderer.getWidth(base);
+        return Minecraft.getInstance().font.width(base);
     }
 
     /**

@@ -1,13 +1,13 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.registry.Registries;
-import net.minecraft.state.property.Property;
-import net.minecraft.util.Util;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.Util;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.Property;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.doclet.DocletReplaceReturn;
 import xyz.wagyourtail.jsmacros.client.api.classes.RegistryHelper;
@@ -24,7 +24,7 @@ import java.util.Map.Entry;
  */
 @SuppressWarnings("unused")
 public class BlockDataHelper extends BaseHelper<BlockState> {
-    private static final MinecraftClient mc = MinecraftClient.getInstance();
+    private static final Minecraft mc = Minecraft.getInstance();
 
     private final Block b;
     private final BlockPos bp;
@@ -66,7 +66,7 @@ public class BlockDataHelper extends BaseHelper<BlockState> {
      */
     @DocletReplaceReturn("BlockId")
     public String getId() {
-        return Registries.BLOCK.getId(b).toString();
+        return BuiltInRegistries.BLOCK.getKey(b).toString();
     }
 
     /**
@@ -82,7 +82,7 @@ public class BlockDataHelper extends BaseHelper<BlockState> {
      */
     @Nullable
     public NBTElementHelper.NBTCompoundHelper getNBT() {
-        return e == null ? null : NBTElementHelper.wrapCompound(e.createNbt(RegistryHelper.WRAPPER_LOOKUP_UNLIMITED));
+        return e == null ? null : NBTElementHelper.wrapCompound(e.saveWithoutMetadata(RegistryHelper.WRAPPER_LOOKUP_UNLIMITED));
     }
 
     /**
@@ -117,8 +117,8 @@ public class BlockDataHelper extends BaseHelper<BlockState> {
      */
     public Map<String, String> getBlockState() {
         Map<String, String> map = new HashMap<>();
-        for (Entry<Property<?>, Comparable<?>> e : base.getEntries().entrySet()) {
-            map.put(e.getKey().getName(), Util.getValueAsString(e.getKey(), e.getValue()));
+        for (Entry<Property<?>, Comparable<?>> e : base.getValues().entrySet()) {
+            map.put(e.getKey().getName(), Util.getPropertyName(e.getKey(), e.getValue()));
         }
         return map;
     }

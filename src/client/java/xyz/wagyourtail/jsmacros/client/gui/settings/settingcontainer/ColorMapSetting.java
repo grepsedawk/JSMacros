@@ -1,7 +1,7 @@
 package xyz.wagyourtail.jsmacros.client.gui.settings.settingcontainer;
 
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.text.Text;
+import net.minecraft.client.gui.Font;
+import net.minecraft.network.chat.Component;
 import xyz.wagyourtail.jsmacros.client.gui.settings.SettingsOverlay;
 import xyz.wagyourtail.wagyourgui.elements.AnnotatedCheckBox;
 import xyz.wagyourtail.wagyourgui.overlays.TextPrompt;
@@ -10,7 +10,7 @@ import java.lang.reflect.InvocationTargetException;
 
 public class ColorMapSetting extends AbstractMapSettingContainer<short[], ColorMapSetting.ColorEntry> {
 
-    public ColorMapSetting(int x, int y, int width, int height, TextRenderer textRenderer, SettingsOverlay parent, String[] group) {
+    public ColorMapSetting(int x, int y, int width, int height, Font textRenderer, SettingsOverlay parent, String[] group) {
         super(x, y, width, height, textRenderer, parent, group);
         defaultValue = () -> new short[3];
     }
@@ -33,7 +33,7 @@ public class ColorMapSetting extends AbstractMapSettingContainer<short[], ColorM
 
     public static class ColorEntry extends AbstractMapSettingContainer.MapSettingEntry<short[]> {
 
-        public ColorEntry(int x, int y, int width, TextRenderer textRenderer, ColorMapSetting parent, String key, short[] value) {
+        public ColorEntry(int x, int y, int width, Font textRenderer, ColorMapSetting parent, String key, short[] value) {
             super(x, y, width, textRenderer, (AbstractMapSettingContainer) parent, key, value);
         }
 
@@ -58,18 +58,18 @@ public class ColorMapSetting extends AbstractMapSettingContainer<short[], ColorM
         public void init() {
             super.init();
             int w = width - height;
-            this.addDrawableChild(new AnnotatedCheckBox(x + w / 2, y, w / 2, height, textRenderer, convertColorToInt(value), 0xFF000000, 0x7FFFFFFF, 0xFFFFFFFF, Text.literal(convertColorToString(value)), true, (btn) -> {
+            this.addDrawableChild(new AnnotatedCheckBox(x + w / 2, y, w / 2, height, textRenderer, convertColorToInt(value), 0xFF000000, 0x7FFFFFFF, 0xFFFFFFFF, Component.literal(convertColorToString(value)), true, (btn) -> {
                 ((AnnotatedCheckBox) btn).value = true;
                 int x = parent.x;
                 int y = parent.y;
                 int width = parent.width;
                 int height = parent.height;
-                TextPrompt prompt = new TextPrompt(x + width / 4, y + height / 4, width / 2, height / 2, textRenderer, Text.translatable("jsmacros.setvalue"), convertColorToString(value), getFirstOverlayParent(), (str) -> {
+                TextPrompt prompt = new TextPrompt(x + width / 4, y + height / 4, width / 2, height / 2, textRenderer, Component.translatable("jsmacros.setvalue"), convertColorToString(value), getFirstOverlayParent(), (str) -> {
                     try {
                         short[] newVal = convertStringToColor(str);
                         parent.changeValue(key, newVal);
                         btn.setColor(convertColorToInt(newVal));
-                        btn.setMessage(Text.literal(str));
+                        btn.setMessage(Component.literal(str));
                     } catch (InvocationTargetException | IllegalAccessException e) {
                         e.printStackTrace();
                     }

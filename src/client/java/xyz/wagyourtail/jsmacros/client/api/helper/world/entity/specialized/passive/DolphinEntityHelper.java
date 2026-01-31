@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive;
 
-import net.minecraft.entity.passive.DolphinEntity;
+import net.minecraft.world.entity.animal.Dolphin;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.BlockPosHelper;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.MobEntityHelper;
 
@@ -9,9 +9,9 @@ import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.MobEntityHelper;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class DolphinEntityHelper extends MobEntityHelper<DolphinEntity> {
+public class DolphinEntityHelper extends MobEntityHelper<Dolphin> {
 
-    public DolphinEntityHelper(DolphinEntity base) {
+    public DolphinEntityHelper(Dolphin base) {
         super(base);
     }
 
@@ -20,7 +20,7 @@ public class DolphinEntityHelper extends MobEntityHelper<DolphinEntity> {
      * @since 1.8.4
      */
     public boolean hasFish() {
-        return base.hasFish();
+        return base.gotFish();
     }
 
     /**
@@ -38,7 +38,7 @@ public class DolphinEntityHelper extends MobEntityHelper<DolphinEntity> {
      * @since 1.8.4
      */
     public int getMoistness() {
-        return base.getMoistness();
+        return base.getMoistnessLevel();
     }
 
 }

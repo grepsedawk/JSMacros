@@ -1,10 +1,10 @@
 package xyz.wagyourtail.jsmacros.client.access;
 
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.Set;
 
 public interface IFontManager {
-    Set<Identifier> jsmacros_getFontList();
+    Set<ResourceLocation> jsmacros_getFontList();
 
 }

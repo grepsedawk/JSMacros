@@ -1,13 +1,13 @@
 package xyz.wagyourtail.jsmacros.client.mixin.access;
 
-import net.minecraft.component.type.BlockPredicatesComponent;
-import net.minecraft.predicate.BlockPredicate;
+import net.minecraft.advancements.critereon.BlockPredicate;
+import net.minecraft.world.item.AdventureModePredicate;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
 import java.util.List;
 
-@Mixin(BlockPredicatesComponent.class)
+@Mixin(AdventureModePredicate.class)
 public interface MixinBlockPredicatesChecker {
 
     @Accessor

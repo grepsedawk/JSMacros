@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.helper;
 
-import net.minecraft.predicate.StatePredicate;
+import net.minecraft.advancements.critereon.StatePropertiesPredicate;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.BlockStateHelper;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.FluidStateHelper;
 import xyz.wagyourtail.jsmacros.core.helpers.BaseHelper;
@@ -8,9 +8,9 @@ import xyz.wagyourtail.jsmacros.core.helpers.BaseHelper;
 /**
  * @since 1.9.1
  */
-public class StatePredicateHelper extends BaseHelper<StatePredicate> {
+public class StatePredicateHelper extends BaseHelper<StatePropertiesPredicate> {
 
-    public StatePredicateHelper(StatePredicate base) {
+    public StatePredicateHelper(StatePropertiesPredicate base) {
         super(base);
     }
 
@@ -18,14 +18,14 @@ public class StatePredicateHelper extends BaseHelper<StatePredicate> {
      * @since 1.9.1
      */
     public boolean test(BlockStateHelper state) {
-        return base.test(state.getRaw());
+        return base.matches(state.getRaw());
     }
 
     /**
      * @since 1.9.1
      */
     public boolean test(FluidStateHelper state) {
-        return base.test(state.getRaw());
+        return base.matches(state.getRaw());
     }
 
 }

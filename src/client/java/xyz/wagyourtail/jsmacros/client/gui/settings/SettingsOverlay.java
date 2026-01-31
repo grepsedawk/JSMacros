@@ -1,11 +1,16 @@
 package xyz.wagyourtail.jsmacros.client.gui.settings;
 
 import com.google.common.collect.Lists;
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.text.Text;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
 import xyz.wagyourtail.jsmacros.client.JsMacrosClient;
-import xyz.wagyourtail.jsmacros.client.gui.settings.settingcontainer.*;
+import xyz.wagyourtail.jsmacros.client.gui.settings.settingcontainer.AbstractSettingContainer;
+import xyz.wagyourtail.jsmacros.client.gui.settings.settingcontainer.ColorMapSetting;
+import xyz.wagyourtail.jsmacros.client.gui.settings.settingcontainer.FileMapSetting;
+import xyz.wagyourtail.jsmacros.client.gui.settings.settingcontainer.PrimitiveSettingGroup;
+import xyz.wagyourtail.jsmacros.client.gui.settings.settingcontainer.ProfileSetting;
+import xyz.wagyourtail.jsmacros.client.gui.settings.settingcontainer.StringMapSetting;
 import xyz.wagyourtail.jsmacros.core.config.CoreConfigV2;
 import xyz.wagyourtail.jsmacros.core.config.Option;
 import xyz.wagyourtail.wagyourgui.BaseScreen;
@@ -24,12 +29,12 @@ import java.util.List;
 import java.util.Map;
 
 public class SettingsOverlay extends OverlayContainer implements ICategoryTreeParent {
-    private final Text title = Text.translatable("jsmacros.settings");
+    private final Component title = Component.translatable("jsmacros.settings");
     private CategoryTreeContainer sections;
     private AbstractSettingContainer category;
     private final SettingTree settings = new SettingTree();
 
-    public SettingsOverlay(int x, int y, int width, int height, TextRenderer textRenderer, IOverlayParent parent) {
+    public SettingsOverlay(int x, int y, int width, int height, Font textRenderer, IOverlayParent parent) {
         super(x, y, width, height, textRenderer, parent);
 
         for (Class<?> clazz : JsMacrosClient.clientCore.config.optionClasses.values()) {
@@ -74,10 +79,10 @@ public class SettingsOverlay extends OverlayContainer implements ICategoryTreePa
         super.init();
         int w = width - 4;
 
-        this.addDrawableChild(new Button(x + width - 12, y + 2, 10, 10, textRenderer, 0, 0x7FFFFFFF, 0x7FFFFFFF, 0xFFFFFFFF, Text.literal("X"), (btn) -> this.close()));
+        this.addDrawableChild(new Button(x + width - 12, y + 2, 10, 10, textRenderer, 0, 0x7FFFFFFF, 0x7FFFFFFF, 0xFFFFFFFF, Component.literal("X"), (btn) -> this.close()));
         sections = new CategoryTreeContainer(x + 2, y + 13, w / 3, height - 17, textRenderer, this);
 
-        this.addDrawableChild(new Button(x + width / 2, y + 2, width / 2 - 12, 10, textRenderer, 0, 0x7FFFFFFF, 0x7FFFFFFF, 0xFFFFFFFF, Text.translatable("jsmacros.reloadconfig"), (btn) -> {
+        this.addDrawableChild(new Button(x + width / 2, y + 2, width / 2 - 12, 10, textRenderer, 0, 0x7FFFFFFF, 0x7FFFFFFF, 0xFFFFFFFF, Component.translatable("jsmacros.reloadconfig"), (btn) -> {
             try {
                 JsMacrosClient.clientCore.config.loadConfig();
             } catch (IllegalAccessException | InstantiationException | IOException | InvocationTargetException | NoSuchMethodException e) {
@@ -129,12 +134,12 @@ public class SettingsOverlay extends OverlayContainer implements ICategoryTreePa
                 this.category.addSetting(field);
             }
         } else {
-            openOverlay(new ConfirmOverlay(x + width / 4, y + height / 4, width / 2, height / 2, textRenderer, Text.translatable("jsmacros.failedsettinggroup"), this, null));
+            openOverlay(new ConfirmOverlay(x + width / 4, y + height / 4, width / 2, height / 2, textRenderer, Component.translatable("jsmacros.failedsettinggroup"), this, null));
         }
     }
 
     @Override
-    public void render(DrawContext drawContext, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphics drawContext, int mouseX, int mouseY, float delta) {
         renderBackground(drawContext);
         int w = width - 4;
 
@@ -146,7 +151,7 @@ public class SettingsOverlay extends OverlayContainer implements ICategoryTreePa
 
         sections.render(drawContext, mouseX, mouseY, delta);
 
-        drawContext.drawWrappedText(textRenderer, title, x + 3, y + 3, width - 14, 0xFFFFFFFF, false);
+        drawContext.drawWordWrap(textRenderer, title, x + 3, y + 3, width - 14, 0xFFFFFFFF, false);
         drawContext.fill(x + 2, y + 12, x + width - 2, y + 13, 0xFFFFFFFF);
 
         //sep

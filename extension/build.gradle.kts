@@ -34,8 +34,8 @@ subprojects {
     }
 
     java {
-        sourceCompatibility = JavaVersion.values()[rootProject.libs.versions.java.get().toInt() - 1]
-        targetCompatibility = JavaVersion.values()[rootProject.libs.versions.java.get().toInt() - 1]
+        sourceCompatibility = JavaVersion.toVersion(rootProject.libs.versions.java.get().toInt())
+        targetCompatibility = JavaVersion.toVersion(rootProject.libs.versions.java.get().toInt())
 
         toolchain {
             languageVersion = JavaLanguageVersion.of(rootProject.libs.versions.java.get().toInt())

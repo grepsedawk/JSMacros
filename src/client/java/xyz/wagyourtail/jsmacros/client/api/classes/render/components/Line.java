@@ -1,7 +1,7 @@
 package xyz.wagyourtail.jsmacros.client.api.classes.render.components;
 
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.util.Mth;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix3x2fStack;
 import xyz.wagyourtail.jsmacros.client.api.classes.render.IDraw2D;
@@ -32,7 +32,7 @@ public class Line implements RenderElement, Alignable<Line> {
         this.x2 = x2;
         this.y2 = y2;
         setColor(color);
-        this.rotation = MathHelper.wrapDegrees(rotation);
+        this.rotation = Mth.wrapDegrees(rotation);
         this.width = width;
         this.zIndex = zIndex;
     }
@@ -267,8 +267,8 @@ public class Line implements RenderElement, Alignable<Line> {
     }
 
     @Override
-    public void render(DrawContext drawContext, int mouseX, int mouseY, float delta) {
-        Matrix3x2fStack matrices = drawContext.getMatrices();
+    public void render(GuiGraphics drawContext, int mouseX, int mouseY, float delta) {
+        Matrix3x2fStack matrices = drawContext.pose();
         matrices.pushMatrix();
         setupMatrix(matrices, x1, y1, 1, rotation, getScaledWidth(), getScaledHeight(), rotateCenter);
 
@@ -308,7 +308,7 @@ public class Line implements RenderElement, Alignable<Line> {
 
     @Override
     public int getParentWidth() {
-        return parent != null ? parent.getWidth() : mc.getWindow().getScaledWidth();
+        return parent != null ? parent.getWidth() : mc.getWindow().getGuiScaledWidth();
     }
 
     @Override
@@ -318,7 +318,7 @@ public class Line implements RenderElement, Alignable<Line> {
 
     @Override
     public int getParentHeight() {
-        return parent != null ? parent.getHeight() : mc.getWindow().getScaledHeight();
+        return parent != null ? parent.getHeight() : mc.getWindow().getGuiScaledHeight();
     }
 
     @Override

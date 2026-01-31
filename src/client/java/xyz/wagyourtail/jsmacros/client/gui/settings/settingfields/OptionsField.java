@@ -1,9 +1,9 @@
 package xyz.wagyourtail.jsmacros.client.gui.settings.settingfields;
 
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.widget.ClickableWidget;
-import net.minecraft.text.Text;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.network.chat.Component;
 import xyz.wagyourtail.jsmacros.client.gui.settings.SettingsOverlay;
 import xyz.wagyourtail.jsmacros.client.gui.settings.settingcontainer.AbstractSettingContainer;
 import xyz.wagyourtail.wagyourgui.BaseScreen;
@@ -16,8 +16,8 @@ import java.util.stream.Collectors;
 
 public class OptionsField extends AbstractSettingField<Object> {
 
-    public OptionsField(int x, int y, int width, TextRenderer textRenderer, AbstractSettingContainer parent, SettingsOverlay.SettingField<Object> field) {
-        super(x, y, width, textRenderer.fontHeight + 2, textRenderer, parent, field);
+    public OptionsField(int x, int y, int width, Font textRenderer, AbstractSettingContainer parent, SettingsOverlay.SettingField<Object> field) {
+        super(x, y, width, textRenderer.lineHeight + 2, textRenderer, parent, field);
     }
 
     @Override
@@ -25,9 +25,9 @@ public class OptionsField extends AbstractSettingField<Object> {
         super.init();
         try {
             List<Object> values = setting.getOptions();
-            List<Text> textvalues = values.stream().map(e -> Text.literal(e.toString())).collect(Collectors.toList());
-            this.addDrawableChild(new Button(x + width / 2, y, width / 2, height, textRenderer, 0, 0xFF000000, 0x7FFFFFFF, 0xFFFFFFFF, Text.literal(setting.get().toString()), (btn) -> {
-                getFirstOverlayParent().openOverlay(new SelectorDropdownOverlay(x + width / 2, y, width / 2, values.size() * (textRenderer.fontHeight + 1) + 4, textvalues, textRenderer, getFirstOverlayParent(), (choice) -> {
+            List<Component> textvalues = values.stream().map(e -> Component.literal(e.toString())).collect(Collectors.toList());
+            this.addDrawableChild(new Button(x + width / 2, y, width / 2, height, textRenderer, 0, 0xFF000000, 0x7FFFFFFF, 0xFFFFFFFF, Component.literal(setting.get().toString()), (btn) -> {
+                getFirstOverlayParent().openOverlay(new SelectorDropdownOverlay(x + width / 2, y, width / 2, values.size() * (textRenderer.lineHeight + 1) + 4, textvalues, textRenderer, getFirstOverlayParent(), (choice) -> {
                     btn.setMessage(textvalues.get(choice));
                     try {
                         setting.set(values.get(choice));
@@ -44,14 +44,14 @@ public class OptionsField extends AbstractSettingField<Object> {
     @Override
     public void setPos(int x, int y, int width, int height) {
         super.setPos(x, y, width, height);
-        for (ClickableWidget btn : buttons) {
+        for (AbstractWidget btn : buttons) {
             btn.setY(y);
         }
     }
 
     @Override
-    public void render(DrawContext drawContext, int mouseX, int mouseY, float delta) {
-        drawContext.drawText(textRenderer, BaseScreen.trimmed(textRenderer, settingName, width / 2), x, y + 1, 0xFFFFFFFF, false);
+    public void render(GuiGraphics drawContext, int mouseX, int mouseY, float delta) {
+        drawContext.drawString(textRenderer, BaseScreen.trimmed(textRenderer, settingName, width / 2), x, y + 1, 0xFFFFFFFF, false);
     }
 
 }

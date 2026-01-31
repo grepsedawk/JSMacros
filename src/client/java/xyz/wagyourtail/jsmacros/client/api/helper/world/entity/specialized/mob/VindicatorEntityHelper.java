@@ -1,15 +1,15 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.mob;
 
-import net.minecraft.entity.mob.VindicatorEntity;
+import net.minecraft.world.entity.monster.Vindicator;
 
 /**
  * @author Etheradon
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class VindicatorEntityHelper extends IllagerEntityHelper<VindicatorEntity> {
+public class VindicatorEntityHelper extends IllagerEntityHelper<Vindicator> {
 
-    public VindicatorEntityHelper(VindicatorEntity base) {
+    public VindicatorEntityHelper(Vindicator base) {
         super(base);
     }
 

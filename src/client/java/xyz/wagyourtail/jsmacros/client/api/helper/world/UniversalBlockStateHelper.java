@@ -1,10 +1,10 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.state.property.BooleanProperty;
-import net.minecraft.state.property.IntProperty;
-import net.minecraft.state.property.Properties;
-import net.minecraft.state.property.Property;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.level.block.state.properties.Property;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -32,7 +32,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public String getAttachment() {
-        return base.get(Properties.ATTACHMENT).asString();
+        return base.getValue(BlockStateProperties.BELL_ATTACHMENT).getSerializedName();
     }
 
     /**
@@ -40,7 +40,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public String getEastWallShape() {
-        return base.get(Properties.EAST_WALL_SHAPE).asString();
+        return base.getValue(BlockStateProperties.EAST_WALL).getSerializedName();
     }
 
     /**
@@ -48,7 +48,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public String getNorthWallShape() {
-        return base.get(Properties.NORTH_WALL_SHAPE).asString();
+        return base.getValue(BlockStateProperties.NORTH_WALL).getSerializedName();
     }
 
     /**
@@ -56,7 +56,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public String getSouthWallShape() {
-        return base.get(Properties.SOUTH_WALL_SHAPE).asString();
+        return base.getValue(BlockStateProperties.SOUTH_WALL).getSerializedName();
     }
 
     /**
@@ -64,7 +64,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public String getWestWallShape() {
-        return base.get(Properties.WEST_WALL_SHAPE).asString();
+        return base.getValue(BlockStateProperties.WEST_WALL).getSerializedName();
     }
 
     /**
@@ -72,7 +72,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public String getEastWireConnection() {
-        return base.get(Properties.EAST_WIRE_CONNECTION).asString();
+        return base.getValue(BlockStateProperties.EAST_REDSTONE).getSerializedName();
     }
 
     /**
@@ -80,7 +80,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public String getNorthWireConnection() {
-        return base.get(Properties.NORTH_WIRE_CONNECTION).asString();
+        return base.getValue(BlockStateProperties.NORTH_REDSTONE).getSerializedName();
     }
 
     /**
@@ -88,7 +88,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public String getSouthWireConnection() {
-        return base.get(Properties.SOUTH_WIRE_CONNECTION).asString();
+        return base.getValue(BlockStateProperties.SOUTH_REDSTONE).getSerializedName();
     }
 
     /**
@@ -96,7 +96,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public String getWestWireConnection() {
-        return base.get(Properties.WEST_WIRE_CONNECTION).asString();
+        return base.getValue(BlockStateProperties.WEST_REDSTONE).getSerializedName();
     }
 
     /**
@@ -104,7 +104,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public String getBlockHalf() {
-        return base.get(Properties.BLOCK_HALF).asString();
+        return base.getValue(BlockStateProperties.HALF).getSerializedName();
     }
 
     /**
@@ -112,7 +112,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public String getDoubleBlockHalf() {
-        return base.get(Properties.DOUBLE_BLOCK_HALF).asString();
+        return base.getValue(BlockStateProperties.DOUBLE_BLOCK_HALF).getSerializedName();
     }
 
     /**
@@ -120,7 +120,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public String getRailShape() {
-        return base.get(Properties.RAIL_SHAPE).asString();
+        return base.getValue(BlockStateProperties.RAIL_SHAPE).getSerializedName();
     }
 
     /**
@@ -128,7 +128,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public String getStraightRailShape() {
-        return base.get(Properties.STRAIGHT_RAIL_SHAPE).asString();
+        return base.getValue(BlockStateProperties.RAIL_SHAPE_STRAIGHT).getSerializedName();
     }
 
     /**
@@ -136,7 +136,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public String getOrientation() {
-        return base.get(Properties.ORIENTATION).asString();
+        return base.getValue(BlockStateProperties.ORIENTATION).getSerializedName();
     }
 
     /**
@@ -144,7 +144,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public String getHorizontalAxis() {
-        return base.get(Properties.HORIZONTAL_AXIS).asString();
+        return base.getValue(BlockStateProperties.HORIZONTAL_AXIS).getSerializedName();
     }
 
     /**
@@ -152,7 +152,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public String getAxis() {
-        return base.get(Properties.AXIS).getId();
+        return base.getValue(BlockStateProperties.AXIS).getName();
     }
 
     /**
@@ -160,7 +160,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public DirectionHelper getHorizontalFacing() {
-        return new DirectionHelper(base.get(Properties.HORIZONTAL_FACING));
+        return new DirectionHelper(base.getValue(BlockStateProperties.HORIZONTAL_FACING));
     }
 
     /**
@@ -168,7 +168,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public DirectionHelper getHopperFacing() {
-        return new DirectionHelper(base.get(Properties.HOPPER_FACING));
+        return new DirectionHelper(base.getValue(BlockStateProperties.FACING_HOPPER));
     }
 
     /**
@@ -176,7 +176,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public DirectionHelper getFacing() {
-        return new DirectionHelper(base.get(Properties.FACING));
+        return new DirectionHelper(base.getValue(BlockStateProperties.FACING));
     }
 
     /**
@@ -184,7 +184,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public boolean isUp() {
-        return base.get(Properties.UP);
+        return base.getValue(BlockStateProperties.UP);
     }
 
     /**
@@ -192,7 +192,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public boolean isDown() {
-        return base.get(Properties.DOWN);
+        return base.getValue(BlockStateProperties.DOWN);
     }
 
     /**
@@ -200,7 +200,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public boolean isNorth() {
-        return base.get(Properties.NORTH);
+        return base.getValue(BlockStateProperties.NORTH);
     }
 
     /**
@@ -208,7 +208,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public boolean isSouth() {
-        return base.get(Properties.SOUTH);
+        return base.getValue(BlockStateProperties.SOUTH);
     }
 
     /**
@@ -216,7 +216,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public boolean isEast() {
-        return base.get(Properties.EAST);
+        return base.getValue(BlockStateProperties.EAST);
     }
 
     /**
@@ -224,7 +224,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public boolean isWest() {
-        return base.get(Properties.WEST);
+        return base.getValue(BlockStateProperties.WEST);
     }
 
     /**
@@ -234,7 +234,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public int getHoneyLevel() {
-        return base.get(Properties.HONEY_LEVEL);
+        return base.getValue(BlockStateProperties.LEVEL_HONEY);
     }
 
     /**
@@ -244,7 +244,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public boolean isBottom() {
-        return base.get(Properties.BOTTOM);
+        return base.getValue(BlockStateProperties.BOTTOM);
     }
 
     /**
@@ -255,7 +255,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      */
     @Ignore({"hasDrag"})
     public boolean isBubbleColumnDown() {
-        return base.get(Properties.DRAG);
+        return base.getValue(BlockStateProperties.DRAG);
     }
 
     /**
@@ -266,7 +266,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      */
     @Ignore
     public boolean isBubbleColumnUp() {
-        return !base.get(Properties.DRAG);
+        return !base.getValue(BlockStateProperties.DRAG);
     }
 
     /**
@@ -276,7 +276,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public boolean isAttached() {
-        return base.get(Properties.ATTACHED);
+        return base.getValue(BlockStateProperties.ATTACHED);
     }
 
     /**
@@ -286,7 +286,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public boolean isDisarmed() {
-        return base.get(Properties.DISARMED);
+        return base.getValue(BlockStateProperties.DISARMED);
     }
 
     /**
@@ -296,7 +296,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public boolean isConditional() {
-        return base.get(Properties.CONDITIONAL);
+        return base.getValue(BlockStateProperties.CONDITIONAL);
     }
 
     /**
@@ -306,7 +306,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public boolean isEnabled() {
-        return base.get(Properties.ENABLED);
+        return base.getValue(BlockStateProperties.ENABLED);
     }
 
     /**
@@ -316,7 +316,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public boolean isExtended() {
-        return base.get(Properties.EXTENDED);
+        return base.getValue(BlockStateProperties.EXTENDED);
     }
 
     /**
@@ -326,7 +326,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public boolean isShort() {
-        return base.get(Properties.SHORT);
+        return base.getValue(BlockStateProperties.SHORT);
     }
 
     /**
@@ -336,7 +336,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public boolean hasEye() {
-        return base.get(Properties.EYE);
+        return base.getValue(BlockStateProperties.EYE);
     }
 
     /**
@@ -346,15 +346,15 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public boolean isFalling() {
-        return base.get(Properties.FALLING);
+        return base.getValue(BlockStateProperties.FALLING);
     }
 
     // don't make static, causes crash in main function below
-    private final IntProperty[] levels = {
-            Properties.LEVEL_1_8,
-            Properties.LEVEL_3,
-            Properties.LEVEL_8,
-            Properties.LEVEL_15
+    private final IntegerProperty[] levels = {
+            BlockStateProperties.LEVEL_FLOWING,
+            BlockStateProperties.LEVEL_CAULDRON,
+            BlockStateProperties.LEVEL_COMPOSTER,
+            BlockStateProperties.LEVEL
     };
 
     /**
@@ -365,9 +365,9 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      */
     @Ignore({"getLevel1_8", "getLevel3", "getLevel8", "getLevel15"})
     public int getLevel() {
-        for (IntProperty level : levels) {
-            if (base.contains(level)) {
-                return base.get(level);
+        for (IntegerProperty level : levels) {
+            if (base.hasProperty(level)) {
+                return base.getValue(level);
             }
         }
         throw new IllegalStateException("No level property found");
@@ -379,9 +379,9 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      */
     @Ignore
     public int getMaxLevel() {
-        for (IntProperty level : levels) {
-            if (base.contains(level)) {
-                return level.getValues().stream().max(Integer::compare).orElse(-1);
+        for (IntegerProperty level : levels) {
+            if (base.hasProperty(level)) {
+                return level.getPossibleValues().stream().max(Integer::compare).orElse(-1);
             }
         }
         throw new IllegalStateException("No level property found");
@@ -393,9 +393,9 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      */
     @Ignore
     public int getMinLevel() {
-        for (IntProperty level : levels) {
-            if (base.contains(level)) {
-                return level.getValues().stream().min(Integer::compare).orElse(-1);
+        for (IntegerProperty level : levels) {
+            if (base.hasProperty(level)) {
+                return level.getPossibleValues().stream().min(Integer::compare).orElse(-1);
             }
         }
         throw new IllegalStateException("No level property found");
@@ -408,7 +408,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public boolean isHanging() {
-        return base.get(Properties.HANGING);
+        return base.getValue(BlockStateProperties.HANGING);
     }
 
     /**
@@ -418,7 +418,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public boolean hasBottle0() {
-        return base.get(Properties.HAS_BOTTLE_0);
+        return base.getValue(BlockStateProperties.HAS_BOTTLE_0);
     }
 
     /**
@@ -428,7 +428,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public boolean hasBottle1() {
-        return base.get(Properties.HAS_BOTTLE_1);
+        return base.getValue(BlockStateProperties.HAS_BOTTLE_1);
     }
 
     /**
@@ -438,7 +438,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public boolean hasBottle2() {
-        return base.get(Properties.HAS_BOTTLE_2);
+        return base.getValue(BlockStateProperties.HAS_BOTTLE_2);
     }
 
     /**
@@ -448,7 +448,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public boolean hasRecord() {
-        return base.get(Properties.HAS_RECORD);
+        return base.getValue(BlockStateProperties.HAS_RECORD);
     }
 
     /**
@@ -458,7 +458,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public boolean hasBook() {
-        return base.get(Properties.HAS_BOOK);
+        return base.getValue(BlockStateProperties.HAS_BOOK);
     }
 
     /**
@@ -468,7 +468,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public boolean isInverted() {
-        return base.get(Properties.INVERTED);
+        return base.getValue(BlockStateProperties.INVERTED);
     }
 
     /**
@@ -478,7 +478,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public boolean isInWall() {
-        return base.get(Properties.IN_WALL);
+        return base.getValue(BlockStateProperties.IN_WALL);
     }
 
     /**
@@ -488,7 +488,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public boolean isOpen() {
-        return base.get(Properties.OPEN);
+        return base.getValue(BlockStateProperties.OPEN);
     }
 
     /**
@@ -498,7 +498,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public boolean isLit() {
-        return base.get(Properties.LIT);
+        return base.getValue(BlockStateProperties.LIT);
     }
 
     /**
@@ -508,7 +508,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public boolean isLocked() {
-        return base.get(Properties.LOCKED);
+        return base.getValue(BlockStateProperties.LOCKED);
     }
 
     /**
@@ -518,7 +518,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public int getDelay() {
-        return base.get(Properties.DELAY);
+        return base.getValue(BlockStateProperties.DELAY);
     }
 
     /**
@@ -528,7 +528,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public boolean isOccupied() {
-        return base.get(Properties.OCCUPIED);
+        return base.getValue(BlockStateProperties.OCCUPIED);
     }
 
     /**
@@ -538,12 +538,12 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public boolean isPersistent() {
-        return base.get(Properties.PERSISTENT);
+        return base.getValue(BlockStateProperties.PERSISTENT);
     }
 
-    private final IntProperty distance[] = {
-            Properties.DISTANCE_0_7,
-            Properties.DISTANCE_1_7
+    private final IntegerProperty distance[] = {
+            BlockStateProperties.STABILITY_DISTANCE,
+            BlockStateProperties.DISTANCE
     };
 
     /**
@@ -554,9 +554,9 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      */
     @Ignore({"getDistance0_7", "getDistance1_7"})
     public int getDistance() {
-        for (IntProperty d : distance) {
-            if (base.contains(d)) {
-                return base.get(d);
+        for (IntegerProperty d : distance) {
+            if (base.hasProperty(d)) {
+                return base.getValue(d);
             }
         }
         throw new IllegalStateException("No distance property found");
@@ -570,9 +570,9 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      */
     @Ignore
     public int getMaxDistance() {
-        for (IntProperty d : distance) {
-            if (base.contains(d)) {
-                return d.getValues().stream().max(Integer::compare).orElse(-1);
+        for (IntegerProperty d : distance) {
+            if (base.hasProperty(d)) {
+                return d.getPossibleValues().stream().max(Integer::compare).orElse(-1);
             }
         }
         throw new IllegalStateException("No distance property found");
@@ -586,9 +586,9 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      */
     @Ignore
     public int getMinDistance() {
-        for (IntProperty d : distance) {
-            if (base.contains(d)) {
-                return d.getValues().stream().min(Integer::compare).orElse(-1);
+        for (IntegerProperty d : distance) {
+            if (base.hasProperty(d)) {
+                return d.getPossibleValues().stream().min(Integer::compare).orElse(-1);
             }
         }
         throw new IllegalStateException("No distance property found");
@@ -603,7 +603,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public boolean isPowered() {
-        return base.get(Properties.POWERED);
+        return base.getValue(BlockStateProperties.POWERED);
     }
 
     /**
@@ -613,7 +613,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public boolean isSignalFire() {
-        return base.get(Properties.SIGNAL_FIRE);
+        return base.getValue(BlockStateProperties.SIGNAL_FIRE);
     }
 
     /**
@@ -623,7 +623,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public boolean isSnowy() {
-        return base.get(Properties.SNOWY);
+        return base.getValue(BlockStateProperties.SNOWY);
     }
 
     /**
@@ -633,7 +633,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public boolean isTriggered() {
-        return base.get(Properties.TRIGGERED);
+        return base.getValue(BlockStateProperties.TRIGGERED);
     }
 
     /**
@@ -643,7 +643,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public boolean isUnstable() {
-        return base.get(Properties.UNSTABLE);
+        return base.getValue(BlockStateProperties.UNSTABLE);
     }
 
     /**
@@ -656,7 +656,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public boolean isWaterlogged() {
-        return base.get(Properties.WATERLOGGED);
+        return base.getValue(BlockStateProperties.WATERLOGGED);
     }
 
     /**
@@ -664,7 +664,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public String getBedPart() {
-        return base.get(Properties.BED_PART).asString();
+        return base.getValue(BlockStateProperties.BED_PART).getSerializedName();
     }
 
     /**
@@ -672,7 +672,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public String getDoorHinge() {
-        return base.get(Properties.DOOR_HINGE).asString();
+        return base.getValue(BlockStateProperties.DOOR_HINGE).getSerializedName();
     }
 
     /**
@@ -680,7 +680,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public String getInstrument() {
-        return base.get(Properties.INSTRUMENT).asString();
+        return base.getValue(BlockStateProperties.NOTEBLOCK_INSTRUMENT).getSerializedName();
     }
 
     /**
@@ -688,7 +688,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public String getPistonType() {
-        return base.get(Properties.PISTON_TYPE).asString();
+        return base.getValue(BlockStateProperties.PISTON_TYPE).getSerializedName();
     }
 
     /**
@@ -696,7 +696,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public String getSlabType() {
-        return base.get(Properties.SLAB_TYPE).asString();
+        return base.getValue(BlockStateProperties.SLAB_TYPE).getSerializedName();
     }
 
     /**
@@ -704,7 +704,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public String getStairShape() {
-        return base.get(Properties.STAIR_SHAPE).asString();
+        return base.getValue(BlockStateProperties.STAIRS_SHAPE).getSerializedName();
     }
 
     /**
@@ -712,7 +712,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public String getStructureBlockMode() {
-        return base.get(Properties.STRUCTURE_BLOCK_MODE).asString();
+        return base.getValue(BlockStateProperties.STRUCTUREBLOCK_MODE).getSerializedName();
     }
 
     /**
@@ -720,7 +720,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public String getBambooLeaves() {
-        return base.get(Properties.BAMBOO_LEAVES).asString();
+        return base.getValue(BlockStateProperties.BAMBOO_LEAVES).getSerializedName();
     }
 
     /**
@@ -728,7 +728,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public String getTilt() {
-        return base.get(Properties.TILT).asString();
+        return base.getValue(BlockStateProperties.TILT).getSerializedName();
     }
 
     /**
@@ -736,7 +736,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public String getVerticalDirection() {
-        return base.get(Properties.VERTICAL_DIRECTION).asString();
+        return base.getValue(BlockStateProperties.VERTICAL_DIRECTION).getSerializedName();
     }
 
     /**
@@ -744,7 +744,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public String getThickness() {
-        return base.get(Properties.THICKNESS).asString();
+        return base.getValue(BlockStateProperties.DRIPSTONE_THICKNESS).getSerializedName();
     }
 
     /**
@@ -752,7 +752,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public String getChestType() {
-        return base.get(Properties.CHEST_TYPE).asString();
+        return base.getValue(BlockStateProperties.CHEST_TYPE).getSerializedName();
     }
 
     /**
@@ -760,7 +760,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public String getComparatorMode() {
-        return base.get(Properties.COMPARATOR_MODE).asString();
+        return base.getValue(BlockStateProperties.MODE_COMPARATOR).getSerializedName();
     }
 
     /**
@@ -770,19 +770,19 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public boolean hasBerries() {
-        return base.get(Properties.BERRIES);
+        return base.getValue(BlockStateProperties.BERRIES);
     }
 
     // don't make static, causes crash in main function below
-    private final IntProperty[] ages = {
-            Properties.AGE_1,
-            Properties.AGE_2,
-            Properties.AGE_3,
-            Properties.AGE_4,
-            Properties.AGE_5,
-            Properties.AGE_7,
-            Properties.AGE_15,
-            Properties.AGE_25
+    private final IntegerProperty[] ages = {
+            BlockStateProperties.AGE_1,
+            BlockStateProperties.AGE_2,
+            BlockStateProperties.AGE_3,
+            BlockStateProperties.AGE_4,
+            BlockStateProperties.AGE_5,
+            BlockStateProperties.AGE_7,
+            BlockStateProperties.AGE_15,
+            BlockStateProperties.AGE_25
     };
 
     /**
@@ -794,9 +794,9 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      */
     @Ignore({"getAge1", "getAge2", "getAge3", "getAge4", "getAge5", "getAge7", "getAge15", "getAge25"})
     public int getAge() {
-        for (IntProperty property : ages) {
-            if (base.contains(property)) {
-                return base.get(property);
+        for (IntegerProperty property : ages) {
+            if (base.hasProperty(property)) {
+                return base.getValue(property);
             }
         }
         throw new IllegalStateException("No age property found");
@@ -804,9 +804,9 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
 
     @Ignore
     public int getMaxAge() {
-        for (IntProperty property : ages) {
-            if (base.contains(property)) {
-                return property.getValues().stream().max(Integer::compareTo).orElse(-1);
+        for (IntegerProperty property : ages) {
+            if (base.hasProperty(property)) {
+                return property.getPossibleValues().stream().max(Integer::compareTo).orElse(-1);
             }
         }
         throw new IllegalStateException("No age property found");
@@ -819,7 +819,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public int getBites() {
-        return base.get(Properties.BITES);
+        return base.getValue(BlockStateProperties.BITES);
     }
 
     /**
@@ -829,7 +829,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public int getCandles() {
-        return base.get(Properties.CANDLES);
+        return base.getValue(BlockStateProperties.CANDLES);
     }
 
     /**
@@ -839,7 +839,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public int getEggs() {
-        return base.get(Properties.EGGS);
+        return base.getValue(BlockStateProperties.EGGS);
     }
 
     /**
@@ -850,7 +850,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      */
     @Ignore("getHatch")
     public int getHatched() {
-        return base.get(Properties.HATCH);
+        return base.getValue(BlockStateProperties.HATCH);
     }
 
     /**
@@ -860,7 +860,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public int getLayers() {
-        return base.get(Properties.LAYERS);
+        return base.getValue(BlockStateProperties.LAYERS);
     }
 
     /**
@@ -870,7 +870,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public int getMoisture() {
-        return base.get(Properties.MOISTURE);
+        return base.getValue(BlockStateProperties.MOISTURE);
     }
 
     /**
@@ -880,7 +880,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public int getNote() {
-        return base.get(Properties.NOTE);
+        return base.getValue(BlockStateProperties.NOTE);
     }
 
     /**
@@ -890,7 +890,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public int getPickles() {
-        return base.get(Properties.PICKLES);
+        return base.getValue(BlockStateProperties.PICKLES);
     }
 
     /**
@@ -901,7 +901,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public int getPower() {
-        return base.get(Properties.POWER);
+        return base.getValue(BlockStateProperties.POWER);
     }
 
     /**
@@ -911,7 +911,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public int getStage() {
-        return base.get(Properties.STAGE);
+        return base.getValue(BlockStateProperties.STAGE);
     }
 
     /**
@@ -921,7 +921,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public int getCharges() {
-        return base.get(Properties.CHARGES);
+        return base.getValue(BlockStateProperties.RESPAWN_ANCHOR_CHARGES);
     }
 
     /**
@@ -931,7 +931,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public boolean isShrieking() {
-        return base.get(Properties.SHRIEKING);
+        return base.getValue(BlockStateProperties.SHRIEKING);
     }
 
     /**
@@ -941,7 +941,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public boolean canSummon() {
-        return base.get(Properties.CAN_SUMMON);
+        return base.getValue(BlockStateProperties.CAN_SUMMON);
     }
 
     /**
@@ -951,7 +951,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public String getSculkSensorPhase() {
-        return base.get(Properties.SCULK_SENSOR_PHASE).asString();
+        return base.getValue(BlockStateProperties.SCULK_SENSOR_PHASE).getSerializedName();
     }
 
     /**
@@ -959,7 +959,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public boolean isBloom() {
-        return base.get(Properties.BLOOM);
+        return base.getValue(BlockStateProperties.BLOOM);
     }
 
     /**
@@ -967,7 +967,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public int getRotation() {
-        return base.get(Properties.ROTATION);
+        return base.getValue(BlockStateProperties.ROTATION_16);
     }
 
     /**
@@ -975,7 +975,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public boolean isSlot0Occupied() {
-        return base.get(Properties.SLOT_0_OCCUPIED);
+        return base.getValue(BlockStateProperties.CHISELED_BOOKSHELF_SLOT_0_OCCUPIED);
     }
 
     /**
@@ -983,7 +983,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public boolean isSlot1Occupied() {
-        return base.get(Properties.SLOT_1_OCCUPIED);
+        return base.getValue(BlockStateProperties.CHISELED_BOOKSHELF_SLOT_1_OCCUPIED);
     }
 
     /**
@@ -991,7 +991,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public boolean isSlot2Occupied() {
-        return base.get(Properties.SLOT_2_OCCUPIED);
+        return base.getValue(BlockStateProperties.CHISELED_BOOKSHELF_SLOT_2_OCCUPIED);
     }
 
     /**
@@ -999,7 +999,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public boolean isSlot3Occupied() {
-        return base.get(Properties.SLOT_3_OCCUPIED);
+        return base.getValue(BlockStateProperties.CHISELED_BOOKSHELF_SLOT_3_OCCUPIED);
     }
 
     /**
@@ -1007,7 +1007,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public boolean isSlot4Occupied() {
-        return base.get(Properties.SLOT_4_OCCUPIED);
+        return base.getValue(BlockStateProperties.CHISELED_BOOKSHELF_SLOT_4_OCCUPIED);
     }
 
     /**
@@ -1015,7 +1015,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public boolean isSlot5Occupied() {
-        return base.get(Properties.SLOT_5_OCCUPIED);
+        return base.getValue(BlockStateProperties.CHISELED_BOOKSHELF_SLOT_5_OCCUPIED);
     }
 
     /**
@@ -1023,7 +1023,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @return
      */
     public int getFlowerAmount() {
-        return base.get(Properties.FLOWER_AMOUNT);
+        return base.getValue(BlockStateProperties.FLOWER_AMOUNT);
     }
 
     /**
@@ -1031,7 +1031,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @return
      */
     public String getBlockFace() {
-        return base.get(Properties.BLOCK_FACE).asString();
+        return base.getValue(BlockStateProperties.ATTACH_FACE).getSerializedName();
     }
 
     /**
@@ -1039,7 +1039,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @return
      */
     public int getDusted() {
-        return base.get(Properties.DUSTED);
+        return base.getValue(BlockStateProperties.DUSTED);
     }
 
     /**
@@ -1047,35 +1047,35 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @return
      */
     public boolean isCracked() {
-        return base.get(Properties.CRACKED);
+        return base.getValue(BlockStateProperties.CRACKED);
     }
 
     /**
      * @since 2.0.0
      */
     public boolean isCrafting() {
-        return base.get(Properties.CRAFTING);
+        return base.getValue(BlockStateProperties.CRAFTING);
     }
 
     /**
      * @since 2.0.0
      */
     public String getTrialSpawnerState() {
-        return base.get(Properties.TRIAL_SPAWNER_STATE).asString();
+        return base.getValue(BlockStateProperties.TRIAL_SPAWNER_STATE).getSerializedName();
     }
 
     /**
      * @since 2.0.0
      */
     public String getVaultState() {
-        return base.get(Properties.VAULT_STATE).asString();
+        return base.getValue(BlockStateProperties.VAULT_STATE).getSerializedName();
     }
 
     /**
      * @since 2.0.0
      */
     public boolean isOminous() {
-        return base.get(Properties.OMINOUS);
+        return base.getValue(BlockStateProperties.OMINOUS);
     }
 
     @Ignore
@@ -1113,7 +1113,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
 
         StringBuilder builder = new StringBuilder();
 
-        for (Field field : Properties.class.getDeclaredFields()) {
+        for (Field field : BlockStateProperties.class.getDeclaredFields()) {
             if (Property.class.isAssignableFrom(field.getType())) {
                 if (BooleanProperty.class.isAssignableFrom(field.getType())) {
                     if (!properties.remove("is" + SCREAMING_SNAKE_CASE_TO_PascalCase(field.getName())) &&

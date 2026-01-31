@@ -1,18 +1,18 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.projectile;
 
-import net.minecraft.entity.projectile.FishingBobberEntity;
+import net.minecraft.world.entity.projectile.FishingHook;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.EntityHelper;
-import xyz.wagyourtail.jsmacros.client.mixin.access.MixinFishingBobberEntity;
+import xyz.wagyourtail.jsmacros.client.mixin.access.MixinFishingHook;
 
 /**
  * @author Etheradon
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class FishingBobberEntityHelper extends EntityHelper<FishingBobberEntity> {
+public class FishingBobberEntityHelper extends EntityHelper<FishingHook> {
 
-    public FishingBobberEntityHelper(FishingBobberEntity base) {
+    public FishingBobberEntityHelper(FishingHook base) {
         super(base);
     }
 
@@ -21,7 +21,7 @@ public class FishingBobberEntityHelper extends EntityHelper<FishingBobberEntity>
      * @since 1.8.4
      */
     public boolean hasCaughtFish() {
-        return ((MixinFishingBobberEntity) base).getCaughtFish();
+        return ((MixinFishingHook) base).getBiting();
     }
 
     /**
@@ -31,7 +31,7 @@ public class FishingBobberEntityHelper extends EntityHelper<FishingBobberEntity>
      * @since 1.8.4
      */
     public boolean isInOpenWater() {
-        return base.isInOpenWater();
+        return base.isOpenWaterFishing();
     }
 
     /**
@@ -39,7 +39,7 @@ public class FishingBobberEntityHelper extends EntityHelper<FishingBobberEntity>
      * @since 1.8.4
      */
     public boolean hasEntityHooked() {
-        return base.getHookedEntity() != null;
+        return base.getHookedIn() != null;
     }
 
     /**
@@ -48,7 +48,7 @@ public class FishingBobberEntityHelper extends EntityHelper<FishingBobberEntity>
      */
     @Nullable
     public EntityHelper<?> getHookedEntity() {
-        return hasEntityHooked() ? EntityHelper.create(base.getHookedEntity()) : null;
+        return hasEntityHooked() ? EntityHelper.create(base.getHookedIn()) : null;
     }
 
 }

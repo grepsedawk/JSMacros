@@ -1,27 +1,31 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.option.KeyBinding;
-import net.minecraft.client.util.InputUtil;
-import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.enchantment.Enchantments;
-import net.minecraft.entity.effect.StatusEffectUtil;
-import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.tag.FluidTags;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.hit.HitResult;
-import net.minecraft.util.math.*;
-import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.world.RaycastContext;
+import com.mojang.blaze3d.platform.InputConstants;
+import net.minecraft.client.KeyMapping;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.tags.FluidTags;
+import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.effect.MobEffectUtil;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import xyz.wagyourtail.doclet.DocletReplaceParams;
 import xyz.wagyourtail.doclet.DocletReplaceReturn;
 import xyz.wagyourtail.jsmacros.api.math.Pos3D;
@@ -47,8 +51,8 @@ import java.util.stream.Collectors;
  * @since 1.0.3
  */
 @SuppressWarnings("unused")
-public class ClientPlayerEntityHelper<T extends ClientPlayerEntity> extends PlayerEntityHelper<T> {
-    protected final MinecraftClient mc = MinecraftClient.getInstance();
+public class ClientPlayerEntityHelper<T extends LocalPlayer> extends PlayerEntityHelper<T> {
+    protected final Minecraft mc = Minecraft.getInstance();
 
     public ClientPlayerEntityHelper(T e) {
         super(e);
@@ -57,8 +61,8 @@ public class ClientPlayerEntityHelper<T extends ClientPlayerEntity> extends Play
     /**
      * @since 1.8.4
      */
-    private ClientPlayerEntityHelper<T> setVelocity(Vec3d velocity) {
-        base.setVelocity(velocity);
+    private ClientPlayerEntityHelper<T> setVelocity(Vec3 velocity) {
+        base.setDeltaMovement(velocity);
         return this;
     }
 
@@ -73,14 +77,14 @@ public class ClientPlayerEntityHelper<T extends ClientPlayerEntity> extends Play
      * @since 1.8.4
      */
     public ClientPlayerEntityHelper<T> setVelocity(double x, double y, double z) {
-        return setVelocity(new Vec3d(x, y, z));
+        return setVelocity(new Vec3(x, y, z));
     }
 
     /**
      * @since 1.8.4
      */
-    private ClientPlayerEntityHelper<T> addVelocity(Vec3d velocity) {
-        base.addVelocity(velocity);
+    private ClientPlayerEntityHelper<T> addVelocity(Vec3 velocity) {
+        base.push(velocity);
         return this;
     }
 
@@ -95,20 +99,20 @@ public class ClientPlayerEntityHelper<T extends ClientPlayerEntity> extends Play
      * @since 1.8.4
      */
     public ClientPlayerEntityHelper<T> addVelocity(double x, double y, double z) {
-        return addVelocity(new Vec3d(x, y, z));
+        return addVelocity(new Vec3(x, y, z));
     }
 
     /**
      * @since 1.8.4
      */
-    private ClientPlayerEntityHelper<T> setPos(Vec3d pos, boolean await) throws InterruptedException {
+    private ClientPlayerEntityHelper<T> setPos(Vec3 pos, boolean await) throws InterruptedException {
         boolean joinedMain = JsMacrosClient.clientCore.profile.checkJoinedThreadStack();
         if (joinedMain) {
-            base.setPosition(pos);
+            base.setPos(pos);
         } else {
             Semaphore wait = new Semaphore(await ? 0 : 1);
             mc.execute(() -> {
-                base.setPosition(pos);
+                base.setPos(pos);
                 wait.release();
             });
             wait.acquire();
@@ -141,7 +145,7 @@ public class ClientPlayerEntityHelper<T extends ClientPlayerEntity> extends Play
      * @since 1.9.0
      */
     public ClientPlayerEntityHelper<T> setPos(double x, double y, double z, boolean await) throws InterruptedException {
-        return setPos(new Vec3d(x, y, z), await);
+        return setPos(new Vec3(x, y, z), await);
     }
 
     /**
@@ -180,11 +184,11 @@ public class ClientPlayerEntityHelper<T extends ClientPlayerEntity> extends Play
      * @since 1.8.4
      */
     public ClientPlayerEntityHelper<T> lookAt(String direction) {
-        Direction dir = Direction.byId(direction.toLowerCase(Locale.ROOT));
+        Direction dir = Direction.byName(direction.toLowerCase(Locale.ROOT));
         double yaw = getYaw();
         double pitch = getPitch();
         if (dir.getAxis().isHorizontal()) {
-            yaw = dir.getPositiveHorizontalDegrees();
+            yaw = dir.toYRot();
         } else {
             pitch = dir == Direction.UP ? -90 : 90;
         }
@@ -198,13 +202,13 @@ public class ClientPlayerEntityHelper<T extends ClientPlayerEntity> extends Play
      * @since 1.0.3
      */
     public ClientPlayerEntityHelper<T> lookAt(double yaw, double pitch) {
-        pitch = MathHelper.clamp(pitch, -90.0F, 90.0F);
-        base.lastPitch = base.getPitch();
-        base.lastYaw = base.getYaw();
-        base.setPitch((float) pitch);
-        base.setYaw(MathHelper.wrapDegrees((float) yaw));
+        pitch = Mth.clamp(pitch, -90.0F, 90.0F);
+        base.xRotO = base.getXRot();
+        base.yRotO = base.getYRot();
+        base.setXRot((float) pitch);
+        base.setYRot(Mth.wrapDegrees((float) yaw));
         if (base.getVehicle() != null) {
-            base.getVehicle().onPassengerLookAround(base);
+            base.getVehicle().onPassengerTurned(base);
         }
         return this;
     }
@@ -247,19 +251,19 @@ public class ClientPlayerEntityHelper<T extends ClientPlayerEntity> extends Play
      * @since 1.8.4
      */
     public boolean tryLookAt(BlockPosHelper pos) {
-        BlockState state = MinecraftClient.getInstance().world.getBlockState(pos.getRaw());
-        VoxelShape shape = state.getOutlineShape(MinecraftClient.getInstance().world, pos.getRaw());
+        BlockState state = Minecraft.getInstance().level.getBlockState(pos.getRaw());
+        VoxelShape shape = state.getShape(Minecraft.getInstance().level, pos.getRaw());
         if (shape.isEmpty()) {
             return false;
         }
         Pos3D eyePos = getEyePos();
-        double distance = base.getEyePos().distanceTo(new Vec3d(pos.getX(), pos.getY(), pos.getZ()));
+        double distance = base.getEyePosition().distanceTo(new Vec3(pos.getX(), pos.getY(), pos.getZ()));
 
-        List<Box> bounds = shape.getBoundingBoxes().stream().map(b -> b.offset(pos.getRaw())).collect(Collectors.toList());
+        List<AABB> bounds = shape.toAabbs().stream().map(b -> b.move(pos.getRaw())).collect(Collectors.toList());
         // Scale offset with distance to the target. Closer targets should have more rays to find a possible angle
         double offset = Math.min(0.25, 0.01 * Math.max(distance, 0.5));
-        for (Box bound : bounds) {
-            Vec3d center = bound.getCenter();
+        for (AABB bound : bounds) {
+            Vec3 center = bound.getCenter();
             double xDiff = (bound.maxX - bound.minX) / 2;
             double yDiff = (bound.maxY - bound.minY) / 2;
             double zDiff = (bound.maxZ - bound.minZ) / 2;
@@ -276,7 +280,7 @@ public class ClientPlayerEntityHelper<T extends ClientPlayerEntity> extends Play
                         double x = center.x + ((xc & 1) == 0 ? 1 : -1) * xOffset * (xc / 2) * 0.999;
                         double y = center.y + ((yc & 1) == 0 ? 1 : -1) * yOffset * (yc / 2) * 0.999;
                         double z = center.z + ((zc & 1) == 0 ? 1 : -1) * zOffset * (zc / 2) * 0.999;
-                        BlockHitResult result = base.getWorld().raycast(new RaycastContext(base.getEyePos(), new Vec3d(x, y, z), RaycastContext.ShapeType.OUTLINE, RaycastContext.FluidHandling.NONE, base));
+                        BlockHitResult result = base.level().clip(new ClipContext(base.getEyePosition(), new Vec3(x, y, z), ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, base));
                         if (result.getType() == HitResult.Type.BLOCK && result.getBlockPos().equals(pos.getRaw())) {
                             Vec3D vec = new Vec3D(eyePos, new Pos3D(x, y, z));
                             lookAt(vec.getYaw(), vec.getPitch());
@@ -332,20 +336,20 @@ public class ClientPlayerEntityHelper<T extends ClientPlayerEntity> extends Play
     @Deprecated
     public ClientPlayerEntityHelper<T> attack(EntityHelper<?> entity, boolean await) throws InterruptedException {
         boolean joinedMain = JsMacrosClient.clientCore.profile.checkJoinedThreadStack();
-        assert mc.interactionManager != null;
+        assert mc.gameMode != null;
         if (entity.getRaw() == mc.player) {
             throw new AssertionError("Can't interact with self!");
         }
         if (joinedMain) {
-            mc.interactionManager.attackEntity(mc.player, entity.getRaw());
+            mc.gameMode.attack(mc.player, entity.getRaw());
             assert mc.player != null;
-            mc.player.swingHand(Hand.MAIN_HAND);
+            mc.player.swing(InteractionHand.MAIN_HAND);
         } else {
             Semaphore wait = new Semaphore(await ? 0 : 1);
             mc.execute(() -> {
-                mc.interactionManager.attackEntity(mc.player, entity.getRaw());
+                mc.gameMode.attack(mc.player, entity.getRaw());
                 assert mc.player != null;
-                mc.player.swingHand(Hand.MAIN_HAND);
+                mc.player.swing(InteractionHand.MAIN_HAND);
                 wait.release();
             });
             wait.acquire();
@@ -395,7 +399,7 @@ public class ClientPlayerEntityHelper<T extends ClientPlayerEntity> extends Play
     @Deprecated
     @DocletReplaceParams("x: int, y: int, z: int, direction: Direction, await: boolean")
     public ClientPlayerEntityHelper<T> attack(int x, int y, int z, String direction, boolean await) throws InterruptedException {
-        return attack(x, y, z, Direction.byId(direction.toLowerCase(Locale.ROOT)), await);
+        return attack(x, y, z, Direction.byName(direction.toLowerCase(Locale.ROOT)), await);
     }
 
     /**
@@ -411,22 +415,22 @@ public class ClientPlayerEntityHelper<T extends ClientPlayerEntity> extends Play
     @Deprecated
     @DocletReplaceParams("x: int, y: int, z: int, direction: Hexit, await: boolean")
     public ClientPlayerEntityHelper<T> attack(int x, int y, int z, int direction, boolean await) throws InterruptedException {
-        return attack(x, y, z, Direction.byIndex(direction), await);
+        return attack(x, y, z, Direction.from3DDataValue(direction), await);
     }
 
     private ClientPlayerEntityHelper<T> attack(int x, int y, int z, Direction direction, boolean await) throws InterruptedException {
-        assert mc.interactionManager != null;
+        assert mc.gameMode != null;
         boolean joinedMain = JsMacrosClient.clientCore.profile.checkJoinedThreadStack();
         if (joinedMain) {
-            mc.interactionManager.attackBlock(new BlockPos(x, y, z), direction);
+            mc.gameMode.startDestroyBlock(new BlockPos(x, y, z), direction);
             assert mc.player != null;
-            mc.player.swingHand(Hand.MAIN_HAND);
+            mc.player.swing(InteractionHand.MAIN_HAND);
         } else {
             Semaphore wait = new Semaphore(await ? 0 : 1);
             mc.execute(() -> {
-                mc.interactionManager.attackBlock(new BlockPos(x, y, z), direction);
+                mc.gameMode.startDestroyBlock(new BlockPos(x, y, z), direction);
                 assert mc.player != null;
-                mc.player.swingHand(Hand.MAIN_HAND);
+                mc.player.swing(InteractionHand.MAIN_HAND);
                 wait.release();
             });
             wait.acquire();
@@ -455,25 +459,25 @@ public class ClientPlayerEntityHelper<T extends ClientPlayerEntity> extends Play
      */
     @Deprecated
     public ClientPlayerEntityHelper<T> interactEntity(EntityHelper<?> entity, boolean offHand, boolean await) throws InterruptedException {
-        assert mc.interactionManager != null;
+        assert mc.gameMode != null;
         if (entity.getRaw() == mc.player) {
             throw new AssertionError("Can't interact with self!");
         }
-        Hand hand = offHand ? Hand.OFF_HAND : Hand.MAIN_HAND;
+        InteractionHand hand = offHand ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
         boolean joinedMain = JsMacrosClient.clientCore.profile.checkJoinedThreadStack();
         if (joinedMain) {
-            ActionResult result = mc.interactionManager.interactEntity(mc.player, entity.getRaw(), hand);
+            InteractionResult result = mc.gameMode.interact(mc.player, entity.getRaw(), hand);
             assert mc.player != null;
-            if (result.isAccepted()) {
-                mc.player.swingHand(hand);
+            if (result.consumesAction()) {
+                mc.player.swing(hand);
             }
         } else {
             Semaphore wait = new Semaphore(await ? 0 : 1);
             mc.execute(() -> {
-                ActionResult result = mc.interactionManager.interactEntity(mc.player, entity.getRaw(), hand);
+                InteractionResult result = mc.gameMode.interact(mc.player, entity.getRaw(), hand);
                 assert mc.player != null;
-                if (result.isAccepted()) {
-                    mc.player.swingHand(hand);
+                if (result.consumesAction()) {
+                    mc.player.swing(hand);
                 }
                 wait.release();
             });
@@ -500,22 +504,22 @@ public class ClientPlayerEntityHelper<T extends ClientPlayerEntity> extends Play
      */
     @Deprecated
     public ClientPlayerEntityHelper<T> interactItem(boolean offHand, boolean await) throws InterruptedException {
-        assert mc.interactionManager != null;
-        Hand hand = offHand ? Hand.OFF_HAND : Hand.MAIN_HAND;
+        assert mc.gameMode != null;
+        InteractionHand hand = offHand ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
         boolean joinedMain = JsMacrosClient.clientCore.profile.checkJoinedThreadStack();
         if (joinedMain) {
-            ActionResult result = mc.interactionManager.interactItem(mc.player, hand);
+            InteractionResult result = mc.gameMode.useItem(mc.player, hand);
             assert mc.player != null;
-            if (result.isAccepted()) {
-                mc.player.swingHand(hand);
+            if (result.consumesAction()) {
+                mc.player.swing(hand);
             }
         } else {
             Semaphore wait = new Semaphore(await ? 0 : 1);
             mc.execute(() -> {
-                ActionResult result = mc.interactionManager.interactItem(mc.player, hand);
+                InteractionResult result = mc.gameMode.useItem(mc.player, hand);
                 assert mc.player != null;
-                if (result.isAccepted()) {
-                    mc.player.swingHand(hand);
+                if (result.consumesAction()) {
+                    mc.player.swing(hand);
                 }
                 wait.release();
             });
@@ -567,7 +571,7 @@ public class ClientPlayerEntityHelper<T extends ClientPlayerEntity> extends Play
     @Deprecated
     @DocletReplaceParams("x: int, y: int, z: int, direction: Direction, offHand: boolean, await: boolean")
     public ClientPlayerEntityHelper<T> interactBlock(int x, int y, int z, String direction, boolean offHand, boolean await) throws InterruptedException {
-        return interactBlock(x, y, z, Direction.byId(direction.toLowerCase(Locale.ROOT)), offHand, await);
+        return interactBlock(x, y, z, Direction.byName(direction.toLowerCase(Locale.ROOT)), offHand, await);
     }
 
     /**
@@ -583,28 +587,28 @@ public class ClientPlayerEntityHelper<T extends ClientPlayerEntity> extends Play
     @Deprecated
     @DocletReplaceParams("x: int, y: int, z: int, direction: Hexit, offHand: boolean, await: boolean")
     public ClientPlayerEntityHelper<T> interactBlock(int x, int y, int z, int direction, boolean offHand, boolean await) throws InterruptedException {
-        return interactBlock(x, y, z, Direction.byIndex(direction), offHand, await);
+        return interactBlock(x, y, z, Direction.from3DDataValue(direction), offHand, await);
     }
 
     public ClientPlayerEntityHelper<T> interactBlock(int x, int y, int z, Direction direction, boolean offHand, boolean await) throws InterruptedException {
-        assert mc.interactionManager != null;
-        Hand hand = offHand ? Hand.OFF_HAND : Hand.MAIN_HAND;
+        assert mc.gameMode != null;
+        InteractionHand hand = offHand ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
         boolean joinedMain = JsMacrosClient.clientCore.profile.checkJoinedThreadStack();
         if (joinedMain) {
-            ActionResult result = mc.interactionManager.interactBlock(mc.player, hand,
-                    new BlockHitResult(new Vec3d(x, y, z), direction, new BlockPos(x, y, z), false));
+            InteractionResult result = mc.gameMode.useItemOn(mc.player, hand,
+                    new BlockHitResult(new Vec3(x, y, z), direction, new BlockPos(x, y, z), false));
             assert mc.player != null;
-            if (result.isAccepted()) {
-                mc.player.swingHand(hand);
+            if (result.consumesAction()) {
+                mc.player.swing(hand);
             }
         } else {
             Semaphore wait = new Semaphore(await ? 0 : 1);
             mc.execute(() -> {
-                ActionResult result = mc.interactionManager.interactBlock(mc.player, hand,
-                        new BlockHitResult(new Vec3d(x, y, z), direction, new BlockPos(x, y, z), false));
+                InteractionResult result = mc.gameMode.useItemOn(mc.player, hand,
+                        new BlockHitResult(new Vec3(x, y, z), direction, new BlockPos(x, y, z), false));
                 assert mc.player != null;
-                if (result.isAccepted()) {
-                    mc.player.swingHand(hand);
+                if (result.consumesAction()) {
+                    mc.player.swing(hand);
                 }
                 wait.release();
             });
@@ -631,11 +635,11 @@ public class ClientPlayerEntityHelper<T extends ClientPlayerEntity> extends Play
     public ClientPlayerEntityHelper<T> interact(boolean await) throws InterruptedException {
         boolean joinedMain = JsMacrosClient.clientCore.profile.checkJoinedThreadStack();
         if (joinedMain) {
-            mc.doItemUse();
+            mc.startUseItem();
         } else {
             Semaphore wait = new Semaphore(await ? 0 : 1);
             mc.execute(() -> {
-                mc.doItemUse();
+                mc.startUseItem();
                 wait.release();
             });
             wait.acquire();
@@ -661,11 +665,11 @@ public class ClientPlayerEntityHelper<T extends ClientPlayerEntity> extends Play
     public ClientPlayerEntityHelper<T> attack(boolean await) throws InterruptedException {
         boolean joinedMain = JsMacrosClient.clientCore.profile.checkJoinedThreadStack();
         if (joinedMain) {
-            mc.doAttack();
+            mc.startAttack();
         } else {
             Semaphore wait = new Semaphore(await ? 0 : 1);
             mc.execute(() -> {
-                mc.doAttack();
+                mc.startAttack();
                 wait.release();
             });
             wait.acquire();
@@ -682,9 +686,9 @@ public class ClientPlayerEntityHelper<T extends ClientPlayerEntity> extends Play
     @Deprecated
     public ClientPlayerEntityHelper<T> setLongAttack(boolean stop) {
         if (!stop) {
-            KeyBinding.onKeyPressed(InputUtil.fromTranslationKey(mc.options.attackKey.getBoundKeyTranslationKey()));
+            KeyMapping.click(InputConstants.getKey(mc.options.keyAttack.saveString()));
         } else {
-            KeyBinding.setKeyPressed(InputUtil.fromTranslationKey(mc.options.attackKey.getBoundKeyTranslationKey()), false);
+            KeyMapping.set(InputConstants.getKey(mc.options.keyAttack.saveString()), false);
         }
         return this;
     }
@@ -698,9 +702,9 @@ public class ClientPlayerEntityHelper<T extends ClientPlayerEntity> extends Play
     @Deprecated
     public ClientPlayerEntityHelper<T> setLongInteract(boolean stop) {
         if (!stop) {
-            KeyBinding.onKeyPressed(InputUtil.fromTranslationKey(mc.options.useKey.getBoundKeyTranslationKey()));
+            KeyMapping.click(InputConstants.getKey(mc.options.keyUse.saveString()));
         } else {
-            KeyBinding.setKeyPressed(InputUtil.fromTranslationKey(mc.options.useKey.getBoundKeyTranslationKey()), false);
+            KeyMapping.set(InputConstants.getKey(mc.options.keyUse.saveString()), false);
         }
         return this;
     }
@@ -711,8 +715,8 @@ public class ClientPlayerEntityHelper<T extends ClientPlayerEntity> extends Play
      */
     @DocletReplaceReturn("JavaMap<ItemId, int>")
     public Map<String, Integer> getItemCooldownsRemainingTicks() {
-        int tick = ((IItemCooldownManager) base.getItemCooldownManager()).jsmacros_getManagerTicks();
-        Map<Item, IItemCooldownEntry> map = ((IItemCooldownManager) base.getItemCooldownManager()).jsmacros_getCooldownItems();
+        int tick = ((IItemCooldownManager) base.getCooldowns()).jsmacros_getManagerTicks();
+        Map<Item, IItemCooldownEntry> map = ((IItemCooldownManager) base.getCooldowns()).jsmacros_getCooldownItems();
         return map.entrySet().stream().collect(Collectors.toMap(e -> e.getKey().getName().getString(), e -> e.getValue().jsmacros_getEndTick() - tick));
     }
 
@@ -723,9 +727,9 @@ public class ClientPlayerEntityHelper<T extends ClientPlayerEntity> extends Play
      */
     @DocletReplaceParams("item: CanOmitNamespace<ItemId>")
     public int getItemCooldownRemainingTicks(String item) {
-        int tick = ((IItemCooldownManager) base.getItemCooldownManager()).jsmacros_getManagerTicks();
-        Map<Item, IItemCooldownEntry> map = ((IItemCooldownManager) base.getItemCooldownManager()).jsmacros_getCooldownItems();
-        IItemCooldownEntry entry = map.get(Registries.ITEM.get(RegistryHelper.parseIdentifier(item)));
+        int tick = ((IItemCooldownManager) base.getCooldowns()).jsmacros_getManagerTicks();
+        Map<Item, IItemCooldownEntry> map = ((IItemCooldownManager) base.getCooldowns()).jsmacros_getCooldownItems();
+        IItemCooldownEntry entry = map.get(BuiltInRegistries.ITEM.getValue(RegistryHelper.parseIdentifier(item)));
         if (entry == null) {
             return -1;
         }
@@ -738,8 +742,8 @@ public class ClientPlayerEntityHelper<T extends ClientPlayerEntity> extends Play
      */
     @DocletReplaceReturn("JavaMap<ItemId, int>")
     public Map<String, Integer> getTicksSinceCooldownsStart() {
-        int tick = ((IItemCooldownManager) base.getItemCooldownManager()).jsmacros_getManagerTicks();
-        Map<Item, IItemCooldownEntry> map = ((IItemCooldownManager) base.getItemCooldownManager()).jsmacros_getCooldownItems();
+        int tick = ((IItemCooldownManager) base.getCooldowns()).jsmacros_getManagerTicks();
+        Map<Item, IItemCooldownEntry> map = ((IItemCooldownManager) base.getCooldowns()).jsmacros_getCooldownItems();
         return map.entrySet().stream().collect(Collectors.toMap(e -> e.getKey().getName().getString(), e -> e.getValue().jsmacros_getStartTick() - tick));
     }
 
@@ -750,9 +754,9 @@ public class ClientPlayerEntityHelper<T extends ClientPlayerEntity> extends Play
      */
     @DocletReplaceParams("item: CanOmitNamespace<ItemId>")
     public int getTicksSinceCooldownStart(String item) {
-        int tick = ((IItemCooldownManager) base.getItemCooldownManager()).jsmacros_getManagerTicks();
-        Map<Item, IItemCooldownEntry> map = ((IItemCooldownManager) base.getItemCooldownManager()).jsmacros_getCooldownItems();
-        IItemCooldownEntry entry = map.get(Registries.ITEM.get(RegistryHelper.parseIdentifier(item)));
+        int tick = ((IItemCooldownManager) base.getCooldowns()).jsmacros_getManagerTicks();
+        Map<Item, IItemCooldownEntry> map = ((IItemCooldownManager) base.getCooldowns()).jsmacros_getCooldownItems();
+        IItemCooldownEntry entry = map.get(BuiltInRegistries.ITEM.getValue(RegistryHelper.parseIdentifier(item)));
         if (entry == null) {
             return -1;
         }
@@ -764,7 +768,7 @@ public class ClientPlayerEntityHelper<T extends ClientPlayerEntity> extends Play
      * @since 1.1.2
      */
     public int getFoodLevel() {
-        return base.getHungerManager().getFoodLevel();
+        return base.getFoodData().getFoodLevel();
     }
 
     /**
@@ -774,7 +778,7 @@ public class ClientPlayerEntityHelper<T extends ClientPlayerEntity> extends Play
      * @since 1.8.4
      */
     public float getSaturation() {
-        return base.getHungerManager().getSaturationLevel();
+        return base.getFoodData().getSaturationLevel();
     }
 
     /**
@@ -782,7 +786,7 @@ public class ClientPlayerEntityHelper<T extends ClientPlayerEntity> extends Play
      * @since 1.8.4
      */
     public ClientPlayerEntityHelper<?> dropHeldItem(boolean dropStack) {
-        base.dropSelectedItem(dropStack);
+        base.drop(dropStack);
         return this;
     }
 
@@ -791,7 +795,7 @@ public class ClientPlayerEntityHelper<T extends ClientPlayerEntity> extends Play
      * @since 1.8.4
      */
     public AdvancementManagerHelper getAdvancementManager() {
-        return new AdvancementManagerHelper(base.networkHandler.getAdvancementHandler().getManager());
+        return new AdvancementManagerHelper(base.connection.getAdvancements().getTree());
     }
 
     /**
@@ -818,32 +822,32 @@ public class ClientPlayerEntityHelper<T extends ClientPlayerEntity> extends Play
      * @since 1.8.4
      */
     public int calculateMiningSpeed(ItemStackHelper usedItem, BlockStateHelper blockState) {
-        var enchRegistry = mc.getNetworkHandler().getRegistryManager().getOrThrow(RegistryKeys.ENCHANTMENT);
-        PlayerEntity player = mc.player;
+        var enchRegistry = mc.getConnection().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+        Player player = mc.player;
         BlockState state = blockState.getRaw();
         ItemStack item = usedItem.getRaw();
 
-        if (!item.canMine(state, mc.world, player.getBlockPos(), player)) {
+        if (!item.canDestroyBlock(state, mc.level, player.blockPosition(), player)) {
             return -1;
         } else if (player.isCreative()) {
             return 0;
         }
-        float hardness = state.getHardness(mc.world, null);
+        float hardness = state.getDestroySpeed(mc.level, null);
         if (hardness == -1) {
             return -1;
         }
-        float speedMultiplier = item.getMiningSpeedMultiplier(state);
+        float speedMultiplier = item.getDestroySpeed(state);
         if (speedMultiplier > 1.0F) {
-            int efficiency = enchRegistry.getOptional(Enchantments.EFFICIENCY).map(e -> EnchantmentHelper.getLevel(e, item)).orElse(0);
+            int efficiency = enchRegistry.get(Enchantments.EFFICIENCY).map(e -> EnchantmentHelper.getItemEnchantmentLevel(e, item)).orElse(0);
             if (efficiency > 0 && !item.isEmpty()) {
                 speedMultiplier += (efficiency * efficiency + 1F);
             }
         }
-        if (StatusEffectUtil.hasHaste(player)) {
-            speedMultiplier *= 1.0F + (StatusEffectUtil.getHasteAmplifier(player) + 1F) * 0.2F;
+        if (MobEffectUtil.hasDigSpeed(player)) {
+            speedMultiplier *= 1.0F + (MobEffectUtil.getDigSpeedAmplification(player) + 1F) * 0.2F;
         }
-        if (player.hasStatusEffect(StatusEffects.MINING_FATIGUE)) {
-            switch (player.getStatusEffect(StatusEffects.MINING_FATIGUE).getAmplifier()) {
+        if (player.hasEffect(MobEffects.MINING_FATIGUE)) {
+            switch (player.getEffect(MobEffects.MINING_FATIGUE).getAmplifier()) {
                 case 0:
                     speedMultiplier *= 0.3;
                     break;
@@ -858,14 +862,14 @@ public class ClientPlayerEntityHelper<T extends ClientPlayerEntity> extends Play
                     break;
             }
         }
-        if (player.isSubmergedIn(FluidTags.WATER) && enchRegistry.getOptional(Enchantments.AQUA_AFFINITY).map(e -> EnchantmentHelper.getLevel(e, item)).orElse(0) == 0) {
+        if (player.isEyeInFluid(FluidTags.WATER) && enchRegistry.get(Enchantments.AQUA_AFFINITY).map(e -> EnchantmentHelper.getItemEnchantmentLevel(e, item)).orElse(0) == 0) {
             speedMultiplier /= 5;
         }
-        if (!player.isOnGround()) {
+        if (!player.onGround()) {
             speedMultiplier /= 5;
         }
         float damage = speedMultiplier / hardness;
-        damage /= (!state.isToolRequired() || item.isSuitableFor(state)) ? 30 : 100;
+        damage /= (!state.requiresCorrectToolForDrops() || item.isCorrectToolForDrops(state)) ? 30 : 100;
         if (damage >= 1) {
             return 0;
         }

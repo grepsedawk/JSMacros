@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity;
 
-import net.minecraft.entity.ItemEntity;
+import net.minecraft.world.entity.item.ItemEntity;
 import xyz.wagyourtail.jsmacros.client.api.helper.inventory.ItemStackHelper;
 
 @SuppressWarnings("unused")
@@ -10,7 +10,7 @@ public class ItemEntityHelper extends EntityHelper<ItemEntity> {
     }
 
     public ItemStackHelper getContainedItemStack() {
-        return new ItemStackHelper(base.getStack());
+        return new ItemStackHelper(base.getItem());
     }
 
     @Override

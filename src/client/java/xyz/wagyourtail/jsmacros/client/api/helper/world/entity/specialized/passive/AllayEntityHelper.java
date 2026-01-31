@@ -1,17 +1,17 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive;
 
-import net.minecraft.entity.passive.AllayEntity;
+import net.minecraft.world.entity.animal.allay.Allay;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.MobEntityHelper;
-import xyz.wagyourtail.jsmacros.client.mixin.access.MixinAllayEntity;
+import xyz.wagyourtail.jsmacros.client.mixin.access.MixinAllay;
 
 /**
  * @author Etheradon
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class AllayEntityHelper extends MobEntityHelper<AllayEntity> {
+public class AllayEntityHelper extends MobEntityHelper<Allay> {
 
-    public AllayEntityHelper(AllayEntity base) {
+    public AllayEntityHelper(Allay base) {
         super(base);
     }
 
@@ -28,7 +28,7 @@ public class AllayEntityHelper extends MobEntityHelper<AllayEntity> {
      * @since 1.8.4
      */
     public boolean canDuplicate() {
-        return ((MixinAllayEntity) base).invokeCanDuplicate();
+        return ((MixinAllay) base).invokeCanDuplicate();
     }
 
     /**
@@ -36,7 +36,7 @@ public class AllayEntityHelper extends MobEntityHelper<AllayEntity> {
      * @since 1.8.4
      */
     public boolean isHoldingItem() {
-        return base.isHoldingItem();
+        return base.hasItemInHand();
     }
 
 }

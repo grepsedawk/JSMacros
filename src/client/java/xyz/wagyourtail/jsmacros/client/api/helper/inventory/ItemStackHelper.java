@@ -1,26 +1,26 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.inventory;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.component.ComponentChanges;
-import net.minecraft.component.ComponentType;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.AttributeModifiersComponent;
-import net.minecraft.component.type.BlockPredicatesComponent;
-import net.minecraft.component.type.ItemEnchantmentsComponent;
-import net.minecraft.component.type.LoreComponent;
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.item.ItemGroups;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.registry.tag.EnchantmentTags;
-import net.minecraft.text.Style;
-import net.minecraft.util.Formatting;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponentPatch;
+import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.nbt.Tag;
+import net.minecraft.network.chat.Style;
+import net.minecraft.tags.EnchantmentTags;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.item.AdventureModePredicate;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.CreativeModeTabs;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.minecraft.world.item.component.ItemLore;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.doclet.DocletReplaceParams;
 import xyz.wagyourtail.doclet.DocletReplaceReturn;
@@ -44,12 +44,12 @@ import java.util.stream.Collectors;
  */
 @SuppressWarnings("unused")
 public class ItemStackHelper extends BaseHelper<ItemStack> {
-    private static final Style LORE_STYLE = Style.EMPTY.withColor(Formatting.DARK_PURPLE).withItalic(true);
-    protected static final MinecraftClient mc = MinecraftClient.getInstance();
+    private static final Style LORE_STYLE = Style.EMPTY.withColor(ChatFormatting.DARK_PURPLE).withItalic(true);
+    protected static final Minecraft mc = Minecraft.getInstance();
 
     @DocletReplaceParams("id: CanOmitNamespace<ItemId>, count: int")
     public ItemStackHelper(String id, int count) {
-        super(new ItemStack(Registries.ITEM.get(RegistryHelper.parseIdentifier(id)), count));
+        super(new ItemStack(BuiltInRegistries.ITEM.getValue(RegistryHelper.parseIdentifier(id)), count));
     }
 
     public ItemStackHelper(ItemStack i) {
@@ -67,7 +67,7 @@ public class ItemStackHelper extends BaseHelper<ItemStack> {
      */
     @Deprecated
     public ItemStackHelper setDamage(int damage) {
-        base.setDamage(damage);
+        base.setDamageValue(damage);
         return this;
     }
 
@@ -76,7 +76,7 @@ public class ItemStackHelper extends BaseHelper<ItemStack> {
      * @since 1.2.0
      */
     public boolean isDamageable() {
-        return base.isDamageable();
+        return base.isDamageableItem();
     }
 
     /**
@@ -84,7 +84,7 @@ public class ItemStackHelper extends BaseHelper<ItemStack> {
      * @since 1.8.4
      */
     public boolean isUnbreakable() {
-        return base.get(DataComponentTypes.UNBREAKABLE) != null;
+        return base.get(DataComponents.UNBREAKABLE) != null;
     }
 
     /**
@@ -100,7 +100,7 @@ public class ItemStackHelper extends BaseHelper<ItemStack> {
      * @since 1.8.4
      */
     public boolean isEnchanted() {
-        return base.hasEnchantments();
+        return base.isEnchanted();
     }
 
     /**
@@ -109,8 +109,8 @@ public class ItemStackHelper extends BaseHelper<ItemStack> {
      */
     public List<EnchantmentHelper> getEnchantments() {
         List<EnchantmentHelper> enchantments = new ArrayList<>();
-        ItemEnchantmentsComponent lv = base.getOrDefault(DataComponentTypes.ENCHANTMENTS, ItemEnchantmentsComponent.DEFAULT);
-        for (RegistryEntry<Enchantment> enchantment : lv.getEnchantments()) {
+        ItemEnchantments lv = base.getOrDefault(DataComponents.ENCHANTMENTS, ItemEnchantments.EMPTY);
+        for (Holder<Enchantment> enchantment : lv.keySet()) {
             enchantments.add(new EnchantmentHelper(enchantment, lv.getLevel(enchantment)));
         }
         return enchantments;
@@ -167,8 +167,8 @@ public class ItemStackHelper extends BaseHelper<ItemStack> {
      * @since 1.8.4
      */
     public List<EnchantmentHelper> getPossibleEnchantments() {
-        return mc.getNetworkHandler().getRegistryManager().getOrThrow(RegistryKeys.ENCHANTMENT).streamEntries()
-            .filter(enchantment -> enchantment.value().isAcceptableItem(base))
+        return mc.getConnection().registryAccess().lookupOrThrow(Registries.ENCHANTMENT).listElements()
+            .filter(enchantment -> enchantment.value().canEnchant(base))
             .map(EnchantmentHelper::new).toList();
     }
 
@@ -177,9 +177,9 @@ public class ItemStackHelper extends BaseHelper<ItemStack> {
      * @since 1.8.4
      */
     public List<EnchantmentHelper> getPossibleEnchantmentsFromTable() {
-        return mc.getNetworkHandler().getRegistryManager().getOrThrow(RegistryKeys.ENCHANTMENT).getOptional(EnchantmentTags.IN_ENCHANTING_TABLE)
+        return mc.getConnection().registryAccess().lookupOrThrow(Registries.ENCHANTMENT).get(EnchantmentTags.IN_ENCHANTING_TABLE)
             .map(registryEntries -> registryEntries.stream()
-                .filter(enchantment -> enchantment.value().isAcceptableItem(base))
+                .filter(enchantment -> enchantment.value().canEnchant(base))
                 .map(EnchantmentHelper::new).toList())
             .orElse(Collections.emptyList());
     }
@@ -194,7 +194,7 @@ public class ItemStackHelper extends BaseHelper<ItemStack> {
      */
     public List<TextHelper> getLore() {
         List<TextHelper> texts = new ArrayList<>();
-        LoreComponent component = base.get(DataComponentTypes.LORE);
+        ItemLore component = base.get(DataComponents.LORE);
         if (component != null) {
             component.lines().forEach(text -> texts.add(TextHelper.wrap(text)));
         }
@@ -214,7 +214,7 @@ public class ItemStackHelper extends BaseHelper<ItemStack> {
      * @since 1.8.4
      */
     public int getDurability() {
-        return base.getMaxDamage() - base.getDamage();
+        return base.getMaxDamage() - base.getDamageValue();
     }
 
     /**
@@ -222,7 +222,7 @@ public class ItemStackHelper extends BaseHelper<ItemStack> {
      * @since 1.8.4
      */
     public int getRepairCost() {
-        Integer i = base.get(DataComponentTypes.REPAIR_COST);
+        Integer i = base.get(DataComponents.REPAIR_COST);
         if (i == null) {
             return 0;
         }
@@ -234,7 +234,7 @@ public class ItemStackHelper extends BaseHelper<ItemStack> {
      * @see #getDurability()
      */
     public int getDamage() {
-        return base.getDamage();
+        return base.getDamageValue();
     }
 
     /**
@@ -251,8 +251,8 @@ public class ItemStackHelper extends BaseHelper<ItemStack> {
      */
     public double getAttackDamage() {
         assert mc.player != null;
-        AttributeModifiersComponent lv = base.getOrDefault(DataComponentTypes.ATTRIBUTE_MODIFIERS, AttributeModifiersComponent.DEFAULT);
-        return lv.applyOperations(mc.player.getAttributeBaseValue(EntityAttributes.ATTACK_DAMAGE), EquipmentSlot.MAINHAND);
+        ItemAttributeModifiers lv = base.getOrDefault(DataComponents.ATTRIBUTE_MODIFIERS, ItemAttributeModifiers.EMPTY);
+        return lv.compute(mc.player.getAttributeBaseValue(Attributes.ATTACK_DAMAGE), EquipmentSlot.MAINHAND);
     }
 
     /**
@@ -267,7 +267,7 @@ public class ItemStackHelper extends BaseHelper<ItemStack> {
      * @return was string before 1.6.5
      */
     public TextHelper getName() {
-        return TextHelper.wrap(base.getName());
+        return TextHelper.wrap(base.getHoverName());
     }
 
     /**
@@ -281,7 +281,7 @@ public class ItemStackHelper extends BaseHelper<ItemStack> {
      * @return the maximum amount of items this stack can hold.
      */
     public int getMaxCount() {
-        return base.getMaxCount();
+        return base.getMaxStackSize();
     }
 
     /**
@@ -291,9 +291,9 @@ public class ItemStackHelper extends BaseHelper<ItemStack> {
     @Nullable
     @DocletReplaceReturn("NBTElementHelper$NBTCompoundHelper")
     public NBTElementHelper<?> getNBT() {
-        ComponentChanges changes = base.getComponentChanges();
+        DataComponentPatch changes = base.getComponentsPatch();
         if (changes.isEmpty()) return null;
-        NbtElement elem = ComponentChanges.CODEC.encodeStart(RegistryHelper.NBT_OPS_UNLIMITED, changes).getOrThrow();
+        Tag elem = DataComponentPatch.CODEC.encodeStart(RegistryHelper.NBT_OPS_UNLIMITED, changes).getOrThrow();
         return NBTElementHelper.wrap(elem);
     }
 
@@ -302,7 +302,7 @@ public class ItemStackHelper extends BaseHelper<ItemStack> {
      * @since 1.1.3
      */
     public List<TextHelper> getCreativeTab() {
-        return ItemGroups.getGroups().parallelStream().filter(group -> !group.isSpecial() && group.getDisplayStacks().parallelStream().anyMatch(e -> ItemStack.areItemsEqual(e, base))).map(ItemGroup::getDisplayName).map(TextHelper::wrap).collect(Collectors.toList());
+        return CreativeModeTabs.allTabs().parallelStream().filter(group -> !group.isAlignedRight() && group.getDisplayItems().parallelStream().anyMatch(e -> ItemStack.isSameItem(e, base))).map(CreativeModeTab::getDisplayName).map(TextHelper::wrap).collect(Collectors.toList());
     }
 
     /**
@@ -320,7 +320,7 @@ public class ItemStackHelper extends BaseHelper<ItemStack> {
      */
     @DocletReplaceReturn("ItemId")
     public String getItemId() {
-        return Registries.ITEM.getId(base.getItem()).toString();
+        return BuiltInRegistries.ITEM.getKey(base.getItem()).toString();
     }
 
     /**
@@ -329,7 +329,7 @@ public class ItemStackHelper extends BaseHelper<ItemStack> {
      */
     @DocletReplaceReturn("JavaList<ItemTag>")
     public List<String> getTags() {
-        return base.getRegistryEntry().streamTags().map(t -> t.id().toString()).collect(Collectors.toList());
+        return base.getItemHolder().tags().map(t -> t.location().toString()).collect(Collectors.toList());
     }
 
     /**
@@ -337,7 +337,7 @@ public class ItemStackHelper extends BaseHelper<ItemStack> {
      * @since 1.8.2
      */
     public boolean isFood() {
-        return base.get(DataComponentTypes.FOOD) != null;
+        return base.get(DataComponents.FOOD) != null;
     }
 
     /**
@@ -345,7 +345,7 @@ public class ItemStackHelper extends BaseHelper<ItemStack> {
      * @since 1.8.2
      */
     public boolean isTool() {
-        return base.get(DataComponentTypes.TOOL) != null;
+        return base.get(DataComponents.TOOL) != null;
     }
 
     /**
@@ -353,7 +353,7 @@ public class ItemStackHelper extends BaseHelper<ItemStack> {
      * @since 1.8.2
      */
     public boolean isWearable() {
-        return base.getComponents().get(DataComponentTypes.EQUIPPABLE) != null;
+        return base.getComponents().get(DataComponents.EQUIPPABLE) != null;
     }
 
     /**
@@ -365,7 +365,7 @@ public class ItemStackHelper extends BaseHelper<ItemStack> {
 
     @Override
     public String toString() {
-        return String.format("ItemStackHelper:{\"id\": \"%s\", \"damage\": %d, \"count\": %d}", this.getItemId(), base.getDamage(), base.getCount());
+        return String.format("ItemStackHelper:{\"id\": \"%s\", \"damage\": %d, \"count\": %d}", this.getItemId(), base.getDamageValue(), base.getCount());
     }
 
     /**
@@ -384,7 +384,7 @@ public class ItemStackHelper extends BaseHelper<ItemStack> {
      * @since 1.1.3 [citation needed]
      */
     public boolean equals(ItemStack is) {
-        return ItemStack.areItemsAndComponentsEqual(base, is);
+        return ItemStack.isSameItemSameComponents(base, is);
     }
 
     /**
@@ -393,7 +393,7 @@ public class ItemStackHelper extends BaseHelper<ItemStack> {
      * @since 1.1.3 [citation needed]
      */
     public boolean isItemEqual(ItemStackHelper ish) {
-        return ItemStack.areItemsEqual(base, ish.getRaw()) && base.getDamage() == ish.getRaw().getDamage();
+        return ItemStack.isSameItem(base, ish.getRaw()) && base.getDamageValue() == ish.getRaw().getDamageValue();
     }
 
     /**
@@ -402,7 +402,7 @@ public class ItemStackHelper extends BaseHelper<ItemStack> {
      * @since 1.1.3 [citation needed]
      */
     public boolean isItemEqual(ItemStack is) {
-        return ItemStack.areItemsEqual(is, base) && base.getDamage() == is.getDamage();
+        return ItemStack.isSameItem(is, base) && base.getDamageValue() == is.getDamageValue();
     }
 
     /**
@@ -411,7 +411,7 @@ public class ItemStackHelper extends BaseHelper<ItemStack> {
      * @since 1.1.3 [citation needed]
      */
     public boolean isItemEqualIgnoreDamage(ItemStackHelper ish) {
-        return ItemStack.areItemsEqual(ish.getRaw(), base);
+        return ItemStack.isSameItem(ish.getRaw(), base);
     }
 
     /**
@@ -420,7 +420,7 @@ public class ItemStackHelper extends BaseHelper<ItemStack> {
      * @since 1.1.3 [citation needed]
      */
     public boolean isItemEqualIgnoreDamage(ItemStack is) {
-        return ItemStack.areItemsEqual(is, base);
+        return ItemStack.isSameItem(is, base);
     }
 
     /**
@@ -446,7 +446,7 @@ public class ItemStackHelper extends BaseHelper<ItemStack> {
      * @since 1.6.5
      */
     public boolean isOnCooldown() {
-        return MinecraftClient.getInstance().player.getItemCooldownManager().isCoolingDown(base);
+        return Minecraft.getInstance().player.getCooldowns().isOnCooldown(base);
     }
 
     /**
@@ -454,7 +454,7 @@ public class ItemStackHelper extends BaseHelper<ItemStack> {
      * @since 1.6.5
      */
     public float getCooldownProgress() {
-        return mc.player.getItemCooldownManager().getCooldownProgress(base, mc.getRenderTickCounter().getTickProgress(false));
+        return mc.player.getCooldowns().getCooldownPercent(base, mc.getDeltaTracker().getGameTimeDeltaPartialTick(false));
     }
 
     /**
@@ -464,7 +464,7 @@ public class ItemStackHelper extends BaseHelper<ItemStack> {
      * @since 1.8.4
      */
     public boolean isSuitableFor(BlockHelper block) {
-        return base.isSuitableFor(block.getDefaultState().getRaw());
+        return base.isCorrectToolForDrops(block.getDefaultState().getRaw());
     }
 
     /**
@@ -474,7 +474,7 @@ public class ItemStackHelper extends BaseHelper<ItemStack> {
      * @since 1.8.4
      */
     public boolean isSuitableFor(BlockStateHelper block) {
-        return base.isSuitableFor(block.getRaw());
+        return base.isCorrectToolForDrops(block.getRaw());
     }
 
     /**
@@ -511,7 +511,7 @@ public class ItemStackHelper extends BaseHelper<ItemStack> {
      * @since 1.8.4
      */
     public boolean hasDestroyRestrictions() {
-        return base.get(DataComponentTypes.CAN_BREAK) != null;
+        return base.get(DataComponents.CAN_BREAK) != null;
     }
 
     /**
@@ -522,7 +522,7 @@ public class ItemStackHelper extends BaseHelper<ItemStack> {
      * @since 1.8.4
      */
     public boolean hasPlaceRestrictions() {
-        return base.get(DataComponentTypes.CAN_PLACE_ON) != null;
+        return base.get(DataComponents.CAN_PLACE_ON) != null;
     }
 
     /**
@@ -530,7 +530,7 @@ public class ItemStackHelper extends BaseHelper<ItemStack> {
      * @since 1.8.4
      */
     public List<BlockPredicateHelper> getDestroyRestrictions() {
-        BlockPredicatesComponent bpc = base.get(DataComponentTypes.CAN_BREAK);
+        AdventureModePredicate bpc = base.get(DataComponents.CAN_BREAK);
         if (bpc != null) {
             return ((MixinBlockPredicatesChecker) bpc).getPredicates().stream().map(BlockPredicateHelper::new).collect(Collectors.toList());
         }
@@ -542,7 +542,7 @@ public class ItemStackHelper extends BaseHelper<ItemStack> {
      * @since 1.8.4
      */
     public List<BlockPredicateHelper> getPlaceRestrictions() {
-        BlockPredicatesComponent nbtList = base.get(DataComponentTypes.CAN_PLACE_ON);
+        AdventureModePredicate nbtList = base.get(DataComponents.CAN_PLACE_ON);
         if (nbtList != null) {
             return ((MixinBlockPredicatesChecker) nbtList).getPredicates().stream().map(BlockPredicateHelper::new).collect(Collectors.toList());
         }
@@ -554,7 +554,7 @@ public class ItemStackHelper extends BaseHelper<ItemStack> {
      * @since 1.8.4
      */
     public boolean areEnchantmentsHidden() {
-        return isHidden(DataComponentTypes.TOOLTIP_DISPLAY);
+        return isHidden(DataComponents.TOOLTIP_DISPLAY);
     }
 
     /**
@@ -562,7 +562,7 @@ public class ItemStackHelper extends BaseHelper<ItemStack> {
      * @since 1.8.4
      */
     public boolean areModifiersHidden() {
-        return isHidden(DataComponentTypes.TOOLTIP_DISPLAY);
+        return isHidden(DataComponents.TOOLTIP_DISPLAY);
     }
 
     /**
@@ -570,7 +570,7 @@ public class ItemStackHelper extends BaseHelper<ItemStack> {
      * @since 1.8.4
      */
     public boolean isUnbreakableHidden() {
-        return isHidden(DataComponentTypes.TOOLTIP_DISPLAY);
+        return isHidden(DataComponents.TOOLTIP_DISPLAY);
     }
 
     /**
@@ -578,7 +578,7 @@ public class ItemStackHelper extends BaseHelper<ItemStack> {
      * @since 1.8.4
      */
     public boolean isCanDestroyHidden() {
-        return isHidden(DataComponentTypes.CAN_BREAK);
+        return isHidden(DataComponents.CAN_BREAK);
     }
 
     /**
@@ -586,7 +586,7 @@ public class ItemStackHelper extends BaseHelper<ItemStack> {
      * @since 1.8.4
      */
     public boolean isCanPlaceHidden() {
-        return isHidden(DataComponentTypes.CAN_PLACE_ON);
+        return isHidden(DataComponents.CAN_PLACE_ON);
     }
 
 
@@ -595,11 +595,11 @@ public class ItemStackHelper extends BaseHelper<ItemStack> {
      * @since 1.8.4
      */
     public boolean isDyeHidden() {
-        return isHidden(DataComponentTypes.DYED_COLOR);
+        return isHidden(DataComponents.DYED_COLOR);
     }
 
-    private boolean isHidden(ComponentType<?> type) {
-        var display = base.get(DataComponentTypes.TOOLTIP_DISPLAY);
+    private boolean isHidden(DataComponentType<?> type) {
+        var display = base.get(DataComponents.TOOLTIP_DISPLAY);
         return display != null && display.hiddenComponents().contains(type);
     }
 

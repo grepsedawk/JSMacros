@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive;
 
-import net.minecraft.entity.passive.RabbitEntity;
+import net.minecraft.world.entity.animal.Rabbit;
 import xyz.wagyourtail.doclet.DocletReplaceReturn;
 
 /**
@@ -8,9 +8,9 @@ import xyz.wagyourtail.doclet.DocletReplaceReturn;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class RabbitEntityHelper extends AnimalEntityHelper<RabbitEntity> {
+public class RabbitEntityHelper extends AnimalEntityHelper<Rabbit> {
 
-    public RabbitEntityHelper(RabbitEntity base) {
+    public RabbitEntityHelper(Rabbit base) {
         super(base);
     }
 
@@ -20,7 +20,7 @@ public class RabbitEntityHelper extends AnimalEntityHelper<RabbitEntity> {
      */
     @DocletReplaceReturn("RabbitVariant")
     public String getVariant() {
-        return base.getVariant().asString();
+        return base.getVariant().getSerializedName();
     }
 
     /**
@@ -28,7 +28,7 @@ public class RabbitEntityHelper extends AnimalEntityHelper<RabbitEntity> {
      * @since 1.8.4
      */
     public boolean isKillerBunny() {
-        return base.getVariant() == RabbitEntity.Variant.EVIL;
+        return base.getVariant() == Rabbit.Variant.EVIL;
     }
 
 }

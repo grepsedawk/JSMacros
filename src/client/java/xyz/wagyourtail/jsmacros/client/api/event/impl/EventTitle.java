@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.event.impl;
 
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.doclet.DocletDeclareType;
 import xyz.wagyourtail.doclet.DocletReplaceReturn;
@@ -21,7 +21,7 @@ public class EventTitle extends BaseEvent {
     @Nullable
     public TextHelper message;
 
-    public EventTitle(String type, Text message) {
+    public EventTitle(String type, Component message) {
         super(JsMacrosClient.clientCore);
         this.type = type;
         this.message = TextHelper.wrap(message);

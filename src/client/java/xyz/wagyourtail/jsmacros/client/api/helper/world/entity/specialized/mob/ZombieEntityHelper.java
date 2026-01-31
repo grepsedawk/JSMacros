@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.mob;
 
-import net.minecraft.entity.mob.ZombieEntity;
+import net.minecraft.world.entity.monster.Zombie;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.MobEntityHelper;
 
 /**
@@ -8,7 +8,7 @@ import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.MobEntityHelper;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class ZombieEntityHelper<T extends ZombieEntity> extends MobEntityHelper<T> {
+public class ZombieEntityHelper<T extends Zombie> extends MobEntityHelper<T> {
 
     public ZombieEntityHelper(T base) {
         super(base);
@@ -19,7 +19,7 @@ public class ZombieEntityHelper<T extends ZombieEntity> extends MobEntityHelper<
      * @since 1.8.4
      */
     public boolean isConvertingToDrowned() {
-        return base.isConvertingInWater();
+        return base.isUnderWaterConverting();
     }
 
 }

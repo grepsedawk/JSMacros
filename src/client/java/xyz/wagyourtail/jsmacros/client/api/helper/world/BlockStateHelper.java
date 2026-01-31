@@ -1,8 +1,8 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.registry.Registries;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.level.block.state.BlockState;
 import xyz.wagyourtail.doclet.DocletReplaceParams;
 import xyz.wagyourtail.doclet.DocletReplaceReturn;
 import xyz.wagyourtail.jsmacros.client.api.classes.RegistryHelper;
@@ -32,7 +32,7 @@ public class BlockStateHelper extends StateHelper<BlockState> {
      */
     @DocletReplaceReturn("BlockId")
     public String getId() {
-        return Registries.BLOCK.getId(base.getBlock()).toString();
+        return BuiltInRegistries.BLOCK.getKey(base.getBlock()).toString();
     }
 
     /**
@@ -48,7 +48,7 @@ public class BlockStateHelper extends StateHelper<BlockState> {
      * @since 1.6.5
      */
     public float getHardness() {
-        return base.getHardness(null, null);
+        return base.getDestroySpeed(null, null);
     }
 
     /**
@@ -56,7 +56,7 @@ public class BlockStateHelper extends StateHelper<BlockState> {
      * @since 1.6.5
      */
     public int getLuminance() {
-        return base.getLuminance();
+        return base.getLightEmission();
     }
 
     /**
@@ -64,7 +64,7 @@ public class BlockStateHelper extends StateHelper<BlockState> {
      * @since 1.6.5
      */
     public boolean emitsRedstonePower() {
-        return base.emitsRedstonePower();
+        return base.isSignalSource();
     }
 
     /**
@@ -72,7 +72,7 @@ public class BlockStateHelper extends StateHelper<BlockState> {
      * @since 1.6.5
      */
     public boolean exceedsCube() {
-        return base.exceedsCube();
+        return base.hasLargeCollisionShape();
     }
 
     /**
@@ -88,7 +88,7 @@ public class BlockStateHelper extends StateHelper<BlockState> {
      * @since 1.6.5
      */
     public boolean isOpaque() {
-        return base.isOpaque();
+        return base.canOcclude();
     }
 
     /**
@@ -96,7 +96,7 @@ public class BlockStateHelper extends StateHelper<BlockState> {
      * @since 1.6.5
      */
     public boolean isToolRequired() {
-        return base.isToolRequired();
+        return base.requiresCorrectToolForDrops();
     }
 
     /**
@@ -112,7 +112,7 @@ public class BlockStateHelper extends StateHelper<BlockState> {
      * @since 1.6.5
      */
     public boolean hasRandomTicks() {
-        return base.hasRandomTicks();
+        return base.isRandomlyTicking();
     }
 
     /**
@@ -120,7 +120,7 @@ public class BlockStateHelper extends StateHelper<BlockState> {
      * @since 1.6.5
      */
     public boolean hasComparatorOutput() {
-        return base.hasComparatorOutput();
+        return base.hasAnalogOutputSignal();
     }
 
     /**
@@ -129,7 +129,7 @@ public class BlockStateHelper extends StateHelper<BlockState> {
      */
     @DocletReplaceReturn("PistonBehaviour")
     public String getPistonBehaviour() {
-        switch (base.getPistonBehavior()) {
+        switch (base.getPistonPushReaction()) {
             case NORMAL:
                 return "NORMAL";
             case BLOCK:
@@ -150,7 +150,7 @@ public class BlockStateHelper extends StateHelper<BlockState> {
      * @since 1.6.5
      */
     public boolean blocksMovement() {
-        return base.blocksMovement();
+        return base.blocksMotion();
     }
 
     /**
@@ -158,7 +158,7 @@ public class BlockStateHelper extends StateHelper<BlockState> {
      * @since 1.6.5
      */
     public boolean isBurnable() {
-        return base.isBurnable();
+        return base.ignitedByLava();
     }
 
     /**
@@ -166,7 +166,7 @@ public class BlockStateHelper extends StateHelper<BlockState> {
      * @since 1.6.5
      */
     public boolean isLiquid() {
-        return base.isLiquid();
+        return base.liquid();
     }
 
     /**
@@ -185,7 +185,7 @@ public class BlockStateHelper extends StateHelper<BlockState> {
      * @since 1.6.5
      */
     public boolean isReplaceable() {
-        return base.isReplaceable();
+        return base.canBeReplaced();
     }
 
     /**
@@ -197,7 +197,7 @@ public class BlockStateHelper extends StateHelper<BlockState> {
      */
     @DocletReplaceParams("pos: BlockPosHelper, entity: CanOmitNamespace<EntityId>")
     public boolean allowsSpawning(BlockPosHelper pos, String entity) {
-        return base.allowsSpawning(MinecraftClient.getInstance().world, pos.getRaw(), Registries.ENTITY_TYPE.get(RegistryHelper.parseIdentifier(entity)));
+        return base.isValidSpawn(Minecraft.getInstance().level, pos.getRaw(), BuiltInRegistries.ENTITY_TYPE.getValue(RegistryHelper.parseIdentifier(entity)));
     }
 
     /**
@@ -207,7 +207,7 @@ public class BlockStateHelper extends StateHelper<BlockState> {
      * @since 1.6.5
      */
     public boolean shouldSuffocate(BlockPosHelper pos) {
-        return base.shouldSuffocate(MinecraftClient.getInstance().world, pos.getRaw());
+        return base.isSuffocating(Minecraft.getInstance().level, pos.getRaw());
     }
 
     /**

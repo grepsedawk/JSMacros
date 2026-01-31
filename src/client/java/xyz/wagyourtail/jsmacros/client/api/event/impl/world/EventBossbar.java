@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.event.impl.world;
 
-import net.minecraft.client.gui.hud.ClientBossBar;
+import net.minecraft.client.gui.components.LerpingBossEvent;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.doclet.DocletDeclareType;
 import xyz.wagyourtail.doclet.DocletReplaceReturn;
@@ -29,7 +29,7 @@ public class EventBossbar extends BaseEvent {
     )
     public final String type;
 
-    public EventBossbar(String type, UUID uuid, ClientBossBar bossBar) {
+    public EventBossbar(String type, UUID uuid, LerpingBossEvent bossBar) {
         super(JsMacrosClient.clientCore);
         if (bossBar != null) {
             this.bossBar = new BossBarHelper(bossBar);

@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive;
 
-import net.minecraft.entity.passive.WolfEntity;
+import net.minecraft.world.entity.animal.wolf.Wolf;
 import xyz.wagyourtail.jsmacros.client.api.helper.DyeColorHelper;
 
 /**
@@ -8,9 +8,9 @@ import xyz.wagyourtail.jsmacros.client.api.helper.DyeColorHelper;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class WolfEntityHelper extends TameableEntityHelper<WolfEntity> {
+public class WolfEntityHelper extends TameableEntityHelper<Wolf> {
 
-    public WolfEntityHelper(WolfEntity base) {
+    public WolfEntityHelper(Wolf base) {
         super(base);
     }
 
@@ -20,7 +20,7 @@ public class WolfEntityHelper extends TameableEntityHelper<WolfEntity> {
      * @since 1.8.4
      */
     public boolean isBegging() {
-        return base.isBegging();
+        return base.isInterested();
     }
 
     /**
@@ -36,7 +36,7 @@ public class WolfEntityHelper extends TameableEntityHelper<WolfEntity> {
      * @since 1.8.4
      */
     public boolean isAngry() {
-        return base.hasAngerTime();
+        return base.isAngry();
     }
 
     /**
@@ -44,7 +44,7 @@ public class WolfEntityHelper extends TameableEntityHelper<WolfEntity> {
      * @since 1.8.4
      */
     public boolean isWet() {
-        return base.furWet;
+        return base.isWet;
     }
 
 }

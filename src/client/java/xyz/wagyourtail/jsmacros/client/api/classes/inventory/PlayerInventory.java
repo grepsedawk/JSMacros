@@ -1,7 +1,7 @@
 package xyz.wagyourtail.jsmacros.client.api.classes.inventory;
 
-import net.minecraft.client.gui.screen.ingame.InventoryScreen;
-import net.minecraft.screen.PlayerScreenHandler;
+import net.minecraft.client.gui.screens.inventory.InventoryScreen;
+import net.minecraft.world.inventory.InventoryMenu;
 import xyz.wagyourtail.jsmacros.client.api.helper.inventory.ItemStackHelper;
 
 /**
@@ -16,7 +16,7 @@ public class PlayerInventory extends RecipeInventory<InventoryScreen> {
 
     @Override
     public ItemStackHelper getOutput() {
-        return new ItemStackHelper(inventory.getScreenHandler().getOutputSlot().getStack());
+        return new ItemStackHelper(inventory.getMenu().getResultSlot().getItem());
     }
 
     /**
@@ -51,7 +51,7 @@ public class PlayerInventory extends RecipeInventory<InventoryScreen> {
      * @since 1.8.4
      */
     public boolean isInHotbar(int slot) {
-        return PlayerScreenHandler.isInHotbar(slot);
+        return InventoryMenu.isHotbarSlot(slot);
     }
 
     /**

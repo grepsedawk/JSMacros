@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.other;
 
-import net.minecraft.entity.TntEntity;
+import net.minecraft.world.entity.item.PrimedTnt;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.EntityHelper;
 
 /**
@@ -8,9 +8,9 @@ import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.EntityHelper;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class TntEntityHelper extends EntityHelper<TntEntity> {
+public class TntEntityHelper extends EntityHelper<PrimedTnt> {
 
-    public TntEntityHelper(TntEntity base) {
+    public TntEntityHelper(PrimedTnt base) {
         super(base);
     }
 

@@ -1,20 +1,20 @@
 package xyz.wagyourtail.jsmacros.client.api.helper;
 
 import com.google.common.collect.ImmutableSet;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.network.packet.c2s.play.ClientStatusC2SPacket;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.stat.Stat;
-import net.minecraft.stat.StatHandler;
-import net.minecraft.stat.StatType;
-import net.minecraft.stat.Stats;
-import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableTextContent;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.contents.TranslatableContents;
+import net.minecraft.network.protocol.game.ServerboundClientCommandPacket;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.stats.Stat;
+import net.minecraft.stats.StatType;
+import net.minecraft.stats.Stats;
+import net.minecraft.stats.StatsCounter;
 import xyz.wagyourtail.doclet.DocletReplaceParams;
 import xyz.wagyourtail.jsmacros.client.api.classes.RegistryHelper;
-import xyz.wagyourtail.jsmacros.client.mixin.access.MixinStatHandler;
+import xyz.wagyourtail.jsmacros.client.mixin.access.MixinStatsCounter;
 import xyz.wagyourtail.jsmacros.core.helpers.BaseHelper;
 
 import java.util.HashMap;
@@ -23,62 +23,62 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("unused")
-public class StatsHelper extends BaseHelper<StatHandler> {
-    public StatsHelper(StatHandler base) {
+public class StatsHelper extends BaseHelper<StatsCounter> {
+    public StatsHelper(StatsCounter base) {
         super(base);
     }
 
     public List<String> getStatList() {
-        return ((MixinStatHandler) base).getStatMap().keySet().stream().map(this::getTranslationKey).collect(Collectors.toList());
+        return ((MixinStatsCounter) base).getStats().keySet().stream().map(this::getTranslationKey).collect(Collectors.toList());
     }
 
-    public Text getStatText(String statKey) {
-        for (Stat<?> stat : ImmutableSet.copyOf(((MixinStatHandler) base).getStatMap().keySet())) {
+    public Component getStatText(String statKey) {
+        for (Stat<?> stat : ImmutableSet.copyOf(((MixinStatsCounter) base).getStats().keySet())) {
             if (getTranslationKey(stat).equals(statKey)) {
-                return stat.getType().getName();
+                return stat.getType().getDisplayName();
             }
         }
         throw new IllegalArgumentException("Stat not found: " + statKey);
     }
 
     public int getRawStatValue(String statKey) {
-        for (Stat<?> stat : ImmutableSet.copyOf(((MixinStatHandler) base).getStatMap().keySet())) {
+        for (Stat<?> stat : ImmutableSet.copyOf(((MixinStatsCounter) base).getStats().keySet())) {
             if (getTranslationKey(stat).equals(statKey)) {
-                return base.getStat(stat);
+                return base.getValue(stat);
             }
         }
         throw new IllegalArgumentException("Stat not found: " + statKey);
     }
 
     public String getFormattedStatValue(String statKey) {
-        for (Stat<?> stat : ImmutableSet.copyOf(((MixinStatHandler) base).getStatMap().keySet())) {
+        for (Stat<?> stat : ImmutableSet.copyOf(((MixinStatsCounter) base).getStats().keySet())) {
             if (getTranslationKey(stat).equals(statKey)) {
-                return stat.format(base.getStat(stat));
+                return stat.format(base.getValue(stat));
             }
         }
         throw new IllegalArgumentException("Stat not found: " + statKey);
     }
 
     private String getTranslationKey(Stat<?> stat) {
-        if (stat.getType().getName() instanceof TranslatableTextContent t) {
+        if (stat.getType().getDisplayName() instanceof TranslatableContents t) {
             return t.getKey();
         } else {
-            return stat.getType().getName().getString();
+            return stat.getType().getDisplayName().getString();
         }
     }
 
     public Map<String, String> getFormattedStatMap() {
         Map<String, String> map = new HashMap<>();
-        for (Stat<?> stat : ImmutableSet.copyOf(((MixinStatHandler) base).getStatMap().keySet())) {
-            map.put(getTranslationKey(stat), stat.format(base.getStat(stat)));
+        for (Stat<?> stat : ImmutableSet.copyOf(((MixinStatsCounter) base).getStats().keySet())) {
+            map.put(getTranslationKey(stat), stat.format(base.getValue(stat)));
         }
         return map;
     }
 
     public Map<String, Integer> getRawStatMap() {
         Map<String, Integer> map = new HashMap<>();
-        for (Stat<?> stat : ImmutableSet.copyOf(((MixinStatHandler) base).getStatMap().keySet())) {
-            map.put(getTranslationKey(stat), base.getStat(stat));
+        for (Stat<?> stat : ImmutableSet.copyOf(((MixinStatsCounter) base).getStats().keySet())) {
+            map.put(getTranslationKey(stat), base.getValue(stat));
         }
         return map;
     }
@@ -90,7 +90,7 @@ public class StatsHelper extends BaseHelper<StatHandler> {
      */
     @DocletReplaceParams("id: EntityId")
     public int getEntityKilled(String id) {
-        return getStat(Stats.KILLED, Registries.ENTITY_TYPE, id);
+        return getStat(Stats.ENTITY_KILLED, BuiltInRegistries.ENTITY_TYPE, id);
     }
 
     /**
@@ -100,7 +100,7 @@ public class StatsHelper extends BaseHelper<StatHandler> {
      */
     @DocletReplaceParams("id: EntityId")
     public int getKilledByEntity(String id) {
-        return getStat(Stats.KILLED_BY, Registries.ENTITY_TYPE, id);
+        return getStat(Stats.ENTITY_KILLED_BY, BuiltInRegistries.ENTITY_TYPE, id);
     }
 
     /**
@@ -110,7 +110,7 @@ public class StatsHelper extends BaseHelper<StatHandler> {
      */
     @DocletReplaceParams("id: BlockId")
     public int getBlockMined(String id) {
-        return getStat(Stats.MINED, Registries.BLOCK, id);
+        return getStat(Stats.BLOCK_MINED, BuiltInRegistries.BLOCK, id);
     }
 
     /**
@@ -120,7 +120,7 @@ public class StatsHelper extends BaseHelper<StatHandler> {
      */
     @DocletReplaceParams("id: ItemId")
     public int getItemBroken(String id) {
-        return getStat(Stats.BROKEN, Registries.ITEM, id);
+        return getStat(Stats.ITEM_BROKEN, BuiltInRegistries.ITEM, id);
     }
 
     /**
@@ -130,7 +130,7 @@ public class StatsHelper extends BaseHelper<StatHandler> {
      */
     @DocletReplaceParams("id: ItemId")
     public int getItemCrafted(String id) {
-        return getStat(Stats.CRAFTED, Registries.ITEM, id);
+        return getStat(Stats.ITEM_CRAFTED, BuiltInRegistries.ITEM, id);
     }
 
     /**
@@ -140,7 +140,7 @@ public class StatsHelper extends BaseHelper<StatHandler> {
      */
     @DocletReplaceParams("id: ItemId")
     public int getItemUsed(String id) {
-        return getStat(Stats.USED, Registries.ITEM, id);
+        return getStat(Stats.ITEM_USED, BuiltInRegistries.ITEM, id);
     }
 
     /**
@@ -150,7 +150,7 @@ public class StatsHelper extends BaseHelper<StatHandler> {
      */
     @DocletReplaceParams("id: ItemId")
     public int getItemPickedUp(String id) {
-        return getStat(Stats.PICKED_UP, Registries.ITEM, id);
+        return getStat(Stats.ITEM_PICKED_UP, BuiltInRegistries.ITEM, id);
     }
 
     /**
@@ -160,7 +160,7 @@ public class StatsHelper extends BaseHelper<StatHandler> {
      */
     @DocletReplaceParams("id: ItemId")
     public int getItemDropped(String id) {
-        return getStat(Stats.DROPPED, Registries.ITEM, id);
+        return getStat(Stats.ITEM_DROPPED, BuiltInRegistries.ITEM, id);
     }
 
     /**
@@ -169,11 +169,11 @@ public class StatsHelper extends BaseHelper<StatHandler> {
      * @since 1.8.4
      */
     public int getCustomStat(String id) {
-        return base.getStat(Stats.CUSTOM.getOrCreateStat(RegistryHelper.parseIdentifier(id)));
+        return base.getValue(Stats.CUSTOM.get(RegistryHelper.parseIdentifier(id)));
     }
 
     private <T> int getStat(StatType<T> type, Registry<T> registry, String id) {
-        return base.getStat(type.getOrCreateStat(registry.get(RegistryHelper.parseIdentifier(id))));
+        return base.getValue(type.get(registry.getValue(RegistryHelper.parseIdentifier(id))));
     }
 
     /**
@@ -182,8 +182,8 @@ public class StatsHelper extends BaseHelper<StatHandler> {
      * @since 1.8.4
      */
     public String getCustomFormattedStat(String id) {
-        Stat<Identifier> stat = Stats.CUSTOM.getOrCreateStat(RegistryHelper.parseIdentifier(id));
-        return stat.format(base.getStat(stat));
+        Stat<ResourceLocation> stat = Stats.CUSTOM.get(RegistryHelper.parseIdentifier(id));
+        return stat.format(base.getValue(stat));
     }
 
     /**
@@ -193,9 +193,9 @@ public class StatsHelper extends BaseHelper<StatHandler> {
      * @since 1.8.4
      */
     public StatsHelper updateStatistics() {
-        MinecraftClient mc = MinecraftClient.getInstance();
-        assert mc.getNetworkHandler() != null;
-        mc.getNetworkHandler().sendPacket(new ClientStatusC2SPacket(ClientStatusC2SPacket.Mode.REQUEST_STATS));
+        Minecraft mc = Minecraft.getInstance();
+        assert mc.getConnection() != null;
+        mc.getConnection().send(new ServerboundClientCommandPacket(ServerboundClientCommandPacket.Action.REQUEST_STATS));
         return this;
     }
 

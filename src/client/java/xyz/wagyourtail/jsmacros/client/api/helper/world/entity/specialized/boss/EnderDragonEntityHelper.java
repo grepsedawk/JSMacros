@@ -1,11 +1,11 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.boss;
 
-import net.minecraft.entity.boss.dragon.EnderDragonEntity;
+import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
 import xyz.wagyourtail.doclet.DocletReplaceParams;
 import xyz.wagyourtail.doclet.DocletReplaceReturn;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.EntityHelper;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.MobEntityHelper;
-import xyz.wagyourtail.jsmacros.client.mixin.access.MixinPhaseType;
+import xyz.wagyourtail.jsmacros.client.mixin.access.MixinEnderDragonPhase;
 
 import java.util.Arrays;
 import java.util.List;
@@ -16,9 +16,9 @@ import java.util.stream.Collectors;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class EnderDragonEntityHelper extends MobEntityHelper<EnderDragonEntity> {
+public class EnderDragonEntityHelper extends MobEntityHelper<EnderDragon> {
 
-    public EnderDragonEntityHelper(EnderDragonEntity base) {
+    public EnderDragonEntityHelper(EnderDragon base) {
         super(base);
     }
 
@@ -34,7 +34,7 @@ public class EnderDragonEntityHelper extends MobEntityHelper<EnderDragonEntity> 
      */
     @DocletReplaceReturn("DragonPhase")
     public String getPhase() {
-        return ((MixinPhaseType) base.getPhaseManager().getCurrent().getType()).getName();
+        return ((MixinEnderDragonPhase) base.getPhaseManager().getCurrentPhase().getPhase()).getName();
     }
 
     /**
@@ -43,7 +43,7 @@ public class EnderDragonEntityHelper extends MobEntityHelper<EnderDragonEntity> 
      * @since 1.8.4
      */
     public EntityHelper<?> getBodyPart(int index) {
-        return EntityHelper.create(base.getBodyParts()[index]);
+        return EntityHelper.create(base.getSubEntities()[index]);
     }
 
     /**
@@ -51,7 +51,7 @@ public class EnderDragonEntityHelper extends MobEntityHelper<EnderDragonEntity> 
      * @since 1.8.4
      */
     public List<? extends EntityHelper<?>> getBodyParts() {
-        return Arrays.stream(base.getBodyParts()).map(EntityHelper::create).collect(Collectors.toList());
+        return Arrays.stream(base.getSubEntities()).map(EntityHelper::create).collect(Collectors.toList());
     }
 
     /**
@@ -64,7 +64,7 @@ public class EnderDragonEntityHelper extends MobEntityHelper<EnderDragonEntity> 
      */
     @DocletReplaceParams("name: DragonBodyPart")
     public List<? extends EntityHelper<?>> getBodyParts(String name) {
-        return Arrays.stream(base.getBodyParts()).filter(e -> e.name.equals(name)).map(EntityHelper::create).collect(Collectors.toList());
+        return Arrays.stream(base.getSubEntities()).filter(e -> e.name.equals(name)).map(EntityHelper::create).collect(Collectors.toList());
     }
 
 }

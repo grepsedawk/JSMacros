@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.helper;
 
-import net.minecraft.predicate.NbtPredicate;
+import net.minecraft.advancements.critereon.NbtPredicate;
 import xyz.wagyourtail.jsmacros.client.api.helper.inventory.ItemStackHelper;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.EntityHelper;
 import xyz.wagyourtail.jsmacros.core.helpers.BaseHelper;
@@ -18,21 +18,21 @@ public class NbtPredicateHelper extends BaseHelper<NbtPredicate> {
      * @since 1.9.1
      */
     public boolean test(EntityHelper<?> entity) {
-        return base.test(entity.getRaw());
+        return base.matches(entity.getRaw());
     }
 
     /**
      * @since 1.9.1
      */
     public boolean test(ItemStackHelper itemStack) {
-        return base.test(itemStack.getRaw());
+        return base.matches(itemStack.getRaw());
     }
 
     /**
      * @since 1.9.1
      */
     public boolean test(NBTElementHelper<?> nbtElement) {
-        return base.test(nbtElement.getRaw());
+        return base.matches(nbtElement.getRaw());
     }
 
 }

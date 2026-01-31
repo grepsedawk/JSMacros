@@ -1,7 +1,7 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.mob;
 
-import net.minecraft.entity.mob.ElderGuardianEntity;
-import net.minecraft.entity.mob.GuardianEntity;
+import net.minecraft.world.entity.monster.ElderGuardian;
+import net.minecraft.world.entity.monster.Guardian;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.EntityHelper;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.MobEntityHelper;
@@ -11,9 +11,9 @@ import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.MobEntityHelper;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class GuardianEntityHelper extends MobEntityHelper<GuardianEntity> {
+public class GuardianEntityHelper extends MobEntityHelper<Guardian> {
 
-    public GuardianEntityHelper(GuardianEntity base) {
+    public GuardianEntityHelper(Guardian base) {
         super(base);
     }
 
@@ -22,7 +22,7 @@ public class GuardianEntityHelper extends MobEntityHelper<GuardianEntity> {
      * @since 1.8.4
      */
     public boolean isElder() {
-        return base instanceof ElderGuardianEntity;
+        return base instanceof ElderGuardian;
     }
 
     /**
@@ -30,7 +30,7 @@ public class GuardianEntityHelper extends MobEntityHelper<GuardianEntity> {
      * @since 1.8.4
      */
     public boolean hasTarget() {
-        return base.hasBeamTarget();
+        return base.hasActiveAttackTarget();
     }
 
     /**
@@ -39,7 +39,7 @@ public class GuardianEntityHelper extends MobEntityHelper<GuardianEntity> {
      */
     @Nullable
     public EntityHelper<?> getTarget() {
-        return hasTarget() ? EntityHelper.create(base.getBeamTarget()) : null;
+        return hasTarget() ? EntityHelper.create(base.getActiveAttackTarget()) : null;
     }
 
     /**
@@ -47,7 +47,7 @@ public class GuardianEntityHelper extends MobEntityHelper<GuardianEntity> {
      * @since 1.8.4
      */
     public boolean hasSpikesRetracted() {
-        return !base.areSpikesRetracted();
+        return !base.isMoving();
     }
 
 }

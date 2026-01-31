@@ -1,12 +1,12 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive;
 
-import net.minecraft.entity.LazyEntityReference;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.passive.FoxEntity;
+import net.minecraft.world.entity.EntityReference;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.animal.Fox;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.jsmacros.client.api.helper.inventory.ItemStackHelper;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.EntityHelper;
-import xyz.wagyourtail.jsmacros.client.mixin.access.MixinFoxEntity;
+import xyz.wagyourtail.jsmacros.client.mixin.access.MixinFox;
 
 import java.util.UUID;
 
@@ -15,9 +15,9 @@ import java.util.UUID;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class FoxEntityHelper extends AnimalEntityHelper<FoxEntity> {
+public class FoxEntityHelper extends AnimalEntityHelper<Fox> {
 
-    public FoxEntityHelper(FoxEntity base) {
+    public FoxEntityHelper(Fox base) {
         super(base);
     }
 
@@ -34,7 +34,7 @@ public class FoxEntityHelper extends AnimalEntityHelper<FoxEntity> {
      * @since 1.8.4
      */
     public boolean isSnowFox() {
-        return base.getVariant() == FoxEntity.Variant.SNOW;
+        return base.getVariant() == Fox.Variant.SNOW;
     }
 
     /**
@@ -42,7 +42,7 @@ public class FoxEntityHelper extends AnimalEntityHelper<FoxEntity> {
      * @since 1.8.4
      */
     public boolean isRedFox() {
-        return base.getVariant() == FoxEntity.Variant.RED;
+        return base.getVariant() == Fox.Variant.RED;
     }
 
     /**
@@ -51,9 +51,9 @@ public class FoxEntityHelper extends AnimalEntityHelper<FoxEntity> {
      */
     @Nullable
     public String getOwner() {
-        return ((MixinFoxEntity) base).invokeGetTrustedEntities()
+        return ((MixinFox) base).invokeGetTrustedEntities()
             .findFirst()
-            .map(LazyEntityReference::getUuid)
+            .map(EntityReference::getUUID)
             .map(UUID::toString)
             .orElse(null);
     }
@@ -64,10 +64,10 @@ public class FoxEntityHelper extends AnimalEntityHelper<FoxEntity> {
      */
     @Nullable
     public String getSecondOwner() {
-        return ((MixinFoxEntity) base).invokeGetTrustedEntities()
+        return ((MixinFox) base).invokeGetTrustedEntities()
             .skip(1)
             .findFirst()
-            .map(LazyEntityReference::getUuid)
+            .map(EntityReference::getUUID)
             .map(UUID::toString)
             .orElse(null);
     }
@@ -79,7 +79,7 @@ public class FoxEntityHelper extends AnimalEntityHelper<FoxEntity> {
      */
     public boolean canTrust(EntityHelper<?> entity) {
         var raw = entity.getRaw();
-        return raw instanceof LivingEntity e && ((MixinFoxEntity) base).invokeCanTrust(e);
+        return raw instanceof LivingEntity e && ((MixinFox) base).invokeTrusts(e);
     }
 
     /**
@@ -87,7 +87,7 @@ public class FoxEntityHelper extends AnimalEntityHelper<FoxEntity> {
      * @since 1.8.4
      */
     public boolean hasFoundTarget() {
-        return base.isRollingHead();
+        return base.isInterested();
     }
 
     /**
@@ -103,7 +103,7 @@ public class FoxEntityHelper extends AnimalEntityHelper<FoxEntity> {
      * @since 1.8.4
      */
     public boolean isWandering() {
-        return base.isWalking();
+        return base.isFaceplanted();
     }
 
     /**
@@ -119,7 +119,7 @@ public class FoxEntityHelper extends AnimalEntityHelper<FoxEntity> {
      * @since 1.8.4
      */
     public boolean isDefending() {
-        return ((MixinFoxEntity) base).invokeIsAggressive();
+        return ((MixinFox) base).invokeIsDefending();
     }
 
     /**
@@ -127,7 +127,7 @@ public class FoxEntityHelper extends AnimalEntityHelper<FoxEntity> {
      * @since 1.8.4
      */
     public boolean isPouncing() {
-        return base.isChasing();
+        return base.isPouncing();
     }
 
     /**
@@ -144,7 +144,7 @@ public class FoxEntityHelper extends AnimalEntityHelper<FoxEntity> {
      * @since 1.8.4
      */
     public boolean isSneaking() {
-        return base.isInSneakingPose();
+        return base.isCrouching();
     }
 
 }

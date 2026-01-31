@@ -3,21 +3,25 @@ package xyz.wagyourtail.jsmacros.client.api.helper;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.context.StringRange;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.block.pattern.CachedBlockPosition;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientCommandSource;
-import net.minecraft.command.EntitySelector;
-import net.minecraft.command.argument.*;
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.entity.effect.StatusEffect;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.particle.ParticleEffect;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Identifier;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientSuggestionProvider;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.arguments.AngleArgument;
+import net.minecraft.commands.arguments.blocks.BlockInput;
+import net.minecraft.commands.arguments.coordinates.Coordinates;
+import net.minecraft.commands.arguments.item.ItemInput;
+import net.minecraft.commands.arguments.item.ItemPredicateArgument;
+import net.minecraft.commands.arguments.selector.EntitySelector;
+import net.minecraft.core.Holder;
+import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.Tag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.level.block.state.pattern.BlockInWorld;
 import xyz.wagyourtail.jsmacros.client.JsMacrosClient;
 import xyz.wagyourtail.jsmacros.client.api.classes.FakeServerCommandSource;
 import xyz.wagyourtail.jsmacros.client.api.helper.inventory.EnchantmentHelper;
@@ -69,42 +73,42 @@ public class CommandContextHelper extends BaseEvent {
      */
     public Object getArg(String name) throws CommandSyntaxException {
         Object arg = base.getArgument(name, Object.class);
-        ServerCommandSource fakeServerSource = null;
-        if (base.getSource() instanceof ClientCommandSource) {
-            fakeServerSource = new FakeServerCommandSource((ClientCommandSource) base.getSource(), MinecraftClient.getInstance().player);
+        CommandSourceStack fakeServerSource = null;
+        if (base.getSource() instanceof ClientSuggestionProvider) {
+            fakeServerSource = new FakeServerCommandSource((ClientSuggestionProvider) base.getSource(), Minecraft.getInstance().player);
         }
-        if (arg instanceof BlockStateArgument) {
-            arg = new BlockStateHelper(((BlockStateArgument) arg).getBlockState());
-        } else if (arg instanceof Identifier) {
-            arg = ((Identifier) arg).toString();
-        } else if (arg instanceof ItemStackArgument) {
-            arg = new ItemStackHelper(((ItemStackArgument) arg).createStack(1, false));
-        } else if (arg instanceof NbtElement) {
-            arg = NBTElementHelper.resolve((NbtElement) arg);
-        } else if (arg instanceof Text) {
-            arg = TextHelper.wrap((Text) arg);
-        } else if (arg instanceof Formatting) {
-            arg = new FormattingHelper((Formatting) arg);
-        } else if (arg instanceof AngleArgumentType.Angle) {
-            arg = ((AngleArgumentType.Angle) arg).getAngle(fakeServerSource);
-        } else if (arg instanceof ItemPredicateArgumentType.ItemStackPredicateArgument) {
-            ItemPredicateArgumentType.ItemStackPredicateArgument itemPredicate = (ItemPredicateArgumentType.ItemStackPredicateArgument) arg;
+        if (arg instanceof BlockInput) {
+            arg = new BlockStateHelper(((BlockInput) arg).getState());
+        } else if (arg instanceof ResourceLocation) {
+            arg = ((ResourceLocation) arg).toString();
+        } else if (arg instanceof ItemInput) {
+            arg = new ItemStackHelper(((ItemInput) arg).createItemStack(1, false));
+        } else if (arg instanceof Tag) {
+            arg = NBTElementHelper.resolve((Tag) arg);
+        } else if (arg instanceof Component) {
+            arg = TextHelper.wrap((Component) arg);
+        } else if (arg instanceof ChatFormatting) {
+            arg = new FormattingHelper((ChatFormatting) arg);
+        } else if (arg instanceof AngleArgument.SingleAngle) {
+            arg = ((AngleArgument.SingleAngle) arg).getAngle(fakeServerSource);
+        } else if (arg instanceof ItemPredicateArgument.Result) {
+            ItemPredicateArgument.Result itemPredicate = (ItemPredicateArgument.Result) arg;
             arg = (Predicate<ItemStackHelper>) item -> itemPredicate.test(item.getRaw());
-        } else if (arg instanceof BlockPredicateArgumentType.BlockPredicate) {
-            BlockPredicateArgumentType.BlockPredicate blockPredicate = (BlockPredicateArgumentType.BlockPredicate) arg;
-            arg = (Predicate<BlockPosHelper>) block -> blockPredicate.test(new CachedBlockPosition(MinecraftClient.getInstance().world, block.getRaw(), false));
-        } else if (arg instanceof PosArgument) {
-            arg = new BlockPosHelper(((PosArgument) arg).toAbsoluteBlockPos(fakeServerSource));
-        } else if (arg instanceof RegistryEntry<?>) {
-            if (((RegistryEntry<?>) arg).value() instanceof Enchantment) {
-                arg = new EnchantmentHelper((RegistryEntry<Enchantment>) arg);
+        } else if (arg instanceof net.minecraft.commands.arguments.blocks.BlockPredicateArgument.Result) {
+            net.minecraft.commands.arguments.blocks.BlockPredicateArgument.Result blockPredicate = (net.minecraft.commands.arguments.blocks.BlockPredicateArgument.Result) arg;
+            arg = (Predicate<BlockPosHelper>) block -> blockPredicate.test(new BlockInWorld(Minecraft.getInstance().level, block.getRaw(), false));
+        } else if (arg instanceof Coordinates) {
+            arg = new BlockPosHelper(((Coordinates) arg).getBlockPos(fakeServerSource));
+        } else if (arg instanceof Holder<?>) {
+            if (((Holder<?>) arg).value() instanceof Enchantment) {
+                arg = new EnchantmentHelper((Holder<Enchantment>) arg);
             }
         } else if (arg instanceof EntitySelector) {
-            arg = ((EntitySelector) arg).getEntities(fakeServerSource).stream().map(EntityHelper::create).collect(Collectors.toList());
-        } else if (arg instanceof ParticleEffect) {
-            arg = Registries.PARTICLE_TYPE.getId(((ParticleEffect) arg).getType()).toString();
-        } else if (arg instanceof StatusEffect) {
-            arg = Registries.STATUS_EFFECT.getId(((StatusEffect) arg)).toString();
+            arg = ((EntitySelector) arg).findEntities(fakeServerSource).stream().map(EntityHelper::create).collect(Collectors.toList());
+        } else if (arg instanceof ParticleOptions) {
+            arg = BuiltInRegistries.PARTICLE_TYPE.getKey(((ParticleOptions) arg).getType()).toString();
+        } else if (arg instanceof MobEffect) {
+            arg = BuiltInRegistries.MOB_EFFECT.getKey(((MobEffect) arg)).toString();
         }
         return arg;
     }

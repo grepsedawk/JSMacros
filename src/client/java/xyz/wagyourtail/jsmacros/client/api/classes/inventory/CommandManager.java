@@ -6,9 +6,9 @@ import com.mojang.brigadier.ParseResults;
 import com.mojang.brigadier.suggestion.Suggestion;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.tree.CommandNode;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientCommandSource;
-import net.minecraft.client.network.ClientPlayNetworkHandler;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientPacketListener;
+import net.minecraft.client.multiplayer.ClientSuggestionProvider;
 import xyz.wagyourtail.jsmacros.client.api.helper.CommandNodeHelper;
 import xyz.wagyourtail.jsmacros.core.MethodWrapper;
 
@@ -21,18 +21,18 @@ import java.util.stream.Collectors;
  */
 public abstract class CommandManager {
     public static CommandManager instance;
-    private static final MinecraftClient mc = MinecraftClient.getInstance();
+    private static final Minecraft mc = Minecraft.getInstance();
 
     /**
      * @return list of commands
      * @since 1.7.0
      */
     public List<String> getValidCommands() {
-        ClientPlayNetworkHandler nh = MinecraftClient.getInstance().getNetworkHandler();
+        ClientPacketListener nh = Minecraft.getInstance().getConnection();
         if (nh == null) {
             return ImmutableList.of();
         }
-        return nh.getCommandDispatcher().getRoot().getChildren().stream().map(CommandNode::getName).collect(Collectors.toList());
+        return nh.getCommands().getRoot().getChildren().stream().map(CommandNode::getName).collect(Collectors.toList());
     }
 
     /**
@@ -64,8 +64,8 @@ public abstract class CommandManager {
      */
     public void getArgumentAutocompleteOptions(String commandPart, MethodWrapper<List<String>, Object, Object, ?> callback) {
         assert mc.player != null;
-        CommandDispatcher<ClientCommandSource> commandDispatcher = mc.player.networkHandler.getCommandDispatcher();
-        ParseResults<ClientCommandSource> parse = commandDispatcher.parse(commandPart, mc.player.networkHandler.getCommandSource());
+        CommandDispatcher<ClientSuggestionProvider> commandDispatcher = mc.player.connection.getCommands();
+        ParseResults<ClientSuggestionProvider> parse = commandDispatcher.parse(commandPart, mc.player.connection.getSuggestionsProvider());
         CompletableFuture<Suggestions> suggestions = commandDispatcher.getCompletionSuggestions(parse);
         suggestions.thenAccept(
                 (s) -> {

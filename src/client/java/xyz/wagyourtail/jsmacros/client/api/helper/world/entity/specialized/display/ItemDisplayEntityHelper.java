@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.display;
 
-import net.minecraft.entity.decoration.DisplayEntity;
+import net.minecraft.world.entity.Display;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.jsmacros.client.api.helper.inventory.ItemStackHelper;
 
@@ -9,9 +9,9 @@ import xyz.wagyourtail.jsmacros.client.api.helper.inventory.ItemStackHelper;
  * @since 1.9.1
  */
 @SuppressWarnings("unused")
-public class ItemDisplayEntityHelper extends DisplayEntityHelper<DisplayEntity.ItemDisplayEntity> {
+public class ItemDisplayEntityHelper extends DisplayEntityHelper<Display.ItemDisplay> {
 
-    public ItemDisplayEntityHelper(DisplayEntity.ItemDisplayEntity base) {
+    public ItemDisplayEntityHelper(Display.ItemDisplay base) {
         super(base);
     }
 
@@ -19,7 +19,7 @@ public class ItemDisplayEntityHelper extends DisplayEntityHelper<DisplayEntity.I
      * @since 1.9.1
      */
     public ItemStackHelper getItem() {
-        return new ItemStackHelper(base.getStackReference(0).get());
+        return new ItemStackHelper(base.getSlot(0).get());
     }
 
     /**
@@ -30,9 +30,9 @@ public class ItemDisplayEntityHelper extends DisplayEntityHelper<DisplayEntity.I
     @SuppressWarnings("SpellCheckingInspection")
     @Nullable
     public String getTransform() {
-        DisplayEntity.ItemDisplayEntity.Data data = base.getData();
+        Display.ItemDisplay.ItemRenderState data = base.itemRenderState();
         if (data == null) return null;
-        return data.itemTransform().asString();
+        return data.itemTransform().getSerializedName();
     }
 
 }

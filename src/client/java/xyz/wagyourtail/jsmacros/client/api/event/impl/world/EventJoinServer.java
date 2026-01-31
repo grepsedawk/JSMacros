@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.event.impl.world;
 
-import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.player.LocalPlayer;
 import xyz.wagyourtail.jsmacros.client.JsMacrosClient;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.ClientPlayerEntityHelper;
 import xyz.wagyourtail.jsmacros.core.event.BaseEvent;
@@ -12,10 +12,10 @@ import xyz.wagyourtail.jsmacros.core.event.Event;
  */
 @Event(value = "JoinServer", oldName = "JOIN_SERVER")
 public class EventJoinServer extends BaseEvent {
-    public final ClientPlayerEntityHelper<ClientPlayerEntity> player;
+    public final ClientPlayerEntityHelper<LocalPlayer> player;
     public final String address;
 
-    public EventJoinServer(ClientPlayerEntity player, String address) {
+    public EventJoinServer(LocalPlayer player, String address) {
         super(JsMacrosClient.clientCore);
         this.player = new ClientPlayerEntityHelper<>(player);
         this.address = address;

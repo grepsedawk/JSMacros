@@ -1,9 +1,9 @@
 package xyz.wagyourtail.jsmacros.client.api.helper;
 
-import net.minecraft.text.ClickEvent;
-import net.minecraft.text.HoverEvent;
-import net.minecraft.text.Style;
-import net.minecraft.util.Formatting;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.Style;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.doclet.DocletReplaceReturn;
 import xyz.wagyourtail.jsmacros.access.CustomClickEvent;
@@ -41,7 +41,7 @@ public class StyleHelper extends BaseHelper<Style> {
      */
     @Nullable
     public FormattingHelper getFormatting() {
-        Formatting f = Formatting.byName(base.getColor().getName());
+        ChatFormatting f = ChatFormatting.getByName(base.getColor().serialize());
         return f == null ? null : new FormattingHelper(f);
     }
 
@@ -53,8 +53,8 @@ public class StyleHelper extends BaseHelper<Style> {
         if (base.getColor() == null) {
             return -1;
         }
-        Formatting f = Formatting.byName(base.getColor().getName());
-        return f == null ? -1 : f.getColorIndex();
+        ChatFormatting f = ChatFormatting.getByName(base.getColor().serialize());
+        return f == null ? -1 : f.getId();
     }
 
     /**
@@ -65,8 +65,8 @@ public class StyleHelper extends BaseHelper<Style> {
         if (base.getColor() == null) {
             return -1;
         }
-        Formatting f = Formatting.byName(base.getColor().getName());
-        return f == null || f.getColorValue() == null ? -1 : f.getColorValue();
+        ChatFormatting f = ChatFormatting.getByName(base.getColor().serialize());
+        return f == null || f.getColor() == null ? -1 : f.getColor();
     }
 
     /**
@@ -75,15 +75,15 @@ public class StyleHelper extends BaseHelper<Style> {
      */
     @Nullable
     public String getColorName() {
-        return base.getColor() == null ? null : base.getColor().getName();
+        return base.getColor() == null ? null : base.getColor().serialize();
     }
 
     public boolean hasCustomColor() {
-        return base.getColor() != null && base.getColor().getName().startsWith("#");
+        return base.getColor() != null && base.getColor().serialize().startsWith("#");
     }
 
     public int getCustomColor() {
-        return base.getColor() == null ? -1 : base.getColor().getRgb();
+        return base.getColor() == null ? -1 : base.getColor().getValue();
     }
 
     public boolean bold() {
@@ -115,7 +115,7 @@ public class StyleHelper extends BaseHelper<Style> {
         if (base.getClickEvent() instanceof CustomClickEvent) {
             return "custom";
         }
-        return base.getClickEvent().getAction().name();
+        return base.getClickEvent().action().name();
     }
 
     @Nullable
@@ -142,7 +142,7 @@ public class StyleHelper extends BaseHelper<Style> {
     @DocletReplaceReturn("TextHoverAction | null")
     @Nullable
     public String getHoverAction() {
-        return base.getHoverEvent() == null ? null : base.getHoverEvent().getAction().asString();
+        return base.getHoverEvent() == null ? null : base.getHoverEvent().action().getSerializedName();
     }
 
     @Nullable
@@ -150,7 +150,7 @@ public class StyleHelper extends BaseHelper<Style> {
         return switch (base.getHoverEvent()) {
             case HoverEvent.ShowText s -> TextHelper.wrap(s.value());
             case HoverEvent.ShowItem i -> new ItemStackHelper(i.item());
-            case HoverEvent.ShowEntity e -> e.entity().asTooltip().stream().map(TextHelper::wrap).collect(Collectors.toList());
+            case HoverEvent.ShowEntity e -> e.entity().getTooltipLines().stream().map(TextHelper::wrap).collect(Collectors.toList());
             case null, default -> null;
         };
     }

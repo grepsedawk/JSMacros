@@ -1,14 +1,19 @@
 package xyz.wagyourtail.jsmacros.client.api.classes.render;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.Camera;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.math.Vec3d;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.Camera;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.world.phys.Vec3;
 import xyz.wagyourtail.doclet.DocletIgnore;
 import xyz.wagyourtail.jsmacros.api.math.Pos2D;
 import xyz.wagyourtail.jsmacros.api.math.Pos3D;
-import xyz.wagyourtail.jsmacros.client.api.classes.render.components3d.*;
+import xyz.wagyourtail.jsmacros.client.api.classes.render.components3d.Box;
+import xyz.wagyourtail.jsmacros.client.api.classes.render.components3d.EntityTraceLine;
+import xyz.wagyourtail.jsmacros.client.api.classes.render.components3d.Line3D;
+import xyz.wagyourtail.jsmacros.client.api.classes.render.components3d.RenderElement3D;
+import xyz.wagyourtail.jsmacros.client.api.classes.render.components3d.Surface;
+import xyz.wagyourtail.jsmacros.client.api.classes.render.components3d.TraceLine;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.BlockPosHelper;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.EntityHelper;
 import xyz.wagyourtail.jsmacros.client.api.library.impl.FHud;
@@ -693,12 +698,12 @@ public class Draw3D implements Registrable<Draw3D> {
     }
 
     @DocletIgnore
-    public void render(MatrixStack matrixStack, VertexConsumerProvider consumers, float tickDelta) {
-        Camera camera = MinecraftClient.getInstance().gameRenderer.getCamera();
-        Vec3d cameraPos = camera.getPos();
+    public void render(PoseStack matrixStack, MultiBufferSource consumers, float tickDelta) {
+        Camera camera = Minecraft.getInstance().gameRenderer.getMainCamera();
+        Vec3 cameraPos = camera.getPosition();
 
-        matrixStack.push();
-        matrixStack.translate(-cameraPos.getX(), -cameraPos.getY(), -cameraPos.getZ());
+        matrixStack.pushPose();
+        matrixStack.translate(-cameraPos.x(), -cameraPos.y(), -cameraPos.z());
 
         EntityTraceLine.dirty = false;
 
@@ -716,6 +721,6 @@ public class Draw3D implements Registrable<Draw3D> {
             }
         }
 
-        matrixStack.pop();
+        matrixStack.popPose();
     }
 }

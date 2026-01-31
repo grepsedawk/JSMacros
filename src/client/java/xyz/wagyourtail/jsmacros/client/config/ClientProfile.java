@@ -1,37 +1,102 @@
 package xyz.wagyourtail.jsmacros.client.config;
 
 import com.mojang.brigadier.tree.CommandNode;
-import net.minecraft.advancement.AdvancementManager;
-import net.minecraft.advancement.AdvancementProgress;
-import net.minecraft.advancement.PlacedAdvancement;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerInteractionManager;
-import net.minecraft.client.option.GameOptions;
-import net.minecraft.nbt.AbstractNbtList;
-import net.minecraft.nbt.AbstractNbtNumber;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.predicate.BlockPredicate;
-import net.minecraft.predicate.NbtPredicate;
-import net.minecraft.predicate.StatePredicate;
-import net.minecraft.text.HoverEvent;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Style;
-import net.minecraft.text.Text;
-import net.minecraft.util.DyeColor;
-import net.minecraft.util.Formatting;
+import net.minecraft.ChatFormatting;
+import net.minecraft.advancements.AdvancementNode;
+import net.minecraft.advancements.AdvancementProgress;
+import net.minecraft.advancements.AdvancementTree;
+import net.minecraft.advancements.critereon.BlockPredicate;
+import net.minecraft.advancements.critereon.NbtPredicate;
+import net.minecraft.advancements.critereon.StatePropertiesPredicate;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.Options;
+import net.minecraft.client.multiplayer.MultiPlayerGameMode;
+import net.minecraft.nbt.CollectionTag;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NumericTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Style;
+import net.minecraft.world.item.DyeColor;
 import org.slf4j.Logger;
 import xyz.wagyourtail.jsmacros.access.CustomClickEvent;
 import xyz.wagyourtail.jsmacros.api.library.FJavaUtils;
 import xyz.wagyourtail.jsmacros.api.library.FUtils;
 import xyz.wagyourtail.jsmacros.client.access.IChatHud;
-import xyz.wagyourtail.jsmacros.client.api.event.impl.*;
-import xyz.wagyourtail.jsmacros.client.api.event.impl.inventory.*;
-import xyz.wagyourtail.jsmacros.client.api.event.impl.player.*;
-import xyz.wagyourtail.jsmacros.client.api.event.impl.world.*;
-import xyz.wagyourtail.jsmacros.client.api.helper.*;
-import xyz.wagyourtail.jsmacros.client.api.library.impl.*;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.EventKey;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.EventLaunchGame;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.EventMouseScroll;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.EventQuitGame;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.EventRecvMessage;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.EventRecvPacket;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.EventResourcePackLoaded;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.EventSendMessage;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.EventSendPacket;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.EventTitle;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.inventory.EventClickSlot;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.inventory.EventContainerUpdate;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.inventory.EventDropSlot;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.inventory.EventItemDamage;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.inventory.EventItemPickup;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.inventory.EventOpenContainer;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.inventory.EventSlotUpdate;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.player.EventAirChange;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.player.EventArmorChange;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.player.EventAttackBlock;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.player.EventAttackEntity;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.player.EventDamage;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.player.EventDeath;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.player.EventEXPChange;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.player.EventFallFlying;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.player.EventHeal;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.player.EventHealthChange;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.player.EventHeldItemChange;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.player.EventHungerChange;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.player.EventInteractBlock;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.player.EventInteractEntity;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.player.EventOpenScreen;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.player.EventRiding;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.player.EventSignEdit;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.player.EventStatusEffectUpdate;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.world.EventBlockUpdate;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.world.EventBossbar;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.world.EventChunkLoad;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.world.EventChunkUnload;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.world.EventDimensionChange;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.world.EventDisconnect;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.world.EventEntityDamaged;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.world.EventEntityHealed;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.world.EventEntityLoad;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.world.EventEntityUnload;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.world.EventJoinServer;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.world.EventNameChange;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.world.EventPlayerJoin;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.world.EventPlayerLeave;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.world.EventSound;
+import xyz.wagyourtail.jsmacros.client.api.event.impl.world.EventTick;
+import xyz.wagyourtail.jsmacros.client.api.helper.AdvancementHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.AdvancementManagerHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.AdvancementProgressHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.BlockPredicateHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.CommandNodeHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.DyeColorHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.FormattingHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.InteractionManagerHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.NBTElementHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.NbtPredicateHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.OptionsHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.PacketByteBufferHelper;
+import xyz.wagyourtail.jsmacros.client.api.helper.StatePredicateHelper;
+import xyz.wagyourtail.jsmacros.client.api.library.impl.FChat;
+import xyz.wagyourtail.jsmacros.client.api.library.impl.FClient;
+import xyz.wagyourtail.jsmacros.client.api.library.impl.FHud;
+import xyz.wagyourtail.jsmacros.client.api.library.impl.FKeyBind;
+import xyz.wagyourtail.jsmacros.client.api.library.impl.FPlayer;
+import xyz.wagyourtail.jsmacros.client.api.library.impl.FPositionCommon;
+import xyz.wagyourtail.jsmacros.client.api.library.impl.FWorld;
 import xyz.wagyourtail.jsmacros.client.gui.screens.EditorScreen;
 import xyz.wagyourtail.jsmacros.client.gui.screens.MacroScreen;
 import xyz.wagyourtail.jsmacros.core.Core;
@@ -42,7 +107,7 @@ import xyz.wagyourtail.jsmacros.core.language.BaseWrappedException;
 import java.util.Arrays;
 
 public class ClientProfile extends BaseProfile {
-    private static final MinecraftClient mc = MinecraftClient.getInstance();
+    private static final Minecraft mc = Minecraft.getInstance();
 
     public ClientProfile(Core<ClientProfile, ?> runner, Logger logger) {
         super(runner, logger);
@@ -51,9 +116,9 @@ public class ClientProfile extends BaseProfile {
     @Override
     protected boolean loadProfile(String profileName) {
         boolean val = super.loadProfile(profileName);
-        final MinecraftClient mc = MinecraftClient.getInstance();
-        if (mc.currentScreen instanceof MacroScreen) {
-            mc.execute(() -> ((MacroScreen) mc.currentScreen).reload());
+        final Minecraft mc = Minecraft.getInstance();
+        if (mc.screen instanceof MacroScreen) {
+            mc.execute(() -> ((MacroScreen) mc.screen).reload());
         }
         return val;
     }
@@ -82,22 +147,22 @@ public class ClientProfile extends BaseProfile {
                 }
             }
         }
-        MinecraftClient mc = MinecraftClient.getInstance();
-        if (mc.inGameHud != null) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.gui != null) {
             BaseWrappedException<?> e;
             try {
                 e = runner.wrapException(ex);
             } catch (Throwable t) {
                 t.printStackTrace();
-                mc.execute(() -> ((IChatHud) mc.inGameHud.getChatHud()).jsmacros_addMessageBypass(Text.translatable("jsmacros.errorerror").setStyle(Style.EMPTY.withColor(Formatting.DARK_RED))));
+                mc.execute(() -> ((IChatHud) mc.gui.getChat()).jsmacros_addMessageBypass(Component.translatable("jsmacros.errorerror").setStyle(Style.EMPTY.withColor(ChatFormatting.DARK_RED))));
                 return;
             }
-            Text text = compileError(e);
+            Component text = compileError(e);
             mc.execute(() -> {
                 try {
-                    ((IChatHud) mc.inGameHud.getChatHud()).jsmacros_addMessageBypass(text);
+                    ((IChatHud) mc.gui.getChat()).jsmacros_addMessageBypass(text);
                 } catch (Throwable t) {
-                    ((IChatHud) mc.inGameHud.getChatHud()).jsmacros_addMessageBypass(Text.translatable("jsmacros.errorerror").setStyle(Style.EMPTY.withColor(Formatting.DARK_RED)));
+                    ((IChatHud) mc.gui.getChat()).jsmacros_addMessageBypass(Component.translatable("jsmacros.errorerror").setStyle(Style.EMPTY.withColor(ChatFormatting.DARK_RED)));
                     t.printStackTrace();
                 }
             });
@@ -106,25 +171,25 @@ public class ClientProfile extends BaseProfile {
 
     @Override
     public boolean checkJoinedThreadStack() {
-        return mc.isOnThread() || joinedThreadStack.contains(Thread.currentThread());
+        return mc.isSameThread() || joinedThreadStack.contains(Thread.currentThread());
     }
 
-    private Text compileError(BaseWrappedException<?> ex) {
+    private Component compileError(BaseWrappedException<?> ex) {
         if (ex == null) {
             return null;
         }
         BaseWrappedException<?> head = ex;
-        MutableText text = Text.literal("");
+        MutableComponent text = Component.literal("");
         do {
             String message = head.message;
-            MutableText line = Text.literal(message).setStyle(Style.EMPTY.withColor(Formatting.RED));
+            MutableComponent line = Component.literal(message).setStyle(Style.EMPTY.withColor(ChatFormatting.RED));
             if (head.location != null) {
-                Style locationStyle = Style.EMPTY.withColor(Formatting.GOLD);
+                Style locationStyle = Style.EMPTY.withColor(ChatFormatting.GOLD);
                 if (head.location instanceof BaseWrappedException.GuestLocation) {
                     BaseWrappedException.GuestLocation loc = (BaseWrappedException.GuestLocation) head.location;
                     if (loc.file != null) {
                         locationStyle = locationStyle.withHoverEvent(
-                                new HoverEvent.ShowText(Text.translatable("jsmacros.clicktoview"))
+                                new HoverEvent.ShowText(Component.translatable("jsmacros.clicktoview"))
                         ).withClickEvent(new CustomClickEvent(() -> {
                             if (loc.startIndex > -1) {
                                 EditorScreen.openAndScrollToIndex(loc.file, loc.startIndex, loc.endIndex);
@@ -136,7 +201,7 @@ public class ClientProfile extends BaseProfile {
                         }));
                     }
                 }
-                line.append(Text.literal(" (" + head.location + ")").setStyle(locationStyle));
+                line.append(Component.literal(" (" + head.location + ")").setStyle(locationStyle));
             }
             if ((head = head.next) != null) {
                 line.append("\n");
@@ -214,23 +279,23 @@ public class ClientProfile extends BaseProfile {
         runner.libraryRegistry.addLibrary(FUtils.class);
         runner.libraryRegistry.addLibrary(FWorld.class);
 
-        runner.registerHelper(PlacedAdvancement.class, AdvancementHelper.class);
-        runner.registerHelper(AdvancementManager.class, AdvancementManagerHelper.class);
+        runner.registerHelper(AdvancementNode.class, AdvancementHelper.class);
+        runner.registerHelper(AdvancementTree.class, AdvancementManagerHelper.class);
         runner.registerHelper(AdvancementProgress.class, AdvancementProgressHelper.class);
         runner.registerHelper(BlockPredicate.class, BlockPredicateHelper.class);
 //        runner.registerHelper(CommandContext.class, CommandContextHelper.class);
         runner.registerHelper(CommandNode.class, CommandNodeHelper.class);
         runner.registerHelper(DyeColor.class, DyeColorHelper.class);
-        runner.registerHelper(Formatting.class, FormattingHelper.class);
-        runner.registerHelper(ClientPlayerInteractionManager.class, InteractionManagerHelper.class);
-        runner.helperRegistry.registerType(NbtElement.class, NBTElementHelper::wrap);
-        runner.registerHelper(AbstractNbtNumber.class, NBTElementHelper.NBTNumberHelper.class);
-        runner.registerHelper(NbtCompound.class, NBTElementHelper.NBTCompoundHelper.class);
-        runner.registerHelper(AbstractNbtList.class, (Class) NBTElementHelper.NBTListHelper.class);
+        runner.registerHelper(ChatFormatting.class, FormattingHelper.class);
+        runner.registerHelper(MultiPlayerGameMode.class, InteractionManagerHelper.class);
+        runner.helperRegistry.registerType(Tag.class, NBTElementHelper::wrap);
+        runner.registerHelper(NumericTag.class, NBTElementHelper.NBTNumberHelper.class);
+        runner.registerHelper(CompoundTag.class, NBTElementHelper.NBTCompoundHelper.class);
+        runner.registerHelper(CollectionTag.class, (Class) NBTElementHelper.NBTListHelper.class);
         runner.registerHelper(NbtPredicate.class, NbtPredicateHelper.class);
-        runner.registerHelper(GameOptions.class, OptionsHelper.class);
-        runner.registerHelper(PacketByteBuf.class, PacketByteBufferHelper.class);
-        runner.registerHelper(StatePredicate.class, StatePredicateHelper.class);
+        runner.registerHelper(Options.class, OptionsHelper.class);
+        runner.registerHelper(FriendlyByteBuf.class, PacketByteBufferHelper.class);
+        runner.registerHelper(StatePropertiesPredicate.class, StatePredicateHelper.class);
         // TODO: complete list
 
     }

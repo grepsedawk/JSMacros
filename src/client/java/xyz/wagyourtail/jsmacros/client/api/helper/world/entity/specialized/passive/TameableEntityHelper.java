@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive;
 
-import net.minecraft.entity.passive.TameableEntity;
+import net.minecraft.world.entity.TamableAnimal;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.LivingEntityHelper;
 
@@ -9,7 +9,7 @@ import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.LivingEntityHelpe
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class TameableEntityHelper<T extends TameableEntity> extends AnimalEntityHelper<T> {
+public class TameableEntityHelper<T extends TamableAnimal> extends AnimalEntityHelper<T> {
 
     public TameableEntityHelper(T base) {
         super(base);
@@ -20,7 +20,7 @@ public class TameableEntityHelper<T extends TameableEntity> extends AnimalEntity
      * @since 1.8.4
      */
     public boolean isTamed() {
-        return base.isTamed();
+        return base.isTame();
     }
 
     /**
@@ -28,7 +28,7 @@ public class TameableEntityHelper<T extends TameableEntity> extends AnimalEntity
      * @since 1.8.4
      */
     public boolean isSitting() {
-        return base.isSitting();
+        return base.isOrderedToSit();
     }
 
     /**
@@ -38,7 +38,7 @@ public class TameableEntityHelper<T extends TameableEntity> extends AnimalEntity
     @Nullable
     public String getOwner() {
         var owner = base.getOwnerReference();
-        return owner != null ? owner.getUuid().toString() : null;
+        return owner != null ? owner.getUUID().toString() : null;
     }
 
     /**
@@ -47,7 +47,7 @@ public class TameableEntityHelper<T extends TameableEntity> extends AnimalEntity
      * @since 1.8.4
      */
     public boolean isOwner(LivingEntityHelper<?> owner) {
-        return base.isOwner(owner.getRaw());
+        return base.isOwnedBy(owner.getRaw());
     }
 
 }

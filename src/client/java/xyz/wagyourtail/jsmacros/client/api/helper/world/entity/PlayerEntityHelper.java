@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity;
 
-import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.jsmacros.client.api.helper.inventory.ItemStackHelper;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.projectile.FishingBobberEntityHelper;
@@ -9,7 +9,7 @@ import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.proje
  * @author Wagyourtail
  */
 @SuppressWarnings("unused")
-public class PlayerEntityHelper<T extends PlayerEntity> extends LivingEntityHelper<T> {
+public class PlayerEntityHelper<T extends Player> extends LivingEntityHelper<T> {
 
     public PlayerEntityHelper(T e) {
         super(e);
@@ -110,7 +110,7 @@ public class PlayerEntityHelper<T extends PlayerEntity> extends LivingEntityHelp
      * @since 1.6.5
      */
     public int getXPToLevelUp() {
-        return base.getNextLevelExperience();
+        return base.getXpNeededForNextLevel();
     }
 
     /**
@@ -127,7 +127,7 @@ public class PlayerEntityHelper<T extends PlayerEntity> extends LivingEntityHelp
      * @since 1.2.5 [citation needed]
      */
     public boolean isSleepingLongEnough() {
-        return base.canResetTimeBySleeping();
+        return base.isSleepingLongEnough();
     }
 
     /**
@@ -136,7 +136,7 @@ public class PlayerEntityHelper<T extends PlayerEntity> extends LivingEntityHelp
      */
     @Nullable
     public FishingBobberEntityHelper getFishingBobber() {
-        return base.fishHook == null ? null : new FishingBobberEntityHelper(base.fishHook);
+        return base.fishing == null ? null : new FishingBobberEntityHelper(base.fishing);
     }
 
     /**
@@ -144,7 +144,7 @@ public class PlayerEntityHelper<T extends PlayerEntity> extends LivingEntityHelp
      * @since 1.8.4
      */
     public float getAttackCooldownProgress() {
-        return base.getAttackCooldownProgress(0);
+        return base.getAttackStrengthScale(0);
     }
 
     /**
@@ -152,7 +152,7 @@ public class PlayerEntityHelper<T extends PlayerEntity> extends LivingEntityHelp
      * @since 1.8.4
      */
     public float getAttackCooldownProgressPerTick() {
-        return base.getAttackCooldownProgressPerTick();
+        return base.getCurrentItemAttackStrengthDelay();
     }
 
     /**

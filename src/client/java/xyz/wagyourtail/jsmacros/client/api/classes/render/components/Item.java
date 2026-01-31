@@ -1,11 +1,11 @@
 package xyz.wagyourtail.jsmacros.client.api.classes.render.components;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.item.ItemStack;
-import net.minecraft.registry.Registries;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.util.Mth;
+import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix3x2fStack;
 import xyz.wagyourtail.doclet.DocletIgnore;
@@ -22,7 +22,7 @@ import xyz.wagyourtail.jsmacros.client.api.helper.inventory.ItemStackHelper;
 public class Item implements RenderElement, Alignable<Item> {
 
     private static final int DEFAULT_ITEM_SIZE = 16;
-    private static final MinecraftClient mc = MinecraftClient.getInstance();
+    private static final Minecraft mc = Minecraft.getInstance();
 
     @Nullable
     public IDraw2D<?> parent;
@@ -78,7 +78,7 @@ public class Item implements RenderElement, Alignable<Item> {
      */
     @DocletReplaceParams("id: CanOmitNamespace<ItemId>, count: int")
     public Item setItem(String id, int count) {
-        this.item = new ItemStack(Registries.ITEM.get(RegistryHelper.parseIdentifier(id)), count);
+        this.item = new ItemStack(BuiltInRegistries.ITEM.getValue(RegistryHelper.parseIdentifier(id)), count);
         return this;
     }
 
@@ -166,7 +166,7 @@ public class Item implements RenderElement, Alignable<Item> {
      * @since 1.2.6
      */
     public Item setRotation(double rotation) {
-        this.rotation = MathHelper.wrapDegrees((float) rotation);
+        this.rotation = Mth.wrapDegrees((float) rotation);
         return this;
     }
 
@@ -250,25 +250,25 @@ public class Item implements RenderElement, Alignable<Item> {
     }
 
     @Override
-    public void render(DrawContext drawContext, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphics drawContext, int mouseX, int mouseY, float delta) {
         render(drawContext, mouseX, mouseY, delta, false);
     }
 
     @Override
     @DocletIgnore
-    public void render3D(DrawContext drawContext, int mouseX, int mouseY, float delta) {
+    public void render3D(GuiGraphics drawContext, int mouseX, int mouseY, float delta) {
         render(drawContext, mouseX, mouseY, delta, true);
     }
 
     @DocletIgnore
-    public void render(DrawContext drawContext, int mouseX, int mouseY, float delta, boolean is3dRender) {
+    public void render(GuiGraphics drawContext, int mouseX, int mouseY, float delta, boolean is3dRender) {
         if (item == null) {
             return;
         }
-        Matrix3x2fStack matrices = drawContext.getMatrices();
+        Matrix3x2fStack matrices = drawContext.pose();
         matrices.pushMatrix();
         setupMatrix(matrices, x, y, (float) scale, rotation, DEFAULT_ITEM_SIZE, DEFAULT_ITEM_SIZE, rotateCenter);
-        TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
+        Font textRenderer = Minecraft.getInstance().font;
         if (is3dRender) {
             // The item has an offset of 100 and item texts of 200. This will make them render at the correct position
             // by translating them back and scaling the item down to be flat
@@ -277,16 +277,16 @@ public class Item implements RenderElement, Alignable<Item> {
             // Don't make this to small, otherwise there will be z-fighting for items like anvils
             final float scaleZ = 0.001f;
             matrices.scale(1, 1, matrices);
-            drawContext.drawItem(item, x, y);
+            drawContext.renderItem(item, x, y);
             matrices.scale(1, 1, matrices);
         } else {
-            drawContext.drawItem(item, x, y);
+            drawContext.renderItem(item, x, y);
         }
         if (overlay) {
             if (is3dRender) {
                 matrices.translate(0, 0, matrices);
             }
-            drawContext.drawStackOverlay(mc.textRenderer, item, x, y, ovText);
+            drawContext.renderItemDecorations(mc.font, item, x, y, ovText);
         }
         matrices.popMatrix();
     }
@@ -303,7 +303,7 @@ public class Item implements RenderElement, Alignable<Item> {
 
     @Override
     public int getParentWidth() {
-        return parent != null ? parent.getWidth() : mc.getWindow().getScaledWidth();
+        return parent != null ? parent.getWidth() : mc.getWindow().getGuiScaledWidth();
     }
 
     @Override
@@ -313,7 +313,7 @@ public class Item implements RenderElement, Alignable<Item> {
 
     @Override
     public int getParentHeight() {
-        return parent != null ? parent.getHeight() : mc.getWindow().getScaledHeight();
+        return parent != null ? parent.getHeight() : mc.getWindow().getGuiScaledHeight();
     }
 
     @Override
@@ -417,8 +417,8 @@ public class Item implements RenderElement, Alignable<Item> {
          */
         @DocletReplaceParams("id: CanOmitNamespace<ItemId>")
         public Builder item(String id) {
-            this.itemStack = new ItemStackHelper(Registries.ITEM.get(RegistryHelper.parseIdentifier(id))
-                    .getDefaultStack());
+            this.itemStack = new ItemStackHelper(BuiltInRegistries.ITEM.getValue(RegistryHelper.parseIdentifier(id))
+                    .getDefaultInstance());
             return this;
         }
 

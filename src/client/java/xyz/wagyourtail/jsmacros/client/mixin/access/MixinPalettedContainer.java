@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.mixin.access;
 
-import net.minecraft.world.chunk.PalettedContainer;
+import net.minecraft.world.level.chunk.PalettedContainer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import xyz.wagyourtail.jsmacros.client.access.IPalettedContainer;

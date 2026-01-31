@@ -1,7 +1,7 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.decoration;
 
-import net.minecraft.entity.decoration.ArmorStandEntity;
-import net.minecraft.util.math.EulerAngle;
+import net.minecraft.core.Rotations;
+import net.minecraft.world.entity.decoration.ArmorStand;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.LivingEntityHelper;
 
 /**
@@ -9,9 +9,9 @@ import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.LivingEntityHelpe
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class ArmorStandEntityHelper extends LivingEntityHelper<ArmorStandEntity> {
+public class ArmorStandEntityHelper extends LivingEntityHelper<ArmorStand> {
 
-    public ArmorStandEntityHelper(ArmorStandEntity base) {
+    public ArmorStandEntityHelper(ArmorStand base) {
         super(base);
     }
 
@@ -36,7 +36,7 @@ public class ArmorStandEntityHelper extends LivingEntityHelper<ArmorStandEntity>
      * @since 1.8.4
      */
     public boolean hasArms() {
-        return base.shouldShowArms();
+        return base.showArms();
     }
 
     /**
@@ -44,7 +44,7 @@ public class ArmorStandEntityHelper extends LivingEntityHelper<ArmorStandEntity>
      * @since 1.8.4
      */
     public boolean hasBasePlate() {
-        return base.shouldShowBasePlate();
+        return base.showBasePlate();
     }
 
     /**
@@ -62,7 +62,7 @@ public class ArmorStandEntityHelper extends LivingEntityHelper<ArmorStandEntity>
      * @since 1.8.4
      */
     public float[] getHeadRotation() {
-        return toArray(base.getHeadRotation());
+        return toArray(base.getHeadPose());
     }
 
     /**
@@ -72,7 +72,7 @@ public class ArmorStandEntityHelper extends LivingEntityHelper<ArmorStandEntity>
      * @since 1.8.4
      */
     public float[] getBodyRotation() {
-        return toArray(base.getBodyRotation());
+        return toArray(base.getBodyPose());
     }
 
     /**
@@ -82,7 +82,7 @@ public class ArmorStandEntityHelper extends LivingEntityHelper<ArmorStandEntity>
      * @since 1.8.4
      */
     public float[] getLeftArmRotation() {
-        return toArray(base.getLeftArmRotation());
+        return toArray(base.getLeftArmPose());
     }
 
     /**
@@ -92,7 +92,7 @@ public class ArmorStandEntityHelper extends LivingEntityHelper<ArmorStandEntity>
      * @since 1.8.4
      */
     public float[] getRightArmRotation() {
-        return toArray(base.getRightArmRotation());
+        return toArray(base.getRightArmPose());
     }
 
     /**
@@ -102,7 +102,7 @@ public class ArmorStandEntityHelper extends LivingEntityHelper<ArmorStandEntity>
      * @since 1.8.4
      */
     public float[] getLeftLegRotation() {
-        return toArray(base.getLeftLegRotation());
+        return toArray(base.getLeftLegPose());
     }
 
     /**
@@ -112,11 +112,11 @@ public class ArmorStandEntityHelper extends LivingEntityHelper<ArmorStandEntity>
      * @since 1.8.4
      */
     public float[] getRightLegRotation() {
-        return toArray(base.getRightLegRotation());
+        return toArray(base.getRightLegPose());
     }
 
-    private float[] toArray(EulerAngle angle) {
-        return new float[]{angle.yaw(), angle.pitch(), angle.roll()};
+    private float[] toArray(Rotations angle) {
+        return new float[]{angle.y(), angle.x(), angle.z()};
     }
 
 }

@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.mob;
 
-import net.minecraft.entity.mob.BlazeEntity;
+import net.minecraft.world.entity.monster.Blaze;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.MobEntityHelper;
 
 /**
@@ -8,9 +8,9 @@ import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.MobEntityHelper;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class BlazeEntityHelper extends MobEntityHelper<BlazeEntity> {
+public class BlazeEntityHelper extends MobEntityHelper<Blaze> {
 
-    public BlazeEntityHelper(BlazeEntity base) {
+    public BlazeEntityHelper(Blaze base) {
         super(base);
     }
 

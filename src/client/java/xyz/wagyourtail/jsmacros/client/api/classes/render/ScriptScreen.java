@@ -1,10 +1,10 @@
 package xyz.wagyourtail.jsmacros.client.api.classes.render;
 
 import com.google.common.collect.ImmutableList;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.Drawable;
-import net.minecraft.client.gui.Element;
-import net.minecraft.text.Text;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Renderable;
+import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.jsmacros.api.math.Pos3D;
 import xyz.wagyourtail.jsmacros.client.JsMacrosClient;
@@ -33,10 +33,10 @@ public class ScriptScreen extends BaseScreen {
     public boolean shouldPause = true;
     private final int bgStyle;
     @Nullable
-    private MethodWrapper<Pos3D, DrawContext, Object, ?> onRender;
+    private MethodWrapper<Pos3D, GuiGraphics, Object, ?> onRender;
 
     public ScriptScreen(String title, boolean dirt) {
-        super(Text.literal(title), null);
+        super(Component.literal(title), null);
         this.bgStyle = dirt ? 0 : 1;
         this.drawTitle = true;
     }
@@ -53,7 +53,7 @@ public class ScriptScreen extends BaseScreen {
      * @since 1.4.0
      */
     public void setParent(IScreen parent) {
-        this.parent = (net.minecraft.client.gui.screen.Screen) parent;
+        this.parent = (net.minecraft.client.gui.screens.Screen) parent;
     }
 
     /**
@@ -62,30 +62,30 @@ public class ScriptScreen extends BaseScreen {
      * @param onRender pos3d elements are mousex, mousey, tickDelta
      * @since 1.4.0
      */
-    public void setOnRender(@Nullable MethodWrapper<Pos3D, DrawContext, Object, ?> onRender) {
+    public void setOnRender(@Nullable MethodWrapper<Pos3D, GuiGraphics, Object, ?> onRender) {
         this.onRender = onRender;
     }
 
     @Override
-    public void render(DrawContext drawContext, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphics drawContext, int mouseX, int mouseY, float delta) {
         if (drawContext == null) {
             return;
         }
         if (bgStyle == 0) {
-            this.renderDarkening(drawContext);
+            this.renderMenuBackground(drawContext);
         }
 
         if (drawTitle) {
-            drawContext.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 20, 0xFFFFFFFF);
+            drawContext.drawCenteredString(this.font, this.title, this.width / 2, 20, 0xFFFFFFFF);
         }
 
         super.render(drawContext, mouseX, mouseY, delta);
 
-        for (Element button : ImmutableList.copyOf(this.children())) {
-            if (!(button instanceof Drawable)) {
+        for (GuiEventListener button : ImmutableList.copyOf(this.children())) {
+            if (!(button instanceof Renderable)) {
                 continue;
             }
-            ((Drawable) button).render(drawContext, mouseX, mouseY, delta);
+            ((Renderable) button).render(drawContext, mouseX, mouseY, delta);
         }
 
         ((IScreenInternal) this).jsmacros_render(drawContext, mouseX, mouseY, delta);
@@ -100,12 +100,12 @@ public class ScriptScreen extends BaseScreen {
     }
 
     @Override
-    public void close() {
+    public void onClose() {
         openParent();
     }
 
     @Override
-    public boolean shouldPause() {
+    public boolean isPauseScreen() {
         return shouldPause;
     }
 

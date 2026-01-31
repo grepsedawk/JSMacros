@@ -1,8 +1,8 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.screen;
 
-import net.minecraft.client.gui.widget.ClickableWidget;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.network.chat.Component;
+import net.minecraft.util.Mth;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.jsmacros.client.api.classes.render.IScreen;
 import xyz.wagyourtail.jsmacros.client.api.classes.render.components.Alignable;
@@ -13,7 +13,7 @@ import xyz.wagyourtail.jsmacros.client.api.helper.TextHelper;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public abstract class AbstractWidgetBuilder<B extends AbstractWidgetBuilder<B, T, U>, T extends ClickableWidget, U extends ClickableWidgetHelper<U, T>> implements Alignable<B> {
+public abstract class AbstractWidgetBuilder<B extends AbstractWidgetBuilder<B, T, U>, T extends AbstractWidget, U extends ClickableWidgetHelper<U, T>> implements Alignable<B> {
 
     protected final IScreen screen;
 
@@ -22,7 +22,7 @@ public abstract class AbstractWidgetBuilder<B extends AbstractWidgetBuilder<B, T
     private int height = 20;
     private int x;
     private int y;
-    private Text message = Text.empty();
+    private Component message = Component.empty();
     private boolean active = true;
     private boolean visible = true;
     private float alpha = 1.0F;
@@ -160,7 +160,7 @@ public abstract class AbstractWidgetBuilder<B extends AbstractWidgetBuilder<B, T
      */
     public B message(@Nullable String message) {
         if (message != null) {
-            this.message = Text.literal(message);
+            this.message = Component.literal(message);
         }
         return (B) this;
     }
@@ -231,7 +231,7 @@ public abstract class AbstractWidgetBuilder<B extends AbstractWidgetBuilder<B, T
      * @since 1.8.4
      */
     public B alpha(double alpha) {
-        this.alpha = (float) MathHelper.clamp(alpha, 0.0F, 1.0F);
+        this.alpha = (float) Mth.clamp(alpha, 0.0F, 1.0F);
         return (B) this;
     }
 

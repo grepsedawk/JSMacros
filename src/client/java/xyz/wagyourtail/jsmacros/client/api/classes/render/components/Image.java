@@ -1,10 +1,10 @@
 package xyz.wagyourtail.jsmacros.client.api.classes.render.components;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.RenderPipelines;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix3x2fStack;
 import xyz.wagyourtail.jsmacros.client.api.classes.CustomImage;
@@ -19,9 +19,9 @@ import xyz.wagyourtail.jsmacros.client.util.ColorUtil;
 @SuppressWarnings("unused")
 public class Image implements RenderElement, Alignable<Image> {
 
-    private static final MinecraftClient mc = MinecraftClient.getInstance();
+    private static final Minecraft mc = Minecraft.getInstance();
 
-    private Identifier imageid;
+    private ResourceLocation imageid;
     @Nullable
     public IDraw2D<?> parent;
     public float rotation;
@@ -251,7 +251,7 @@ public class Image implements RenderElement, Alignable<Image> {
      * @since 1.2.6
      */
     public Image setRotation(double rotation) {
-        this.rotation = MathHelper.wrapDegrees((float) rotation);
+        this.rotation = Mth.wrapDegrees((float) rotation);
         return this;
     }
 
@@ -298,14 +298,14 @@ public class Image implements RenderElement, Alignable<Image> {
     }
 
     @Override
-    public void render(DrawContext drawContext, int mouseX, int mouseY, float delta) {
-        Matrix3x2fStack matrices = drawContext.getMatrices();
+    public void render(GuiGraphics drawContext, int mouseX, int mouseY, float delta) {
+        Matrix3x2fStack matrices = drawContext.pose();
         matrices.pushMatrix();
         setupMatrix(matrices, x, y, 1, rotation, getWidth(), getHeight(), rotateCenter);
         float u = this.imageX / (float) this.textureWidth;
         float v = this.imageY / (float) this.textureHeight;
 
-        drawContext.drawTexture(
+        drawContext.blit(
                 RenderPipelines.GUI_TEXTURED,
                 this.imageid,
                 this.x,
@@ -332,7 +332,7 @@ public class Image implements RenderElement, Alignable<Image> {
 
     @Override
     public int getParentWidth() {
-        return parent != null ? parent.getWidth() : mc.getWindow().getScaledWidth();
+        return parent != null ? parent.getWidth() : mc.getWindow().getGuiScaledWidth();
     }
 
     @Override
@@ -342,7 +342,7 @@ public class Image implements RenderElement, Alignable<Image> {
 
     @Override
     public int getParentHeight() {
-        return parent != null ? parent.getHeight() : mc.getWindow().getScaledHeight();
+        return parent != null ? parent.getHeight() : mc.getWindow().getGuiScaledHeight();
     }
 
     @Override

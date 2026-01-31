@@ -1,13 +1,13 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity;
 
-import net.minecraft.entity.mob.MobEntity;
+import net.minecraft.world.entity.Mob;
 
 /**
  * @author Etheradon
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class MobEntityHelper<T extends MobEntity> extends LivingEntityHelper<T> {
+public class MobEntityHelper<T extends Mob> extends LivingEntityHelper<T> {
 
     public MobEntityHelper(T base) {
         super(base);
@@ -19,7 +19,7 @@ public class MobEntityHelper<T extends MobEntity> extends LivingEntityHelper<T> 
      * @since 1.8.4
      */
     public boolean isAttacking() {
-        return base.isAttacking();
+        return base.isAggressive();
     }
 
     /**
@@ -30,7 +30,7 @@ public class MobEntityHelper<T extends MobEntity> extends LivingEntityHelper<T> 
      * @since 1.8.4
      */
     public boolean isAiDisabled() {
-        return base.isAiDisabled();
+        return base.isNoAi();
     }
 
 }

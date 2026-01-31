@@ -1,9 +1,15 @@
 package xyz.wagyourtail.jsmacros.client.api.classes.render;
 
-import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.GuiGraphics;
 import xyz.wagyourtail.doclet.DocletIgnore;
 import xyz.wagyourtail.doclet.DocletReplaceParams;
-import xyz.wagyourtail.jsmacros.client.api.classes.render.components.*;
+import xyz.wagyourtail.jsmacros.client.api.classes.render.components.Draw2DElement;
+import xyz.wagyourtail.jsmacros.client.api.classes.render.components.Image;
+import xyz.wagyourtail.jsmacros.client.api.classes.render.components.Item;
+import xyz.wagyourtail.jsmacros.client.api.classes.render.components.Line;
+import xyz.wagyourtail.jsmacros.client.api.classes.render.components.Rect;
+import xyz.wagyourtail.jsmacros.client.api.classes.render.components.RenderElement;
+import xyz.wagyourtail.jsmacros.client.api.classes.render.components.Text;
 import xyz.wagyourtail.jsmacros.client.api.helper.TextHelper;
 import xyz.wagyourtail.jsmacros.client.api.helper.inventory.ItemStackHelper;
 import xyz.wagyourtail.jsmacros.core.MethodWrapper;
@@ -768,7 +774,7 @@ public interface IDraw2D<T> {
      * @param drawContext
      */
     @DocletIgnore
-    void render(DrawContext drawContext);
+    void render(GuiGraphics drawContext);
 
     /**
      * @param zIndex

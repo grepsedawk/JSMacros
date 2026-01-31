@@ -1,17 +1,17 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive;
 
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.entity.passive.AbstractHorseEntity;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import org.jetbrains.annotations.Nullable;
-import xyz.wagyourtail.jsmacros.client.mixin.access.MixinAbstractHorseEntity;
+import xyz.wagyourtail.jsmacros.client.mixin.access.MixinAbstractHorse;
 
 /**
  * @author Etheradon
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class AbstractHorseEntityHelper<T extends AbstractHorseEntity> extends AnimalEntityHelper<T> {
+public class AbstractHorseEntityHelper<T extends AbstractHorse> extends AnimalEntityHelper<T> {
 
     public AbstractHorseEntityHelper(T base) {
         super(base);
@@ -24,7 +24,7 @@ public class AbstractHorseEntityHelper<T extends AbstractHorseEntity> extends An
     @Nullable
     public String getOwner() {
         var owner = base.getOwnerReference();
-        return owner != null ? owner.getUuid().toString() : null;
+        return owner != null ? owner.getUUID().toString() : null;
     }
 
     /**
@@ -32,7 +32,7 @@ public class AbstractHorseEntityHelper<T extends AbstractHorseEntity> extends An
      * @since 1.8.4
      */
     public boolean isTame() {
-        return base.isTame();
+        return base.isTamed();
     }
 
     /**
@@ -40,7 +40,7 @@ public class AbstractHorseEntityHelper<T extends AbstractHorseEntity> extends An
      * @since 1.8.4
      */
     public boolean isSaddled() {
-        return base.hasSaddleEquipped();
+        return base.isSaddled();
     }
 
     /**
@@ -48,7 +48,7 @@ public class AbstractHorseEntityHelper<T extends AbstractHorseEntity> extends An
      * @since 1.8.4
      */
     public boolean isAngry() {
-        return base.isAngry();
+        return base.isStanding();
     }
 
     /**
@@ -65,7 +65,7 @@ public class AbstractHorseEntityHelper<T extends AbstractHorseEntity> extends An
      * @since 1.8.4
      */
     public boolean isEating() {
-        return base.isEatingGrass();
+        return base.isEating();
     }
 
     /**
@@ -89,7 +89,7 @@ public class AbstractHorseEntityHelper<T extends AbstractHorseEntity> extends An
      * @since 1.8.4
      */
     public int getInventorySize() {
-        return ((MixinAbstractHorseEntity) base).invokeGetInventorySize();
+        return ((MixinAbstractHorse) base).invokeGetInventorySize();
     }
 
     /**
@@ -97,7 +97,7 @@ public class AbstractHorseEntityHelper<T extends AbstractHorseEntity> extends An
      * @since 1.8.4
      */
     public double getJumpStrengthStat() {
-        return base.getAttributeValue(EntityAttributes.JUMP_STRENGTH);
+        return base.getAttributeValue(Attributes.JUMP_STRENGTH);
     }
 
     /**
@@ -107,7 +107,7 @@ public class AbstractHorseEntityHelper<T extends AbstractHorseEntity> extends An
      * @since 1.8.4
      */
     public double getHorseJumpHeight() {
-        double jumpStrength = base.getAttributeValue(EntityAttributes.JUMP_STRENGTH);
+        double jumpStrength = base.getAttributeValue(Attributes.JUMP_STRENGTH);
         return -0.1817584952 * Math.pow(jumpStrength, 3) + 3.689713992 * Math.pow(jumpStrength, 2) + 2.128599134 * jumpStrength - 0.343930367;
     }
 
@@ -132,7 +132,7 @@ public class AbstractHorseEntityHelper<T extends AbstractHorseEntity> extends An
      * @since 1.8.4
      */
     public double getSpeedStat() {
-        return base.getAttributeValue(EntityAttributes.MOVEMENT_SPEED);
+        return base.getAttributeValue(Attributes.MOVEMENT_SPEED);
     }
 
     /**

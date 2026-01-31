@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.mixin.access;
 
-import net.minecraft.entity.Entity;
+import net.minecraft.world.entity.Entity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -27,7 +27,7 @@ public abstract class MixinEntity implements IMixinEntity {
         jsmacros$glowingColor = -1;
     }
 
-    @Inject(method = "getTeamColorValue()I", cancellable = true, at = @At("HEAD"))
+    @Inject(method = "getTeamColor()I", cancellable = true, at = @At("HEAD"))
     public void getTeamColorValue(CallbackInfoReturnable<Integer> ci) {
         if (jsmacros$glowingColor != -1) {
             ci.setReturnValue(jsmacros$glowingColor);
@@ -40,7 +40,7 @@ public abstract class MixinEntity implements IMixinEntity {
         jsmacros$forceGlowing = glowing;
     }
 
-    @Inject(method = "isGlowing", at = @At("RETURN"), cancellable = true)
+    @Inject(method = "isCurrentlyGlowing", at = @At("RETURN"), cancellable = true)
     public void isGlowing(CallbackInfoReturnable<Boolean> cir) {
         if (jsmacros$forceGlowing == 0) {
             cir.setReturnValue(false);

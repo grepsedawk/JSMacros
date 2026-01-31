@@ -1,18 +1,18 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.display;
 
-import net.minecraft.entity.decoration.Brightness;
-import net.minecraft.entity.decoration.DisplayEntity;
-import net.minecraft.util.math.Box;
+import net.minecraft.util.Brightness;
+import net.minecraft.world.entity.Display;
+import net.minecraft.world.phys.AABB;
 import xyz.wagyourtail.jsmacros.api.math.Vec3D;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.EntityHelper;
-import xyz.wagyourtail.jsmacros.client.mixin.access.MixinDisplayEntity;
+import xyz.wagyourtail.jsmacros.client.mixin.access.MixinDisplay;
 
 /**
  * @author aMelonRind
  * @since 1.9.1
  */
 @SuppressWarnings("unused")
-public class DisplayEntityHelper<T extends DisplayEntity> extends EntityHelper<T> {
+public class DisplayEntityHelper<T extends Display> extends EntityHelper<T> {
 
     public DisplayEntityHelper(T base) {
         super(base);
@@ -22,42 +22,42 @@ public class DisplayEntityHelper<T extends DisplayEntity> extends EntityHelper<T
      * @since 1.9.1
      */
     public double getLerpTargetX() {
-        return base.getLerpedPos(getLerpProgress(0)).x;
+        return base.getPosition(getLerpProgress(0)).x;
     }
 
     /**
      * @since 1.9.1
      */
     public double getLerpTargetY() {
-        return base.getLerpedPos(getLerpProgress(0)).y;
+        return base.getPosition(getLerpProgress(0)).y;
     }
 
     /**
      * @since 1.9.1
      */
     public double getLerpTargetZ() {
-        return base.getLerpedPos(getLerpProgress(0)).z;
+        return base.getPosition(getLerpProgress(0)).z;
     }
 
     /**
      * @since 1.9.1
      */
     public float getLerpTargetPitch() {
-        return base.getLerpedPitch(getLerpProgress(0));
+        return base.getXRot(getLerpProgress(0));
     }
 
     /**
      * @since 1.9.1
      */
     public float getLerpTargetYaw() {
-        return base.getLerpedYaw(getLerpProgress(0));
+        return base.getYRot(getLerpProgress(0));
     }
 
     /**
      * @since 1.9.1
      */
     public Vec3D getVisibilityBoundingBox() {
-        Box box = base.getVisibilityBoundingBox();
+        AABB box = base.getBoundingBoxForCulling();
         return new Vec3D(box.minX, box.minY, box.minZ, box.maxX, box.maxY, box.maxZ);
     }
 
@@ -66,14 +66,14 @@ public class DisplayEntityHelper<T extends DisplayEntity> extends EntityHelper<T
      * @since 1.9.1
      */
     public String getBillboardMode() {
-        return ((MixinDisplayEntity) base).callGetBillboardMode().asString();
+        return ((MixinDisplay) base).callGetBillboardConstraints().getSerializedName();
     }
 
     /**
      * @since 1.9.1
      */
     public int getBrightness() {
-        Brightness bri = ((MixinDisplayEntity) base).callGetBrightnessUnpacked();
+        Brightness bri = ((MixinDisplay) base).callGetBrightnessOverride();
         return bri == null ? 0 : Math.max(bri.sky(), bri.block());
     }
 
@@ -81,7 +81,7 @@ public class DisplayEntityHelper<T extends DisplayEntity> extends EntityHelper<T
      * @since 1.9.1
      */
     public int getSkyBrightness() {
-        Brightness bri = ((MixinDisplayEntity) base).callGetBrightnessUnpacked();
+        Brightness bri = ((MixinDisplay) base).callGetBrightnessOverride();
         return bri == null ? 0 : bri.sky();
     }
 
@@ -89,7 +89,7 @@ public class DisplayEntityHelper<T extends DisplayEntity> extends EntityHelper<T
      * @since 1.9.1
      */
     public int getBlockBrightness() {
-        Brightness bri = ((MixinDisplayEntity) base).callGetBrightnessUnpacked();
+        Brightness bri = ((MixinDisplay) base).callGetBrightnessOverride();
         return bri == null ? 0 : bri.block();
     }
 
@@ -97,49 +97,49 @@ public class DisplayEntityHelper<T extends DisplayEntity> extends EntityHelper<T
      * @since 1.9.1
      */
     public float getViewRange() {
-        return ((MixinDisplayEntity) base).callGetViewRange();
+        return ((MixinDisplay) base).callGetViewRange();
     }
 
     /**
      * @since 1.9.1
      */
     public float getShadowRadius() {
-        return ((MixinDisplayEntity) base).callGetShadowRadius();
+        return ((MixinDisplay) base).callGetShadowRadius();
     }
 
     /**
      * @since 1.9.1
      */
     public float getShadowStrength() {
-        return ((MixinDisplayEntity) base).callGetShadowStrength();
+        return ((MixinDisplay) base).callGetShadowStrength();
     }
 
     /**
      * @since 1.9.1
      */
     public float getDisplayWidth() {
-        return ((MixinDisplayEntity) base).callGetDisplayWidth();
+        return ((MixinDisplay) base).callGetWidth();
     }
 
     /**
      * @since 1.9.1
      */
     public int getGlowColorOverride() {
-        return ((MixinDisplayEntity) base).callGetGlowColorOverride();
+        return ((MixinDisplay) base).callGetGlowColorOverride();
     }
 
     /**
      * @since 1.9.1
      */
     public float getLerpProgress(double delta) {
-        return base.getLerpProgress((float) delta);
+        return base.calculateInterpolationProgress((float) delta);
     }
 
     /**
      * @since 1.9.1
      */
     public float getDisplayHeight() {
-        return ((MixinDisplayEntity) base).callGetDisplayHeight();
+        return ((MixinDisplay) base).callGetHeight();
     }
 
 }

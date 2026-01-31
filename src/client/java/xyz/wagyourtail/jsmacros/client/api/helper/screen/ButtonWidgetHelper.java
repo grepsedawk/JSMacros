@@ -1,9 +1,9 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.screen;
 
-import net.minecraft.client.gui.screen.ButtonTextures;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.gui.widget.TexturedButtonWidget;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.ImageButton;
+import net.minecraft.client.gui.components.WidgetSprites;
+import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.jsmacros.client.JsMacrosClient;
 import xyz.wagyourtail.jsmacros.client.api.classes.render.IScreen;
@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * @author Etheradon
  * @since 1.8.4
  */
-public class ButtonWidgetHelper<T extends ButtonWidget> extends ClickableWidgetHelper<ButtonWidgetHelper<T>, T> {
+public class ButtonWidgetHelper<T extends Button> extends ClickableWidgetHelper<ButtonWidgetHelper<T>, T> {
 
     public ButtonWidgetHelper(T btn) {
         super(btn);
@@ -29,10 +29,10 @@ public class ButtonWidgetHelper<T extends ButtonWidget> extends ClickableWidgetH
      * @author Etheradon
      * @since 1.8.4
      */
-    public static class ButtonBuilder extends AbstractWidgetBuilder<ButtonBuilder, ButtonWidget, ButtonWidgetHelper<ButtonWidget>> {
+    public static class ButtonBuilder extends AbstractWidgetBuilder<ButtonBuilder, Button, ButtonWidgetHelper<Button>> {
 
         @Nullable
-        private MethodWrapper<ButtonWidgetHelper<ButtonWidget>, IScreen, Object, ?> action;
+        private MethodWrapper<ButtonWidgetHelper<Button>, IScreen, Object, ?> action;
 
         public ButtonBuilder(IScreen screen) {
             super(screen);
@@ -66,7 +66,7 @@ public class ButtonWidgetHelper<T extends ButtonWidget> extends ClickableWidgetH
          * @since 1.8.4
          */
         @Nullable
-        public MethodWrapper<ButtonWidgetHelper<ButtonWidget>, IScreen, Object, ?> getAction() {
+        public MethodWrapper<ButtonWidgetHelper<Button>, IScreen, Object, ?> getAction() {
             return action;
         }
 
@@ -75,15 +75,15 @@ public class ButtonWidgetHelper<T extends ButtonWidget> extends ClickableWidgetH
          * @return self for chaining.
          * @since 1.8.4
          */
-        public ButtonBuilder action(@Nullable MethodWrapper<ButtonWidgetHelper<ButtonWidget>, IScreen, Object, ?> action) {
+        public ButtonBuilder action(@Nullable MethodWrapper<ButtonWidgetHelper<Button>, IScreen, Object, ?> action) {
             this.action = action;
             return this;
         }
 
         @Override
-        public ButtonWidgetHelper<ButtonWidget> createWidget() {
-            AtomicReference<ButtonWidgetHelper<ButtonWidget>> b = new AtomicReference<>(null);
-            ButtonWidget button = ButtonWidget.builder(getMessage().getRaw(), btn -> {
+        public ButtonWidgetHelper<Button> createWidget() {
+            AtomicReference<ButtonWidgetHelper<Button>> b = new AtomicReference<>(null);
+            Button button = Button.builder(getMessage().getRaw(), btn -> {
                 try {
                     if (action != null) {
                         action.accept(b.get(), screen);
@@ -92,7 +92,7 @@ public class ButtonWidgetHelper<T extends ButtonWidget> extends ClickableWidgetH
                     JsMacrosClient.clientCore.profile.logError(e);
                 }
                 clickedOn(screen);
-            }).position(getX(), getY()).size(getWidth(), 20).build();
+            }).pos(getX(), getY()).size(getWidth(), 20).build();
             b.set(new ButtonWidgetHelper<>(button, getZIndex()));
             return b.get();
         }
@@ -103,15 +103,15 @@ public class ButtonWidgetHelper<T extends ButtonWidget> extends ClickableWidgetH
      * @author Etheradon
      * @since 1.8.4
      */
-    public static class TexturedButtonBuilder extends AbstractWidgetBuilder<TexturedButtonBuilder, TexturedButtonWidget, ButtonWidgetHelper<TexturedButtonWidget>> {
+    public static class TexturedButtonBuilder extends AbstractWidgetBuilder<TexturedButtonBuilder, ImageButton, ButtonWidgetHelper<ImageButton>> {
 
         @Nullable
-        private MethodWrapper<ButtonWidgetHelper<TexturedButtonWidget>, IScreen, Object, ?> action;
+        private MethodWrapper<ButtonWidgetHelper<ImageButton>, IScreen, Object, ?> action;
 
-        private Identifier enabled;
-        private Identifier disabled;
-        private Identifier enabledFocused;
-        private Identifier disabledFocused;
+        private ResourceLocation enabled;
+        private ResourceLocation disabled;
+        private ResourceLocation enabledFocused;
+        private ResourceLocation disabledFocused;
 
         public TexturedButtonBuilder(IScreen screen) {
             super(screen);
@@ -145,7 +145,7 @@ public class ButtonWidgetHelper<T extends ButtonWidget> extends ClickableWidgetH
          * @since 1.8.4
          */
         @Nullable
-        public MethodWrapper<ButtonWidgetHelper<TexturedButtonWidget>, IScreen, Object, ?> getAction() {
+        public MethodWrapper<ButtonWidgetHelper<ImageButton>, IScreen, Object, ?> getAction() {
             return action;
         }
 
@@ -154,7 +154,7 @@ public class ButtonWidgetHelper<T extends ButtonWidget> extends ClickableWidgetH
          * @return self for chaining.
          * @since 1.8.4
          */
-        public TexturedButtonBuilder action(@Nullable MethodWrapper<ButtonWidgetHelper<TexturedButtonWidget>, IScreen, Object, ?> action) {
+        public TexturedButtonBuilder action(@Nullable MethodWrapper<ButtonWidgetHelper<ImageButton>, IScreen, Object, ?> action) {
             this.action = action;
             return this;
         }
@@ -163,7 +163,7 @@ public class ButtonWidgetHelper<T extends ButtonWidget> extends ClickableWidgetH
          * @since 1.9.0
          * @return self for chaining.
          */
-        public TexturedButtonBuilder enabledTexture(Identifier enabled) {
+        public TexturedButtonBuilder enabledTexture(ResourceLocation enabled) {
             this.enabled = enabled;
             return this;
         }
@@ -172,14 +172,14 @@ public class ButtonWidgetHelper<T extends ButtonWidget> extends ClickableWidgetH
          * @since 1.9.3
          */
         public TexturedButtonBuilder enabledTexture(String enabled) {
-            return enabledTexture(Identifier.of(enabled));
+            return enabledTexture(ResourceLocation.parse(enabled));
         }
 
         /**
          * @since 1.9.0
          * @return self for chaining.
          */
-        public TexturedButtonBuilder disabledTexture(Identifier disabled) {
+        public TexturedButtonBuilder disabledTexture(ResourceLocation disabled) {
             this.disabled = disabled;
             return this;
         }
@@ -188,14 +188,14 @@ public class ButtonWidgetHelper<T extends ButtonWidget> extends ClickableWidgetH
          * @since 1.9.3
          */
         public TexturedButtonBuilder disabledTexture(String disabled) {
-            return disabledTexture(Identifier.of(disabled));
+            return disabledTexture(ResourceLocation.parse(disabled));
         }
 
         /**
          * @since 1.9.0
          * @return self for chaining.
          */
-        public TexturedButtonBuilder enabledFocusedTexture(Identifier enabledFocused) {
+        public TexturedButtonBuilder enabledFocusedTexture(ResourceLocation enabledFocused) {
             this.enabledFocused = enabledFocused;
             return this;
         }
@@ -204,14 +204,14 @@ public class ButtonWidgetHelper<T extends ButtonWidget> extends ClickableWidgetH
          * @since 1.9.3
          */
         public TexturedButtonBuilder enabledFocusedTexture(String enabledFocused) {
-            return enabledFocusedTexture(Identifier.of(enabledFocused));
+            return enabledFocusedTexture(ResourceLocation.parse(enabledFocused));
         }
 
         /**
          * @since 1.9.0
          * @return self for chaining.
          */
-        public TexturedButtonBuilder disabledFocusedTexture(Identifier disabledFocused) {
+        public TexturedButtonBuilder disabledFocusedTexture(ResourceLocation disabledFocused) {
             this.disabledFocused = disabledFocused;
             return this;
         }
@@ -220,13 +220,13 @@ public class ButtonWidgetHelper<T extends ButtonWidget> extends ClickableWidgetH
          * @since 1.9.3
          */
         public TexturedButtonBuilder disabledFocusedTexture(String disabledFocused) {
-            return disabledFocusedTexture(Identifier.of(disabledFocused));
+            return disabledFocusedTexture(ResourceLocation.parse(disabledFocused));
         }
 
         @Override
-        public ButtonWidgetHelper<TexturedButtonWidget> createWidget() {
-            AtomicReference<ButtonWidgetHelper<TexturedButtonWidget>> b = new AtomicReference<>(null);
-            TexturedButtonWidget button = new TexturedButtonWidget(getX(), getY(), getWidth(), getHeight(), new ButtonTextures(enabled, disabled, enabledFocused, disabledFocused), btn -> {
+        public ButtonWidgetHelper<ImageButton> createWidget() {
+            AtomicReference<ButtonWidgetHelper<ImageButton>> b = new AtomicReference<>(null);
+            ImageButton button = new ImageButton(getX(), getY(), getWidth(), getHeight(), new WidgetSprites(enabled, disabled, enabledFocused, disabledFocused), btn -> {
                 try {
                     if (getAction() != null) {
                         getAction().accept(b.get(), screen);

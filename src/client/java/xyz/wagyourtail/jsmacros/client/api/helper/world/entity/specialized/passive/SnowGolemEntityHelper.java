@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive;
 
-import net.minecraft.entity.passive.SnowGolemEntity;
+import net.minecraft.world.entity.animal.SnowGolem;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.MobEntityHelper;
 
 /**
@@ -8,9 +8,9 @@ import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.MobEntityHelper;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class SnowGolemEntityHelper extends MobEntityHelper<SnowGolemEntity> {
+public class SnowGolemEntityHelper extends MobEntityHelper<SnowGolem> {
 
-    public SnowGolemEntityHelper(SnowGolemEntity base) {
+    public SnowGolemEntityHelper(SnowGolem base) {
         super(base);
     }
 
@@ -27,7 +27,7 @@ public class SnowGolemEntityHelper extends MobEntityHelper<SnowGolemEntity> {
      * @since 1.8.4
      */
     public boolean isShearable() {
-        return base.isShearable();
+        return base.readyForShearing();
     }
 
 }

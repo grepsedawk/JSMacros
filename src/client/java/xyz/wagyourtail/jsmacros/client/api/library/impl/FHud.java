@@ -2,14 +2,18 @@ package xyz.wagyourtail.jsmacros.client.api.library.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.ingame.HandledScreen;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.doclet.DocletDeclareType;
 import xyz.wagyourtail.doclet.DocletReplaceReturn;
 import xyz.wagyourtail.jsmacros.client.JsMacrosClient;
 import xyz.wagyourtail.jsmacros.client.api.classes.CustomImage;
-import xyz.wagyourtail.jsmacros.client.api.classes.render.*;
+import xyz.wagyourtail.jsmacros.client.api.classes.render.Draw2D;
+import xyz.wagyourtail.jsmacros.client.api.classes.render.Draw3D;
+import xyz.wagyourtail.jsmacros.client.api.classes.render.IDraw2D;
+import xyz.wagyourtail.jsmacros.client.api.classes.render.IScreen;
+import xyz.wagyourtail.jsmacros.client.api.classes.render.ScriptScreen;
 import xyz.wagyourtail.jsmacros.core.Core;
 import xyz.wagyourtail.jsmacros.core.library.BaseLibrary;
 import xyz.wagyourtail.jsmacros.core.library.Library;
@@ -31,7 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @SuppressWarnings("unused")
 public class FHud extends BaseLibrary {
 
-    private static final MinecraftClient mc = MinecraftClient.getInstance();
+    private static final Minecraft mc = Minecraft.getInstance();
     /**
      * Don't touch this here
      */
@@ -64,7 +68,7 @@ public class FHud extends BaseLibrary {
      * @since 1.0.5
      */
     public void openScreen(@Nullable IScreen s) {
-        net.minecraft.client.gui.screen.Screen screen = (net.minecraft.client.gui.screen.Screen) s;
+        net.minecraft.client.gui.screens.Screen screen = (net.minecraft.client.gui.screens.Screen) s;
         mc.execute(() -> mc.setScreen(screen));
     }
 
@@ -75,7 +79,7 @@ public class FHud extends BaseLibrary {
      */
     @Nullable
     public IScreen getOpenScreen() {
-        return (IScreen) mc.currentScreen;
+        return (IScreen) mc.screen;
     }
 
     /**
@@ -112,7 +116,7 @@ public class FHud extends BaseLibrary {
      * @since 1.8.4
      */
     public int getScaleFactor() {
-        return mc.options.getGuiScale().getValue();
+        return mc.options.guiScale().get();
     }
 
     /**
@@ -151,7 +155,7 @@ public class FHud extends BaseLibrary {
     )
     @Nullable
     public String getOpenScreenName() {
-        return JsMacrosClient.getScreenName(mc.currentScreen);
+        return JsMacrosClient.getScreenName(mc.screen);
     }
 
     /**
@@ -159,7 +163,7 @@ public class FHud extends BaseLibrary {
      * @since 1.1.2
      */
     public boolean isContainer() {
-        return mc.currentScreen instanceof HandledScreen;
+        return mc.screen instanceof AbstractContainerScreen;
     }
 
     /**
@@ -276,7 +280,7 @@ public class FHud extends BaseLibrary {
      * @since 1.1.3
      */
     public double getMouseX() {
-        return mc.mouse.getX() * (double) mc.getWindow().getScaledWidth() / (double) mc.getWindow().getWidth();
+        return mc.mouseHandler.xpos() * (double) mc.getWindow().getGuiScaledWidth() / (double) mc.getWindow().getScreenWidth();
     }
 
     /**
@@ -284,7 +288,7 @@ public class FHud extends BaseLibrary {
      * @since 1.1.3
      */
     public double getMouseY() {
-        return mc.mouse.getY() * (double) mc.getWindow().getScaledHeight() / (double) mc.getWindow().getHeight();
+        return mc.mouseHandler.ypos() * (double) mc.getWindow().getGuiScaledHeight() / (double) mc.getWindow().getScreenHeight();
     }
 
     /**
@@ -292,7 +296,7 @@ public class FHud extends BaseLibrary {
      * @since 1.8.4
      */
     public int getWindowWidth() {
-        return mc.getWindow().getWidth();
+        return mc.getWindow().getScreenWidth();
     }
 
     /**
@@ -300,7 +304,7 @@ public class FHud extends BaseLibrary {
      * @since 1.8.4
      */
     public int getWindowHeight() {
-        return mc.getWindow().getHeight();
+        return mc.getWindow().getScreenHeight();
     }
 
 }

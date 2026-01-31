@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.event.impl;
 
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
 import xyz.wagyourtail.jsmacros.client.JsMacrosClient;
 import xyz.wagyourtail.jsmacros.core.event.BaseEvent;
 import xyz.wagyourtail.jsmacros.core.event.Event;
@@ -23,7 +23,7 @@ public class EventResourcePackLoaded extends BaseEvent {
     public EventResourcePackLoaded(boolean isGameStart) {
         super(JsMacrosClient.clientCore);
         this.isGameStart = isGameStart;
-        this.loadedPacks = new ArrayList<>(MinecraftClient.getInstance().getResourcePackManager().getEnabledIds());
+        this.loadedPacks = new ArrayList<>(Minecraft.getInstance().getResourcePackRepository().getSelectedIds());
     }
 
     @Override

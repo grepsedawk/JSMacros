@@ -1,8 +1,8 @@
 package xyz.wagyourtail.jsmacros.client.api.event.impl.inventory;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.ingame.HandledScreen;
-import net.minecraft.client.gui.screen.ingame.InventoryScreen;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import xyz.wagyourtail.jsmacros.client.JsMacrosClient;
 import xyz.wagyourtail.jsmacros.client.api.classes.inventory.Inventory;
 import xyz.wagyourtail.jsmacros.core.event.BaseEvent;
@@ -16,16 +16,16 @@ import xyz.wagyourtail.jsmacros.core.event.Event;
  */
 @Event(value = "DropSlot", cancellable = true)
 public class EventDropSlot extends BaseEvent {
-    protected static final MinecraftClient mc = MinecraftClient.getInstance();
+    protected static final Minecraft mc = Minecraft.getInstance();
 
-    protected final HandledScreen<?> screen;
+    protected final AbstractContainerScreen<?> screen;
     public final int slot;
     /**
      * whether it's all or a single item being dropped
      */
     public final boolean all;
 
-    public EventDropSlot(HandledScreen<?> screen, int slot, boolean all) {
+    public EventDropSlot(AbstractContainerScreen<?> screen, int slot, boolean all) {
         super(JsMacrosClient.clientCore);
         this.screen = screen;
         this.slot = slot;

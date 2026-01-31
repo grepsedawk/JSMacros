@@ -1,13 +1,13 @@
 package xyz.wagyourtail.jsmacros.client.api.classes.inventory;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import net.minecraft.client.gui.screen.ingame.GrindstoneScreen;
-import net.minecraft.component.type.ItemEnchantmentsComponent;
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.item.ItemStack;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.registry.tag.EnchantmentTags;
+import net.minecraft.client.gui.screens.inventory.GrindstoneScreen;
+import net.minecraft.core.Holder;
+import net.minecraft.tags.EnchantmentTags;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
 import xyz.wagyourtail.jsmacros.client.api.helper.inventory.ItemStackHelper;
 
 /**
@@ -61,13 +61,13 @@ public class GrindStoneInventory extends Inventory<GrindstoneScreen> {
 
     private int getExperience(ItemStack stack) {
         int i = 0;
-        ItemEnchantmentsComponent lv = EnchantmentHelper.getEnchantments(stack);
+        ItemEnchantments lv = EnchantmentHelper.getEnchantmentsForCrafting(stack);
 
-        for (Object2IntMap.Entry<RegistryEntry<Enchantment>> entry : lv.getEnchantmentEntries()) {
-            RegistryEntry<Enchantment> lv2 = entry.getKey();
+        for (Object2IntMap.Entry<Holder<Enchantment>> entry : lv.entrySet()) {
+            Holder<Enchantment> lv2 = entry.getKey();
             int j = entry.getIntValue();
-            if (!lv2.isIn(EnchantmentTags.CURSE)) {
-                i += lv2.value().getMinPower(j);
+            if (!lv2.is(EnchantmentTags.CURSE)) {
+                i += lv2.value().getMinCost(j);
             }
         }
 

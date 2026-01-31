@@ -1,7 +1,7 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.projectile;
 
-import net.minecraft.entity.projectile.ArrowEntity;
-import net.minecraft.entity.projectile.PersistentProjectileEntity;
+import net.minecraft.world.entity.projectile.AbstractArrow;
+import net.minecraft.world.entity.projectile.Arrow;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.EntityHelper;
 
 /**
@@ -9,9 +9,9 @@ import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.EntityHelper;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class ArrowEntityHelper extends EntityHelper<PersistentProjectileEntity> {
+public class ArrowEntityHelper extends EntityHelper<AbstractArrow> {
 
-    public ArrowEntityHelper(PersistentProjectileEntity base) {
+    public ArrowEntityHelper(AbstractArrow base) {
         super(base);
     }
 
@@ -20,8 +20,8 @@ public class ArrowEntityHelper extends EntityHelper<PersistentProjectileEntity> 
      * @since 1.8.4
      */
     public int getColor() {
-        if (base instanceof ArrowEntity) {
-            return ((ArrowEntity) base).getColor();
+        if (base instanceof Arrow) {
+            return ((Arrow) base).getColor();
         }
         return -1;
     }
@@ -31,7 +31,7 @@ public class ArrowEntityHelper extends EntityHelper<PersistentProjectileEntity> 
      * @since 1.8.4
      */
     public boolean isCritical() {
-        return base.isCritical();
+        return base.isCritArrow();
     }
 
     /**

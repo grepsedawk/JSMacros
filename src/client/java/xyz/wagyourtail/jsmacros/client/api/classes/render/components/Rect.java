@@ -1,7 +1,7 @@
 package xyz.wagyourtail.jsmacros.client.api.classes.render.components;
 
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.util.Mth;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix3x2fStack;
 import xyz.wagyourtail.jsmacros.client.api.classes.render.IDraw2D;
@@ -33,7 +33,7 @@ public class Rect implements RenderElement, Alignable<Rect> {
     public Rect(int x1, int y1, int x2, int y2, int color, int alpha, float rotation, int zIndex) {
         setPos(x1, y1, x2, y2);
         setColor(color, alpha);
-        this.rotation = MathHelper.wrapDegrees(rotation);
+        this.rotation = Mth.wrapDegrees(rotation);
         this.zIndex = zIndex;
     }
 
@@ -258,7 +258,7 @@ public class Rect implements RenderElement, Alignable<Rect> {
      * @since 1.2.6
      */
     public Rect setRotation(double rotation) {
-        this.rotation = MathHelper.wrapDegrees((float) rotation);
+        this.rotation = Mth.wrapDegrees((float) rotation);
         return this;
     }
 
@@ -305,8 +305,8 @@ public class Rect implements RenderElement, Alignable<Rect> {
     }
 
     @Override
-    public void render(DrawContext drawContext, int mouseX, int mouseY, float delta) {
-        Matrix3x2fStack matrices = drawContext.getMatrices();
+    public void render(GuiGraphics drawContext, int mouseX, int mouseY, float delta) {
+        Matrix3x2fStack matrices = drawContext.pose();
         matrices.pushMatrix();
         setupMatrix(matrices, x1, y1, 1, rotation, getWidth(), getHeight(), rotateCenter);
         drawContext.fill(x1, y1, x2, y2, this.color);
@@ -325,7 +325,7 @@ public class Rect implements RenderElement, Alignable<Rect> {
 
     @Override
     public int getParentWidth() {
-        return parent != null ? parent.getWidth() : mc.getWindow().getScaledWidth();
+        return parent != null ? parent.getWidth() : mc.getWindow().getGuiScaledWidth();
     }
 
     @Override
@@ -335,7 +335,7 @@ public class Rect implements RenderElement, Alignable<Rect> {
 
     @Override
     public int getParentHeight() {
-        return parent != null ? parent.getHeight() : mc.getWindow().getScaledHeight();
+        return parent != null ? parent.getHeight() : mc.getWindow().getGuiScaledHeight();
     }
 
     @Override

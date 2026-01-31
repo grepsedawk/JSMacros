@@ -1,22 +1,22 @@
 package xyz.wagyourtail.jsmacros.client.api.classes.render.components;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.Drawable;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Renderable;
 import org.joml.Matrix3x2fStack;
 import xyz.wagyourtail.doclet.DocletIgnore;
 
 /**
  * @author Wagyourtail
  */
-public interface RenderElement extends Drawable {
+public interface RenderElement extends Renderable {
 
-    MinecraftClient mc = MinecraftClient.getInstance();
+    Minecraft mc = Minecraft.getInstance();
 
     int getZIndex();
 
     @DocletIgnore
-    default void render3D(DrawContext drawContext, int mouseX, int mouseY, float delta) {
+    default void render3D(GuiGraphics drawContext, int mouseX, int mouseY, float delta) {
         render(drawContext, mouseX, mouseY, delta);
     }
 

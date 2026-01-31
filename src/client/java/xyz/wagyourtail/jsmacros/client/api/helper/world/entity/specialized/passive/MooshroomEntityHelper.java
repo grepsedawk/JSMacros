@@ -1,15 +1,15 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive;
 
-import net.minecraft.entity.passive.MooshroomEntity;
+import net.minecraft.world.entity.animal.MushroomCow;
 
 /**
  * @author Etheradon
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class MooshroomEntityHelper extends AnimalEntityHelper<MooshroomEntity> {
+public class MooshroomEntityHelper extends AnimalEntityHelper<MushroomCow> {
 
-    public MooshroomEntityHelper(MooshroomEntity base) {
+    public MooshroomEntityHelper(MushroomCow base) {
         super(base);
     }
 
@@ -18,7 +18,7 @@ public class MooshroomEntityHelper extends AnimalEntityHelper<MooshroomEntity> {
      * @since 1.8.4
      */
     public boolean isShearable() {
-        return base.isShearable();
+        return base.readyForShearing();
     }
 
     /**
@@ -26,7 +26,7 @@ public class MooshroomEntityHelper extends AnimalEntityHelper<MooshroomEntity> {
      * @since 1.8.4
      */
     public boolean isRed() {
-        return base.getVariant() == MooshroomEntity.Variant.RED;
+        return base.getVariant() == MushroomCow.Variant.RED;
     }
 
     /**
@@ -34,7 +34,7 @@ public class MooshroomEntityHelper extends AnimalEntityHelper<MooshroomEntity> {
      * @since 1.8.4
      */
     public boolean isBrown() {
-        return base.getVariant() == MooshroomEntity.Variant.BROWN;
+        return base.getVariant() == MushroomCow.Variant.BROWN;
     }
 
 }

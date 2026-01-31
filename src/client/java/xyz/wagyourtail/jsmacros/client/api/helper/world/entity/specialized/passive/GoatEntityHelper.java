@@ -1,15 +1,15 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive;
 
-import net.minecraft.entity.passive.GoatEntity;
+import net.minecraft.world.entity.animal.goat.Goat;
 
 /**
  * @author Etheradon
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class GoatEntityHelper extends AnimalEntityHelper<GoatEntity> {
+public class GoatEntityHelper extends AnimalEntityHelper<Goat> {
 
-    public GoatEntityHelper(GoatEntity base) {
+    public GoatEntityHelper(Goat base) {
         super(base);
     }
 
@@ -18,7 +18,7 @@ public class GoatEntityHelper extends AnimalEntityHelper<GoatEntity> {
      * @since 1.8.4
      */
     public boolean isScreaming() {
-        return base.isScreaming();
+        return base.isScreamingGoat();
     }
 
     /**

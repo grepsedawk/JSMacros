@@ -1,8 +1,8 @@
 package xyz.wagyourtail.jsmacros.client.gui.screens;
 
 import com.google.common.collect.ImmutableList;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.util.InputUtil;
+import com.mojang.blaze3d.platform.InputConstants;
+import net.minecraft.client.gui.screens.Screen;
 import xyz.wagyourtail.jsmacros.client.JsMacrosClient;
 import xyz.wagyourtail.jsmacros.client.api.event.impl.EventKey;
 import xyz.wagyourtail.jsmacros.client.config.ClientConfigV2;
@@ -51,7 +51,7 @@ public class KeyMacrosScreen extends MacroScreen {
         if (!translationKey.equals("")) {
             translationKey += "+";
         }
-        translationKey += InputUtil.fromKeyCode(keyCode, scanCode).getTranslationKey();
+        translationKey += InputConstants.getKey(keyCode, scanCode).getName();
         for (MacroContainer macro : (List<MacroContainer>) (List) macros) {
             if (!macro.onKey(translationKey)) {
                 return false;
@@ -76,7 +76,7 @@ public class KeyMacrosScreen extends MacroScreen {
         if (!translationKey.equals("")) {
             translationKey += "+";
         }
-        translationKey += InputUtil.Type.MOUSE.createFromCode(button).getTranslationKey();
+        translationKey += InputConstants.Type.MOUSE.getOrCreate(button).getName();
         for (MacroContainer macro : (List<MacroContainer>) (List) macros) {
             if (!macro.onKey(translationKey)) {
                 return false;

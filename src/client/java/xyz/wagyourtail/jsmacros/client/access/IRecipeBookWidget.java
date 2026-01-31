@@ -1,11 +1,11 @@
 package xyz.wagyourtail.jsmacros.client.access;
 
-import net.minecraft.client.gui.screen.recipebook.RecipeBookResults;
-import net.minecraft.client.recipebook.ClientRecipeBook;
+import net.minecraft.client.ClientRecipeBook;
+import net.minecraft.client.gui.screens.recipebook.RecipeBookPage;
 
 public interface IRecipeBookWidget {
 
-    RecipeBookResults jsmacros_getResults();
+    RecipeBookPage jsmacros_getResults();
 
     boolean jsmacros_isSearching();
 

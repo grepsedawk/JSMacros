@@ -1,8 +1,8 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.item.ItemStack;
-import net.minecraft.village.TradeOffer;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.trading.MerchantOffer;
 import xyz.wagyourtail.doclet.DocletReplaceReturn;
 import xyz.wagyourtail.jsmacros.client.api.classes.RegistryHelper;
 import xyz.wagyourtail.jsmacros.client.api.classes.inventory.VillagerInventory;
@@ -14,11 +14,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings("unused")
-public class TradeOfferHelper extends BaseHelper<TradeOffer> {
+public class TradeOfferHelper extends BaseHelper<MerchantOffer> {
     private final VillagerInventory inv;
     private final int index;
 
-    public TradeOfferHelper(TradeOffer base, int index, VillagerInventory inv) {
+    public TradeOfferHelper(MerchantOffer base, int index, VillagerInventory inv) {
         super(base);
         this.inv = inv;
         this.index = index;
@@ -29,11 +29,11 @@ public class TradeOfferHelper extends BaseHelper<TradeOffer> {
      */
     public List<ItemStackHelper> getInput() {
         List<ItemStackHelper> items = new ArrayList<>();
-        ItemStack first = base.getDisplayedFirstBuyItem();
+        ItemStack first = base.getCostA();
         if (!first.isEmpty()) {
             items.add(new ItemStackHelper(first));
         }
-        ItemStack second = base.getDisplayedSecondBuyItem();
+        ItemStack second = base.getCostB();
         if (second != null && !second.isEmpty()) {
             items.add(new ItemStackHelper(second));
         }
@@ -48,7 +48,7 @@ public class TradeOfferHelper extends BaseHelper<TradeOffer> {
      * @since 1.8.4
      */
     public ItemStackHelper getLeftInput() {
-        return new ItemStackHelper(base.getFirstBuyItem().itemStack());
+        return new ItemStackHelper(base.getItemCostA().itemStack());
     }
 
     /**
@@ -59,17 +59,17 @@ public class TradeOfferHelper extends BaseHelper<TradeOffer> {
      * @since 1.8.4
      */
     public ItemStackHelper getRightInput() {
-        if (base.getSecondBuyItem().isEmpty()) {
+        if (base.getItemCostB().isEmpty()) {
             return new ItemStackHelper(ItemStack.EMPTY);
         }
-        return new ItemStackHelper(base.getSecondBuyItem().get().itemStack());
+        return new ItemStackHelper(base.getItemCostB().get().itemStack());
     }
 
     /**
      * @return output item that will be received
      */
     public ItemStackHelper getOutput() {
-        return new ItemStackHelper(base.getSellItem());
+        return new ItemStackHelper(base.getResult());
     }
 
     /**
@@ -84,7 +84,7 @@ public class TradeOfferHelper extends BaseHelper<TradeOffer> {
      * select trade offer on screen
      */
     public TradeOfferHelper select() {
-        if (inv != null && MinecraftClient.getInstance().currentScreen == inv.getRawContainer()) {
+        if (inv != null && Minecraft.getInstance().screen == inv.getRawContainer()) {
             inv.selectTrade(index);
         }
         return this;
@@ -94,7 +94,7 @@ public class TradeOfferHelper extends BaseHelper<TradeOffer> {
      * @return
      */
     public boolean isAvailable() {
-        return !base.isDisabled();
+        return !base.isOutOfStock();
     }
 
     /**
@@ -102,7 +102,7 @@ public class TradeOfferHelper extends BaseHelper<TradeOffer> {
      */
     @DocletReplaceReturn("NBTElementHelper$NBTCompoundHelper")
     public NBTElementHelper<?> getNBT() {
-        return NBTElementHelper.wrap(TradeOffer.CODEC.encodeStart(RegistryHelper.NBT_OPS_UNLIMITED, base).getOrThrow());
+        return NBTElementHelper.wrap(MerchantOffer.CODEC.encodeStart(RegistryHelper.NBT_OPS_UNLIMITED, base).getOrThrow());
     }
 
     /**
@@ -125,21 +125,21 @@ public class TradeOfferHelper extends BaseHelper<TradeOffer> {
      * @since 1.8.4
      */
     public boolean shouldRewardPlayerExperience() {
-        return base.shouldRewardPlayerExperience();
+        return base.shouldRewardExp();
     }
 
     /**
      * @return experience gained for trade
      */
     public int getExperience() {
-        return base.getMerchantExperience();
+        return base.getXp();
     }
 
     /**
      * @return current price adjustment, negative is discount.
      */
     public int getCurrentPriceAdjustment() {
-        return base.getDisplayedFirstBuyItem().getCount() - base.getOriginalFirstBuyItem().getCount();
+        return base.getCostA().getCount() - base.getBaseCostA().getCount();
     }
 
     /**
@@ -147,7 +147,7 @@ public class TradeOfferHelper extends BaseHelper<TradeOffer> {
      * @since 1.8.4
      */
     public ItemStackHelper getOriginalFirstInput() {
-        return new ItemStackHelper(base.getOriginalFirstBuyItem());
+        return new ItemStackHelper(base.getBaseCostA());
     }
 
     /**
@@ -155,7 +155,7 @@ public class TradeOfferHelper extends BaseHelper<TradeOffer> {
      * @since 1.8.4
      */
     public int getOriginalPrice() {
-        return base.getOriginalFirstBuyItem().getCount();
+        return base.getBaseCostA().getCount();
     }
 
     /**
@@ -163,7 +163,7 @@ public class TradeOfferHelper extends BaseHelper<TradeOffer> {
      * @since 1.8.4
      */
     public int getAdjustedPrice() {
-        return base.getDisplayedFirstBuyItem().getCount();
+        return base.getCostA().getCount();
     }
 
     /**
@@ -176,7 +176,7 @@ public class TradeOfferHelper extends BaseHelper<TradeOffer> {
      * @since 1.8.4
      */
     public int getSpecialPrice() {
-        return base.getSpecialPrice();
+        return base.getSpecialPriceDiff();
     }
 
     /**
@@ -203,7 +203,7 @@ public class TradeOfferHelper extends BaseHelper<TradeOffer> {
      * @since 1.8.4
      */
     public int getDemandBonus() {
-        return base.getDemandBonus();
+        return base.getDemand();
     }
 
     @Override

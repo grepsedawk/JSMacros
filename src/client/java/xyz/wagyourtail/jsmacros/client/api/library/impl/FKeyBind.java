@@ -2,10 +2,10 @@ package xyz.wagyourtail.jsmacros.client.api.library.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.option.KeyBinding;
-import net.minecraft.client.util.InputUtil;
-import net.minecraft.client.util.InputUtil.Key;
+import com.mojang.blaze3d.platform.InputConstants;
+import com.mojang.blaze3d.platform.InputConstants.Key;
+import net.minecraft.client.KeyMapping;
+import net.minecraft.client.Minecraft;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.doclet.DocletReplaceParams;
 import xyz.wagyourtail.doclet.DocletReplaceReturn;
@@ -28,7 +28,7 @@ import java.util.Set;
 @Library("KeyBind")
 @SuppressWarnings("unused")
 public class FKeyBind extends BaseLibrary {
-    private static final MinecraftClient mc = MinecraftClient.getInstance();
+    private static final Minecraft mc = Minecraft.getInstance();
 
     public FKeyBind(Core<?, ?> runner) {
         super(runner);
@@ -43,9 +43,9 @@ public class FKeyBind extends BaseLibrary {
     @DocletReplaceParams("keyName: Key")
     public Key getKeyCode(String keyName) {
         try {
-            return InputUtil.fromTranslationKey(keyName);
+            return InputConstants.getKey(keyName);
         } catch (Exception e) {
-            return InputUtil.UNKNOWN_KEY;
+            return InputConstants.UNKNOWN;
         }
     }
 
@@ -56,8 +56,8 @@ public class FKeyBind extends BaseLibrary {
     @DocletReplaceReturn("JavaMap<Bind, Key>")
     public Map<String, String> getKeyBindings() {
         Map<String, String> keys = new HashMap<>();
-        for (KeyBinding key : ImmutableList.copyOf(mc.options.allKeys)) {
-            keys.put(key.getTranslationKey(), key.getBoundKeyTranslationKey());
+        for (KeyMapping key : ImmutableList.copyOf(mc.options.keyMappings)) {
+            keys.put(key.getName(), key.saveString());
         }
         return keys;
     }
@@ -71,10 +71,10 @@ public class FKeyBind extends BaseLibrary {
      */
     @DocletReplaceParams("bind: Bind, key: Key | null")
     public void setKeyBind(String bind, @Nullable String key) {
-        for (KeyBinding keybind : mc.options.allKeys) {
-            if (keybind.getTranslationKey().equals(bind)) {
-                keybind.setBoundKey(key != null ? InputUtil.fromTranslationKey(key) : InputUtil.UNKNOWN_KEY);
-                KeyBinding.updateKeysByCode();
+        for (KeyMapping keybind : mc.options.keyMappings) {
+            if (keybind.getName().equals(bind)) {
+                keybind.setKey(key != null ? InputConstants.getKey(key) : InputConstants.UNKNOWN);
+                KeyMapping.resetMapping();
                 return;
             }
         }
@@ -120,10 +120,10 @@ public class FKeyBind extends BaseLibrary {
      * @param keyState
      */
     protected void key(Key keyBind, boolean keyState) {
-        if (MinecraftClient.getInstance().currentScreen != null) return;
-        KeyBinding.setKeyPressed(keyBind, keyState);
+        if (Minecraft.getInstance().screen != null) return;
+        KeyMapping.set(keyBind, keyState);
         if (keyState) {
-            KeyBinding.onKeyPressed(keyBind);
+            KeyMapping.click(keyBind);
         }
 
         // add to pressed keys list
@@ -145,12 +145,12 @@ public class FKeyBind extends BaseLibrary {
      */
     @DocletReplaceParams("keyBind: Bind, keyState: boolean")
     public void keyBind(String keyBind, boolean keyState) {
-        if (MinecraftClient.getInstance().currentScreen != null) return;
-        for (KeyBinding key : mc.options.allKeys) {
-            if (key.getTranslationKey().equals(keyBind)) {
-                key.setPressed(keyState);
+        if (Minecraft.getInstance().screen != null) return;
+        for (KeyMapping key : mc.options.keyMappings) {
+            if (key.getName().equals(keyBind)) {
+                key.setDown(keyState);
                 if (keyState) {
-                    KeyBinding.onKeyPressed(InputUtil.fromTranslationKey(key.getBoundKeyTranslationKey()));
+                    KeyMapping.click(InputConstants.getKey(key.saveString()));
                 }
 
                 // add to pressed keys list
@@ -192,11 +192,11 @@ public class FKeyBind extends BaseLibrary {
      * @param keyBind
      * @param keyState
      */
-    protected void key(KeyBinding keyBind, boolean keyState) {
-        if (MinecraftClient.getInstance().currentScreen != null) return;
-        keyBind.setPressed(keyState);
+    protected void key(KeyMapping keyBind, boolean keyState) {
+        if (Minecraft.getInstance().screen != null) return;
+        keyBind.setDown(keyState);
         if (keyState) {
-            KeyBinding.onKeyPressed(InputUtil.fromTranslationKey(keyBind.getBoundKeyTranslationKey()));
+            KeyMapping.click(InputConstants.getKey(keyBind.saveString()));
         }
 
         // add to pressed keys list
@@ -221,28 +221,28 @@ public class FKeyBind extends BaseLibrary {
         private static final Set<String> pressedKeys = new HashSet<>();
 
         public synchronized static void press(Key key) {
-            String translationKey = key.getTranslationKey();
+            String translationKey = key.getName();
             if (translationKey != null) {
                 pressedKeys.add(translationKey);
             }
         }
 
-        public synchronized static void press(KeyBinding bind) {
-            String translationKey = bind.getBoundKeyTranslationKey();
+        public synchronized static void press(KeyMapping bind) {
+            String translationKey = bind.saveString();
             if (translationKey != null) {
                 pressedKeys.add(translationKey);
             }
         }
 
         public synchronized static void unpress(Key key) {
-            String translationKey = key.getTranslationKey();
+            String translationKey = key.getName();
             if (translationKey != null) {
                 pressedKeys.remove(translationKey);
             }
         }
 
-        public synchronized static void unpress(KeyBinding bind) {
-            String translationKey = bind.getBoundKeyTranslationKey();
+        public synchronized static void unpress(KeyMapping bind) {
+            String translationKey = bind.saveString();
             if (translationKey != null) {
                 pressedKeys.remove(translationKey);
             }

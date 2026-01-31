@@ -5,25 +5,25 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import xyz.wagyourtail.jsmacros.client.access.IItemCooldownEntry;
 
-@Mixin(targets = "net.minecraft.entity.player.ItemCooldownManager$Entry")
+@Mixin(targets = "net.minecraft.world.item.ItemCooldowns$CooldownInstance")
 public class MixinItemCooldownEntry implements IItemCooldownEntry {
 
     @Shadow
     @Final
-    int startTick;
+    int startTime;
 
     @Shadow
     @Final
-    int endTick;
+    int endTime;
 
     @Override
     public int jsmacros_getStartTick() {
-        return startTick;
+        return startTime;
     }
 
     @Override
     public int jsmacros_getEndTick() {
-        return endTick;
+        return endTime;
     }
 
 }

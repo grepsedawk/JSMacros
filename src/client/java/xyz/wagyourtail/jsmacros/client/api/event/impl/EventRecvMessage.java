@@ -1,8 +1,8 @@
 package xyz.wagyourtail.jsmacros.client.api.event.impl;
 
-import net.minecraft.client.gui.hud.MessageIndicator;
-import net.minecraft.network.message.MessageSignatureData;
-import net.minecraft.text.Text;
+import net.minecraft.client.GuiMessageTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MessageSignature;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.jsmacros.client.JsMacrosClient;
 import xyz.wagyourtail.jsmacros.client.api.helper.TextHelper;
@@ -30,17 +30,17 @@ public class EventRecvMessage extends BaseEvent {
     @Nullable
     public String messageType;
 
-    public EventRecvMessage(Text message, MessageSignatureData signature, MessageIndicator indicator) {
+    public EventRecvMessage(Component message, MessageSignature signature, GuiMessageTag indicator) {
         super(JsMacrosClient.clientCore);
         this.text = TextHelper.wrap(message);
 
         if (signature == null) {
             this.signature = null;
         } else {
-            this.signature = signature.data();
+            this.signature = signature.bytes();
         }
         if (indicator != null) {
-            this.messageType = indicator.loggedName();
+            this.messageType = indicator.logTag();
         }
     }
 

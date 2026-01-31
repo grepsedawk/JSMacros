@@ -1,15 +1,15 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive;
 
-import net.minecraft.entity.passive.StriderEntity;
+import net.minecraft.world.entity.monster.Strider;
 
 /**
  * @author Etheradon
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class StriderEntityHelper extends AnimalEntityHelper<StriderEntity> {
+public class StriderEntityHelper extends AnimalEntityHelper<Strider> {
 
-    public StriderEntityHelper(StriderEntity base) {
+    public StriderEntityHelper(Strider base) {
         super(base);
     }
 
@@ -18,7 +18,7 @@ public class StriderEntityHelper extends AnimalEntityHelper<StriderEntity> {
      * @since 1.8.4
      */
     public boolean isSaddled() {
-        return base.hasSaddleEquipped();
+        return base.isSaddled();
     }
 
     /**
@@ -26,7 +26,7 @@ public class StriderEntityHelper extends AnimalEntityHelper<StriderEntity> {
      * @since 1.8.4
      */
     public boolean isShivering() {
-        return base.isCold();
+        return base.isSuffocating();
     }
 
 }

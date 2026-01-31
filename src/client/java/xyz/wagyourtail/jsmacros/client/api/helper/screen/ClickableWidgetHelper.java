@@ -1,10 +1,10 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.screen;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.ingame.HandledScreen;
-import net.minecraft.client.gui.widget.ClickableWidget;
-import net.minecraft.text.Text;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.network.chat.Component;
 import xyz.wagyourtail.jsmacros.client.JsMacrosClient;
 import xyz.wagyourtail.jsmacros.client.api.classes.TextBuilder;
 import xyz.wagyourtail.jsmacros.client.api.classes.render.IScreen;
@@ -23,13 +23,13 @@ import java.util.stream.Collectors;
  * @since 1.0.5
  */
 @SuppressWarnings("unused")
-public class ClickableWidgetHelper<B extends ClickableWidgetHelper<B, T>, T extends ClickableWidget> extends BaseHelper<T> implements RenderElement, Alignable<B> {
+public class ClickableWidgetHelper<B extends ClickableWidgetHelper<B, T>, T extends AbstractWidget> extends BaseHelper<T> implements RenderElement, Alignable<B> {
     public int zIndex;
-    public List<Text> tooltips;
+    public List<Component> tooltips;
 
     public static void clickedOn(IScreen screen) {
-        if (screen instanceof HandledScreen<?> handled) {
-            handled.cancelNextRelease = true;
+        if (screen instanceof AbstractContainerScreen<?> handled) {
+            handled.skipNextRelease = true;
         }
     }
 
@@ -98,7 +98,7 @@ public class ClickableWidgetHelper<B extends ClickableWidgetHelper<B, T>, T exte
      */
     @Deprecated
     public B setLabel(String label) {
-        base.setMessage(Text.literal(label));
+        base.setMessage(Component.literal(label));
         return (B) this;
     }
 
@@ -176,7 +176,7 @@ public class ClickableWidgetHelper<B extends ClickableWidgetHelper<B, T>, T exte
             base.mouseReleased(base.getX(), base.getY(), 0);
         } else {
             final Semaphore waiter = new Semaphore(await ? 0 : 1);
-            MinecraftClient.getInstance().execute(() -> {
+            Minecraft.getInstance().execute(() -> {
                 base.mouseClicked(base.getX(), base.getY(), 0);
                 base.mouseReleased(base.getX(), base.getY(), 0);
                 waiter.release();
@@ -210,9 +210,9 @@ public class ClickableWidgetHelper<B extends ClickableWidgetHelper<B, T>, T exte
         } else if (tooltip instanceof TextHelper) {
             tooltips.add(((TextHelper) tooltip).getRaw());
         } else if (tooltip instanceof String) {
-            tooltips.add(Text.literal((String) tooltip));
+            tooltips.add(Component.literal((String) tooltip));
         } else {
-            tooltips.add(Text.literal(tooltip.toString()));
+            tooltips.add(Component.literal(tooltip.toString()));
         }
         return (B) this;
     }
@@ -248,10 +248,10 @@ public class ClickableWidgetHelper<B extends ClickableWidgetHelper<B, T>, T exte
     }
 
     @Override
-    public void render(DrawContext drawContext, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphics drawContext, int mouseX, int mouseY, float delta) {
         base.render(drawContext, mouseX, mouseY, delta);
         if (base.isMouseOver(mouseX, mouseY) && tooltips.size() > 0) {
-            drawContext.drawTooltip(mc.textRenderer, tooltips, mouseX, mouseY);
+            drawContext.setComponentTooltipForNextFrame(mc.font, tooltips, mouseX, mouseY);
         }
     }
 
@@ -272,7 +272,7 @@ public class ClickableWidgetHelper<B extends ClickableWidgetHelper<B, T>, T exte
 
     @Override
     public int getParentWidth() {
-        return MinecraftClient.getInstance().currentScreen.width;
+        return Minecraft.getInstance().screen.width;
     }
 
     @Override
@@ -282,7 +282,7 @@ public class ClickableWidgetHelper<B extends ClickableWidgetHelper<B, T>, T exte
 
     @Override
     public int getParentHeight() {
-        return MinecraftClient.getInstance().currentScreen.height;
+        return Minecraft.getInstance().screen.height;
     }
 
     @Override

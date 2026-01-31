@@ -1,9 +1,9 @@
 package xyz.wagyourtail.jsmacros.client.api.classes;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.texture.NativeImage;
-import net.minecraft.client.texture.NativeImageBackedTexture;
-import net.minecraft.util.Identifier;
+import com.mojang.blaze3d.platform.NativeImage;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.DynamicTexture;
+import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.jsmacros.client.JsMacrosClient;
 
@@ -32,8 +32,8 @@ public class CustomImage {
     private final BufferedImage image;
     private final Graphics2D graphics;
     private final String name;
-    private final NativeImageBackedTexture texture;
-    private final Identifier identifier;
+    private final DynamicTexture texture;
+    private final ResourceLocation identifier;
 
     public CustomImage(BufferedImage image) {
         this(image, String.valueOf(currentId));
@@ -44,8 +44,8 @@ public class CustomImage {
         this.graphics = image.createGraphics();
         this.name = name;
         this.texture = createTexture(image, PREFIX + name);
-        identifier = Identifier.of(PREFIX + name);
-        MinecraftClient.getInstance().getTextureManager().registerTexture(identifier, texture);
+        identifier = ResourceLocation.parse(PREFIX + name);
+        Minecraft.getInstance().getTextureManager().register(identifier, texture);
         update();
         currentId++;
         IMAGES.put(identifier.toString(), this);
@@ -111,7 +111,7 @@ public class CustomImage {
     public CustomImage update() {
         try {
             final Semaphore semaphore = new Semaphore(0);
-            MinecraftClient.getInstance().execute(() -> {
+            Minecraft.getInstance().execute(() -> {
                 texture.upload();
                 updateTexture();
                 semaphore.release();
@@ -128,10 +128,10 @@ public class CustomImage {
      * NativeImageBackedTexture.
      */
     private void updateTexture() {
-        NativeImage ni = texture.getImage();
+        NativeImage ni = texture.getPixels();
         for (int y = 0; y < image.getHeight(); y++) {
             for (int x = 0; x < image.getWidth(); x++) {
-                ni.setColorArgb(x, y, image.getRGB(x, y));
+                ni.setPixel(x, y, image.getRGB(x, y));
             }
         }
         texture.upload();
@@ -606,12 +606,12 @@ public class CustomImage {
         return metrics.stringWidth(toAnalyze);
     }
 
-    private static NativeImageBackedTexture createTexture(BufferedImage image, String name) {
-        AtomicReference<NativeImageBackedTexture> texture = new AtomicReference<>();
+    private static DynamicTexture createTexture(BufferedImage image, String name) {
+        AtomicReference<DynamicTexture> texture = new AtomicReference<>();
         try {
             final Semaphore semaphore = new Semaphore(0);
-            MinecraftClient.getInstance().execute(() -> {
-                texture.set(new NativeImageBackedTexture(name, image.getWidth(), image.getHeight(), true));
+            Minecraft.getInstance().execute(() -> {
+                texture.set(new DynamicTexture(name, image.getWidth(), image.getHeight(), true));
                 semaphore.release();
             });
             semaphore.acquire();

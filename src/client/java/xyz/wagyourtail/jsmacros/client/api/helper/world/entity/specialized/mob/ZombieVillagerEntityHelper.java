@@ -1,16 +1,16 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.mob;
 
-import net.minecraft.entity.mob.ZombieVillagerEntity;
-import net.minecraft.registry.Registries;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.entity.monster.ZombieVillager;
 
 /**
  * @author Etheradon
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class ZombieVillagerEntityHelper extends ZombieEntityHelper<ZombieVillagerEntity> {
+public class ZombieVillagerEntityHelper extends ZombieEntityHelper<ZombieVillager> {
 
-    public ZombieVillagerEntityHelper(ZombieVillagerEntity base) {
+    public ZombieVillagerEntityHelper(ZombieVillager base) {
         super(base);
     }
 
@@ -28,7 +28,7 @@ public class ZombieVillagerEntityHelper extends ZombieEntityHelper<ZombieVillage
      * @since 1.8.4
      */
     public String getVillagerBiomeType() {
-        return Registries.VILLAGER_TYPE.getId(base.getVillagerData().type().value()).toString();
+        return BuiltInRegistries.VILLAGER_TYPE.getKey(base.getVillagerData().type().value()).toString();
     }
 
     /**
@@ -36,7 +36,7 @@ public class ZombieVillagerEntityHelper extends ZombieEntityHelper<ZombieVillage
      * @since 1.8.4
      */
     public String getProfession() {
-        return base.getVillagerData().profession().getIdAsString();
+        return base.getVillagerData().profession().getRegisteredName();
     }
 
     /**

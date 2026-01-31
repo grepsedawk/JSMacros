@@ -1,11 +1,11 @@
 package xyz.wagyourtail.jsmacros.client.mixin.events;
 
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.world.World;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -22,7 +22,7 @@ import xyz.wagyourtail.jsmacros.client.api.event.impl.world.EventEntityHealed;
 public abstract class MixinLivingEntity extends Entity {
 
     //IGNORE
-    public MixinLivingEntity(EntityType<?> arg, World arg2) {
+    public MixinLivingEntity(EntityType<?> arg, Level arg2) {
         super(arg, arg2);
     }
 
@@ -40,15 +40,15 @@ public abstract class MixinLivingEntity extends Entity {
     @Inject(at = @At("HEAD"), method = "setHealth")
     public void onSetHealth(float health, CallbackInfo ci) {
         //fix for singleplayer worlds, when the client also has the integrated server
-        if ((Object) this instanceof ServerPlayerEntity) {
+        if ((Object) this instanceof ServerPlayer) {
             return;
         }
 
         float difference = jsmacros$lastHealth - health;
 
         if (difference > 0) {
-            if ((Object) this instanceof ClientPlayerEntity) {
-                new EventDamage(getWorld().getDamageSources().generic(), health, difference).trigger();
+            if ((Object) this instanceof LocalPlayer) {
+                new EventDamage(level().damageSources().generic(), health, difference).trigger();
                 new EventHealthChange(health, -difference).trigger();
             }
             new EventEntityDamaged((Entity) (Object) this, health, difference).trigger();
@@ -56,8 +56,8 @@ public abstract class MixinLivingEntity extends Entity {
 
             difference *= -1;
 
-            if ((Object) this instanceof ClientPlayerEntity) {
-                new EventHeal(getWorld().getDamageSources().generic(), health, difference).trigger();
+            if ((Object) this instanceof LocalPlayer) {
+                new EventHeal(level().damageSources().generic(), health, difference).trigger();
                 new EventHealthChange(health, difference).trigger();
             }
             new EventEntityHealed((Entity) (Object) this, health, difference).trigger();

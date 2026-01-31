@@ -1,17 +1,17 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.projectile;
 
-import net.minecraft.entity.projectile.TridentEntity;
+import net.minecraft.world.entity.projectile.ThrownTrident;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.EntityHelper;
-import xyz.wagyourtail.jsmacros.client.mixin.access.MixinTridentEntity;
+import xyz.wagyourtail.jsmacros.client.mixin.access.MixinThrownTrident;
 
 /**
  * @author Etheradon
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class TridentEntityHelper extends EntityHelper<TridentEntity> {
+public class TridentEntityHelper extends EntityHelper<ThrownTrident> {
 
-    public TridentEntityHelper(TridentEntity base) {
+    public TridentEntityHelper(ThrownTrident base) {
         super(base);
     }
 
@@ -20,7 +20,7 @@ public class TridentEntityHelper extends EntityHelper<TridentEntity> {
      * @since 1.8.4
      */
     public boolean hasLoyalty() {
-        return base.getDataTracker().get(((MixinTridentEntity) base).getLoyalty()) > 0;
+        return base.getEntityData().get(((MixinThrownTrident) base).getLoyalty()) > 0;
     }
 
     /**
@@ -28,7 +28,7 @@ public class TridentEntityHelper extends EntityHelper<TridentEntity> {
      * @since 1.8.4
      */
     public boolean isEnchanted() {
-        return base.isEnchanted();
+        return base.isFoil();
     }
 
 }

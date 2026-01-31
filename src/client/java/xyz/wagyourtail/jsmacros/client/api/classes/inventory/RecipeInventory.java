@@ -1,12 +1,12 @@
 package xyz.wagyourtail.jsmacros.client.api.classes.inventory;
 
-import net.minecraft.client.gui.screen.ingame.RecipeBookScreen;
-import net.minecraft.client.gui.screen.recipebook.RecipeBookWidget;
-import net.minecraft.client.gui.screen.recipebook.RecipeResultCollection;
-import net.minecraft.client.recipebook.ClientRecipeBook;
-import net.minecraft.recipe.RecipeDisplayEntry;
-import net.minecraft.recipe.RecipeFinder;
-import net.minecraft.screen.AbstractRecipeScreenHandler;
+import net.minecraft.client.ClientRecipeBook;
+import net.minecraft.client.gui.screens.inventory.AbstractRecipeBookScreen;
+import net.minecraft.client.gui.screens.recipebook.RecipeBookComponent;
+import net.minecraft.client.gui.screens.recipebook.RecipeCollection;
+import net.minecraft.world.entity.player.StackedItemContents;
+import net.minecraft.world.inventory.RecipeBookMenu;
+import net.minecraft.world.item.crafting.display.RecipeDisplayEntry;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.doclet.DocletReplaceReturn;
 import xyz.wagyourtail.jsmacros.client.api.classes.render.IScreen;
@@ -22,13 +22,13 @@ import java.util.stream.Collectors;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public abstract class RecipeInventory<T extends RecipeBookScreen<? extends AbstractRecipeScreenHandler>> extends Inventory<T> {
+public abstract class RecipeInventory<T extends AbstractRecipeBookScreen<? extends RecipeBookMenu>> extends Inventory<T> {
 
-    private final AbstractRecipeScreenHandler handler;
+    private final RecipeBookMenu handler;
 
     protected RecipeInventory(T inventory) {
         super(inventory);
-        this.handler = inventory.getScreenHandler();
+        this.handler = inventory.getMenu();
     }
 
     /**
@@ -93,7 +93,7 @@ public abstract class RecipeInventory<T extends RecipeBookScreen<? extends Abstr
      */
     @DocletReplaceReturn("RecipeBookCategory")
     public String getCategory() {
-        return handler.getCategory().name();
+        return handler.getRecipeBookType().name();
     }
 
     /**
@@ -113,19 +113,19 @@ public abstract class RecipeInventory<T extends RecipeBookScreen<? extends Abstr
      */
     @Nullable
     public List<RecipeHelper> getRecipes(boolean craftable) throws InterruptedException {
-        RecipeFinder recipeFinder = new RecipeFinder();
+        StackedItemContents recipeFinder = new StackedItemContents();
 
         if (craftable) {
-            mc.player.getInventory().populateRecipeFinder(recipeFinder);
-            handler.populateRecipeFinder(recipeFinder);
+            mc.player.getInventory().fillStackedContents(recipeFinder);
+            handler.fillCraftSlotsStackedContents(recipeFinder);
         }
 
         List<RecipeDisplayEntry> recipeIds = new ArrayList<>();
         ClientRecipeBook recipeBook = mc.player.getRecipeBook();
-        for (RecipeBookWidget.Tab t : inventory.recipeBook.tabs) {
-            for (RecipeResultCollection res : recipeBook.getResultsForCategory(t.category())) {
-                for (RecipeDisplayEntry displayEntry : res.getAllRecipes()) {
-                    if (!craftable || displayEntry.isCraftable(recipeFinder)) {
+        for (RecipeBookComponent.TabInfo t : inventory.recipeBookComponent.tabInfos) {
+            for (RecipeCollection res : recipeBook.getCollection(t.category())) {
+                for (RecipeDisplayEntry displayEntry : res.getRecipes()) {
+                    if (!craftable || displayEntry.canCraft(recipeFinder)) {
                         recipeIds.add(displayEntry);
                     }
                 }
@@ -136,8 +136,8 @@ public abstract class RecipeInventory<T extends RecipeBookScreen<? extends Abstr
     }
 
     @Nullable
-    private RecipeBookWidget<?> getRecipeBookWidget() {
-        return inventory.recipeBook;
+    private RecipeBookComponent<?> getRecipeBookWidget() {
+        return inventory.recipeBookComponent;
     }
 
     /**
@@ -145,25 +145,25 @@ public abstract class RecipeInventory<T extends RecipeBookScreen<? extends Abstr
      * @since 1.8.4
      */
     public boolean isRecipeBookOpened() {
-        RecipeBookWidget<?> recipeBookWidget = getRecipeBookWidget();
+        RecipeBookComponent<?> recipeBookWidget = getRecipeBookWidget();
         if (recipeBookWidget == null) {
             return false;
         }
-        return recipeBookWidget.isOpen();
+        return recipeBookWidget.isVisible();
     }
 
     /**
      * @since 1.8.4
      */
     public void toggleRecipeBook() {
-        if (mc.currentScreen != inventory) {
+        if (mc.screen != inventory) {
             return;
         }
-        RecipeBookWidget<?> recipeBookWidget = getRecipeBookWidget();
+        RecipeBookComponent<?> recipeBookWidget = getRecipeBookWidget();
         if (recipeBookWidget == null) {
             return;
         }
-        recipeBookWidget.toggleOpen();
+        recipeBookWidget.toggleVisibility();
         ((IScreen) inventory).reloadScreen();
     }
 
@@ -172,13 +172,13 @@ public abstract class RecipeInventory<T extends RecipeBookScreen<? extends Abstr
      * @since 1.8.4
      */
     public void setRecipeBook(boolean open) {
-        if (mc.currentScreen != inventory) {
+        if (mc.screen != inventory) {
             return;
         }
-        RecipeBookWidget<?> recipeBookWidget = getRecipeBookWidget();
+        RecipeBookComponent<?> recipeBookWidget = getRecipeBookWidget();
         if (recipeBookWidget != null) {
-            if (recipeBookWidget.isOpen() != open) {
-                recipeBookWidget.toggleOpen();
+            if (recipeBookWidget.isVisible() != open) {
+                recipeBookWidget.toggleVisibility();
                 ((IScreen) inventory).reloadScreen();
             }
         }

@@ -2,12 +2,16 @@ package xyz.wagyourtail.jsmacros.client.api.helper.inventory;
 
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.command.argument.ItemStringReader;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.item.*;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.tag.DamageTypeTags;
+import net.minecraft.client.Minecraft;
+import net.minecraft.commands.arguments.item.ItemParser;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.CreativeModeTabs;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.doclet.DocletReplaceReturn;
 import xyz.wagyourtail.jsmacros.client.api.helper.TextHelper;
@@ -26,14 +30,14 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("unused")
 public class ItemHelper extends BaseHelper<Item> {
-    private static final MinecraftClient mc = MinecraftClient.getInstance();
+    private static final Minecraft mc = Minecraft.getInstance();
 
     public ItemHelper(Item base) {
         super(base);
     }
 
-    private Stream<ItemGroup> getGroups() {
-        return ItemGroups.getGroups().parallelStream().filter(group -> !group.isSpecial() && group.getDisplayStacks().parallelStream().anyMatch(e -> e.isOf(base)));
+    private Stream<CreativeModeTab> getGroups() {
+        return CreativeModeTabs.allTabs().parallelStream().filter(group -> !group.isAlignedRight() && group.getDisplayItems().parallelStream().anyMatch(e -> e.is(base)));
     }
 
     /**
@@ -41,7 +45,7 @@ public class ItemHelper extends BaseHelper<Item> {
      * @since 1.8.4
      */
     public List<TextHelper> getCreativeTab() {
-        return getGroups().map(ItemGroup::getDisplayName).map(TextHelper::wrap).collect(Collectors.toList());
+        return getGroups().map(CreativeModeTab::getDisplayName).map(TextHelper::wrap).collect(Collectors.toList());
     }
 
     /**
@@ -51,7 +55,7 @@ public class ItemHelper extends BaseHelper<Item> {
      */
     @Nullable
     public List<ItemStackHelper> getGroupIcon() {
-        return getGroups() == null ? null : getGroups().map(ItemGroup::getIcon).map(ItemStackHelper::new).collect(Collectors.toList());
+        return getGroups() == null ? null : getGroups().map(CreativeModeTab::getIconItem).map(ItemStackHelper::new).collect(Collectors.toList());
     }
 
     /**
@@ -61,8 +65,8 @@ public class ItemHelper extends BaseHelper<Item> {
      * @since 1.8.4
      */
     public boolean canBeRepairedWith(ItemStackHelper stack) {
-        var repair = base.getComponents().get(DataComponentTypes.REPAIRABLE);
-        return repair.matches(stack.getRaw());
+        var repair = base.components().get(DataComponents.REPAIRABLE);
+        return repair.isValidRepairItem(stack.getRaw());
     }
 
     /**
@@ -72,7 +76,7 @@ public class ItemHelper extends BaseHelper<Item> {
      * @since 1.8.4
      */
     public boolean isSuitableFor(BlockHelper block) {
-        return base.isCorrectForDrops(base.getDefaultStack(), block.getDefaultState().getRaw());
+        return base.isCorrectToolForDrops(base.getDefaultInstance(), block.getDefaultState().getRaw());
     }
 
     /**
@@ -82,7 +86,7 @@ public class ItemHelper extends BaseHelper<Item> {
      * @since 1.8.4
      */
     public boolean isSuitableFor(BlockStateHelper block) {
-        return base.isCorrectForDrops(base.getDefaultStack(), block.getRaw());
+        return base.isCorrectToolForDrops(base.getDefaultInstance(), block.getRaw());
     }
 
     /**
@@ -114,7 +118,7 @@ public class ItemHelper extends BaseHelper<Item> {
      */
     public float getMiningSpeedMultiplier(BlockStateHelper state) {
         // At least in vanilla the item stack is never used
-        return base.getMiningSpeed(base.getDefaultStack(), state.getRaw());
+        return base.getDestroySpeed(base.getDefaultInstance(), state.getRaw());
     }
 
     /**
@@ -122,7 +126,7 @@ public class ItemHelper extends BaseHelper<Item> {
      * @since 1.8.4
      */
     public boolean isDamageable() {
-        return base.getDefaultStack().isDamageable();
+        return base.getDefaultInstance().isDamageableItem();
     }
 
     /**
@@ -131,7 +135,7 @@ public class ItemHelper extends BaseHelper<Item> {
      * @since 1.8.4
      */
     public boolean hasRecipeRemainder() {
-        return !base.getRecipeRemainder().isEmpty();
+        return !base.getCraftingRemainder().isEmpty();
     }
 
     /**
@@ -140,7 +144,7 @@ public class ItemHelper extends BaseHelper<Item> {
      */
     @Nullable
     public ItemStackHelper getRecipeRemainder() {
-        return new ItemStackHelper(base.getRecipeRemainder());
+        return new ItemStackHelper(base.getCraftingRemainder());
     }
 
     /**
@@ -150,7 +154,7 @@ public class ItemHelper extends BaseHelper<Item> {
      * @since 1.8.4
      */
     public int getEnchantability() {
-        var enchant = base.getComponents().get(DataComponentTypes.ENCHANTABLE);
+        var enchant = base.components().get(DataComponents.ENCHANTABLE);
         if (enchant != null) {
             return enchant.value();
         }
@@ -171,7 +175,7 @@ public class ItemHelper extends BaseHelper<Item> {
      */
     @DocletReplaceReturn("ItemId")
     public String getId() {
-        return Registries.ITEM.getId(base).toString();
+        return BuiltInRegistries.ITEM.getKey(base).toString();
     }
 
     /**
@@ -179,7 +183,7 @@ public class ItemHelper extends BaseHelper<Item> {
      * @since 1.8.4
      */
     public int getMaxCount() {
-        return base.getMaxCount();
+        return base.getDefaultMaxStackSize();
     }
 
     /**
@@ -189,7 +193,7 @@ public class ItemHelper extends BaseHelper<Item> {
      * @since 1.8.4
      */
     public int getMaxDurability() {
-        return base.getComponents().getOrDefault(DataComponentTypes.MAX_DAMAGE, 0);
+        return base.components().getOrDefault(DataComponents.MAX_DAMAGE, 0);
     }
 
     /**
@@ -197,7 +201,7 @@ public class ItemHelper extends BaseHelper<Item> {
      * @since 1.8.4
      */
     public boolean isFireproof() {
-        var types = base.getComponents().get(DataComponentTypes.DAMAGE_RESISTANT);
+        var types = base.components().get(DataComponents.DAMAGE_RESISTANT);
         if (types == null) {
             return false;
         }
@@ -209,7 +213,7 @@ public class ItemHelper extends BaseHelper<Item> {
      * @since 1.8.4
      */
     public boolean isTool() {
-        return base.getComponents().get(DataComponentTypes.TOOL) != null;
+        return base.components().get(DataComponents.TOOL) != null;
     }
 
     /**
@@ -217,7 +221,7 @@ public class ItemHelper extends BaseHelper<Item> {
      * @since 1.8.4
      */
     public boolean isWearable() {
-        return base.getComponents().get(DataComponentTypes.EQUIPPABLE) != null;
+        return base.components().get(DataComponents.EQUIPPABLE) != null;
     }
 
     /**
@@ -225,7 +229,7 @@ public class ItemHelper extends BaseHelper<Item> {
      * @since 1.8.4
      */
     public boolean isFood() {
-        return base.getComponents().get(DataComponentTypes.FOOD) != null;
+        return base.components().get(DataComponents.FOOD) != null;
     }
 
     /**
@@ -235,7 +239,7 @@ public class ItemHelper extends BaseHelper<Item> {
     @Nullable
     public FoodComponentHelper getFood() {
         if (isFood()) {
-            return new FoodComponentHelper(base.getComponents().get(DataComponentTypes.FOOD));
+            return new FoodComponentHelper(base.components().get(DataComponents.FOOD));
         }
         return null;
     }
@@ -246,7 +250,7 @@ public class ItemHelper extends BaseHelper<Item> {
      * @since 1.8.4
      */
     public boolean canBeNested() {
-        return base.canBeNested();
+        return base.canFitInsideContainerItems();
     }
 
     /**
@@ -254,7 +258,7 @@ public class ItemHelper extends BaseHelper<Item> {
      * @since 1.8.4
      */
     public ItemStackHelper getDefaultStack() {
-        return new ItemStackHelper(base.getDefaultStack());
+        return new ItemStackHelper(base.getDefaultInstance());
     }
 
     /**
@@ -264,8 +268,8 @@ public class ItemHelper extends BaseHelper<Item> {
      * @since 1.8.4
      */
     public ItemStackHelper getStackWithNbt(String nbt) throws CommandSyntaxException {
-        ItemStringReader reader = new ItemStringReader(Objects.requireNonNull(mc.getNetworkHandler()).getRegistryManager());
-        ItemStringReader.ItemResult itemResult = reader.consume(new StringReader(getId() + nbt));
+        ItemParser reader = new ItemParser(Objects.requireNonNull(mc.getConnection()).registryAccess());
+        ItemParser.ItemResult itemResult = reader.parse(new StringReader(getId() + nbt));
         return new ItemStackHelper(new ItemStack(itemResult.item()));
     }
 

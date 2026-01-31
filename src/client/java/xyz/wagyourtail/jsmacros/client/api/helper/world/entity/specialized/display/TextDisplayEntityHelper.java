@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.display;
 
-import net.minecraft.entity.decoration.DisplayEntity;
+import net.minecraft.world.entity.Display;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.jsmacros.client.api.helper.TextHelper;
 import xyz.wagyourtail.jsmacros.core.helpers.BaseHelper;
@@ -10,9 +10,9 @@ import xyz.wagyourtail.jsmacros.core.helpers.BaseHelper;
  * @since 1.9.1
  */
 @SuppressWarnings("unused")
-public class TextDisplayEntityHelper extends DisplayEntityHelper<DisplayEntity.TextDisplayEntity> {
+public class TextDisplayEntityHelper extends DisplayEntityHelper<Display.TextDisplay> {
 
-    public TextDisplayEntityHelper(DisplayEntity.TextDisplayEntity base) {
+    public TextDisplayEntityHelper(Display.TextDisplay base) {
         super(base);
     }
 
@@ -21,14 +21,14 @@ public class TextDisplayEntityHelper extends DisplayEntityHelper<DisplayEntity.T
      */
     @Nullable
     public TextDisplayDataHelper getData() {
-        DisplayEntity.TextDisplayEntity.Data data = base.getData();
+        Display.TextDisplay.TextRenderState data = base.textRenderState();
         if (data == null) return null;
         return new TextDisplayDataHelper(data);
     }
 
-    public static class TextDisplayDataHelper extends BaseHelper<DisplayEntity.TextDisplayEntity.Data> {
+    public static class TextDisplayDataHelper extends BaseHelper<Display.TextDisplay.TextRenderState> {
 
-        public TextDisplayDataHelper(DisplayEntity.TextDisplayEntity.Data base) {
+        public TextDisplayDataHelper(Display.TextDisplay.TextRenderState base) {
             super(base);
         }
 
@@ -50,14 +50,14 @@ public class TextDisplayEntityHelper extends DisplayEntityHelper<DisplayEntity.T
          * @since 1.9.1
          */
         public int getTextOpacity() {
-            return base.textOpacity().lerp(1.0f);
+            return base.textOpacity().get(1.0f);
         }
 
         /**
          * @since 1.9.1
          */
         public int getBackgroundColor() {
-            return base.backgroundColor().lerp(1.0f);
+            return base.backgroundColor().get(1.0f);
         }
 
         /**
@@ -86,7 +86,7 @@ public class TextDisplayEntityHelper extends DisplayEntityHelper<DisplayEntity.T
          * @since 1.9.1
          */
         public String getAlignment() {
-            return DisplayEntity.TextDisplayEntity.getAlignment(base.flags()).asString();
+            return Display.TextDisplay.getAlign(base.flags()).getSerializedName();
         }
 
     }

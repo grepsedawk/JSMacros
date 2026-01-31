@@ -1,29 +1,29 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.mob;
 
-import net.minecraft.entity.mob.ShulkerEntity;
+import net.minecraft.world.entity.monster.Shulker;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.jsmacros.client.api.helper.DyeColorHelper;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.DirectionHelper;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.MobEntityHelper;
-import xyz.wagyourtail.jsmacros.client.mixin.access.MixinShulkerEntity;
+import xyz.wagyourtail.jsmacros.client.mixin.access.MixinShulker;
 
 /**
  * @author Etheradon
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class ShulkerEntityHelper extends MobEntityHelper<ShulkerEntity> {
+public class ShulkerEntityHelper extends MobEntityHelper<Shulker> {
 
-    public ShulkerEntityHelper(ShulkerEntity base) {
+    public ShulkerEntityHelper(Shulker base) {
         super(base);
     }
 
     public boolean isClosed() {
-        return ((MixinShulkerEntity) base).invokeIsClosed();
+        return ((MixinShulker) base).invokeIsClosed();
     }
 
     public DirectionHelper getAttachedSide() {
-        return new DirectionHelper(base.getAttachedFace());
+        return new DirectionHelper(base.getAttachFace());
     }
 
     @Nullable

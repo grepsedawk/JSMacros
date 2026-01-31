@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.display;
 
-import net.minecraft.entity.decoration.DisplayEntity;
+import net.minecraft.world.entity.Display;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.BlockStateHelper;
 
@@ -9,9 +9,9 @@ import xyz.wagyourtail.jsmacros.client.api.helper.world.BlockStateHelper;
  * @since 1.9.1
  */
 @SuppressWarnings("unused")
-public class BlockDisplayEntityHelper extends DisplayEntityHelper<DisplayEntity.BlockDisplayEntity> {
+public class BlockDisplayEntityHelper extends DisplayEntityHelper<Display.BlockDisplay> {
 
-    public BlockDisplayEntityHelper(DisplayEntity.BlockDisplayEntity base) {
+    public BlockDisplayEntityHelper(Display.BlockDisplay base) {
         super(base);
     }
 
@@ -20,7 +20,7 @@ public class BlockDisplayEntityHelper extends DisplayEntityHelper<DisplayEntity.
      */
     @Nullable
     public BlockStateHelper getBlockState() {
-        DisplayEntity.BlockDisplayEntity.Data data = base.getData();
+        Display.BlockDisplay.BlockRenderState data = base.blockRenderState();
         if (data == null) return null;
         return new BlockStateHelper(data.blockState());
     }

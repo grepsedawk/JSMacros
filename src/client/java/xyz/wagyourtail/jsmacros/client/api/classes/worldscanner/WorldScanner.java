@@ -1,21 +1,21 @@
 package xyz.wagyourtail.jsmacros.client.api.classes.worldscanner;
 
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.util.collection.PackedIntegerArray;
-import net.minecraft.util.collection.PaletteStorage;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.util.shape.VoxelShapes;
-import net.minecraft.world.World;
-import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.chunk.ChunkSection;
-import net.minecraft.world.chunk.Palette;
-import net.minecraft.world.chunk.PalettedContainer;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.BitStorage;
+import net.minecraft.util.Mth;
+import net.minecraft.util.SimpleBitStorage;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.chunk.LevelChunkSection;
+import net.minecraft.world.level.chunk.Palette;
+import net.minecraft.world.level.chunk.PalettedContainer;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.jsmacros.api.math.Pos3D;
 import xyz.wagyourtail.jsmacros.client.access.IPackedIntegerArray;
@@ -48,9 +48,9 @@ import java.util.stream.Stream;
 @SuppressWarnings("unused")
 public class WorldScanner {
 
-    private static final MinecraftClient mc = MinecraftClient.getInstance();
+    private static final Minecraft mc = Minecraft.getInstance();
 
-    private final World world;
+    private final Level world;
     private final Map<BlockState, Boolean> cachedFilterStates;
 
     @Nullable
@@ -66,7 +66,7 @@ public class WorldScanner {
      * @param blockFilter a filter method for the blocks
      * @param stateFilter a filter method for the block states
      */
-    public WorldScanner(World world, @Nullable Function<BlockHelper, Boolean> blockFilter, @Nullable Function<BlockStateHelper, Boolean> stateFilter) {
+    public WorldScanner(Level world, @Nullable Function<BlockHelper, Boolean> blockFilter, @Nullable Function<BlockStateHelper, Boolean> stateFilter) {
         this.world = world;
         this.useParallelStream = isParallelStreamAllowed(blockFilter) && isParallelStreamAllowed(stateFilter);
         this.filter = combineFilter(blockFilter, stateFilter);
@@ -101,7 +101,7 @@ public class WorldScanner {
      */
     public List<Pos3D> scanAroundPlayer(int chunkRange) {
         if (mc.player == null) return new ArrayList<>();
-        return scanChunkRange(mc.player.getChunkPos().x, mc.player.getChunkPos().z, chunkRange);
+        return scanChunkRange(mc.player.chunkPosition().x, mc.player.chunkPosition().z, chunkRange);
     }
 
     /**
@@ -211,7 +211,7 @@ public class WorldScanner {
     public List<Pos3D> scanSphereArea(double x, double y, double z, double radius) {
         if (radius < 0) throw new IllegalArgumentException("radius cannot be negative!");
         double sq = radius * radius;
-        Vec3d centered = new Vec3d(x - 0.5, y - 0.5, z - 0.5);
+        Vec3 centered = new Vec3(x - 0.5, y - 0.5, z - 0.5);
 
         if (radius < 48) return scanCubeAreaInternal(
                 (int) Math.floor(x - radius),
@@ -220,25 +220,25 @@ public class WorldScanner {
                 (int) Math.floor(x + radius),
                 (int) Math.floor(y + radius),
                 (int) Math.floor(z + radius)
-        ).filter(pos -> centered.squaredDistanceTo(pos.x, pos.y, pos.z) <= sq).collect(Collectors.toList());
+        ).filter(pos -> centered.distanceToSqr(pos.x, pos.y, pos.z) <= sq).collect(Collectors.toList());
 
         // skip edge chunk sections because of large radius
-        Stream<ChunkPos> stream = ChunkPos.stream(
+        Stream<ChunkPos> stream = ChunkPos.rangeClosed(
                 new ChunkPos((int) Math.floor(x - radius) >> 4, (int) Math.floor(z - radius) >> 4),
                 new ChunkPos((int) Math.floor(x + radius) >> 4, (int) Math.floor(z + radius) >> 4)
         );
         if (useParallelStream) //noinspection DataFlowIssue
             stream = stream.parallel();
         return stream.flatMap(chunkPos -> {
-                    double dx = MathHelper.clamp(centered.x, chunkPos.getStartX(), chunkPos.getEndX()) - centered.x;
-                    double dz = MathHelper.clamp(centered.z, chunkPos.getStartZ(), chunkPos.getEndZ()) - centered.z;
+                    double dx = Mth.clamp(centered.x, chunkPos.getMinBlockX(), chunkPos.getMaxBlockX()) - centered.x;
+                    double dz = Mth.clamp(centered.z, chunkPos.getMinBlockZ(), chunkPos.getMaxBlockZ()) - centered.z;
                     double xzDistSq = dx * dx + dz * dz;
                     if (xzDistSq > sq) return null;
 
                     double ry = Math.sqrt(sq - xzDistSq);
                     return scanChunkInternal(chunkPos, (int) Math.floor(centered.y - ry), (int) Math.floor(centered.y + ry));
                 })
-                .filter(pos -> centered.squaredDistanceTo(pos.x, pos.y, pos.z) <= sq)
+                .filter(pos -> centered.distanceToSqr(pos.x, pos.y, pos.z) <= sq)
                 .collect(Collectors.toList());
     }
 
@@ -249,7 +249,7 @@ public class WorldScanner {
      */
     public List<Pos3D> scanReachable() {
         if (mc.player == null) return new ArrayList<>();
-        return scanReachable(new Pos3D(mc.player.getEyePos()), getReach(), true);
+        return scanReachable(new Pos3D(mc.player.getEyePosition()), getReach(), true);
     }
 
     /**
@@ -260,7 +260,7 @@ public class WorldScanner {
      */
     public List<Pos3D> scanReachable(boolean strict) {
         if (mc.player == null) return new ArrayList<>();
-        return scanReachable(new Pos3D(mc.player.getEyePos()), getReach(), strict);
+        return scanReachable(new Pos3D(mc.player.getEyePosition()), getReach(), strict);
     }
 
     /**
@@ -301,7 +301,7 @@ public class WorldScanner {
     @Nullable
     public Pos3D scanClosestReachable() {
         if (mc.player == null) return null;
-        return scanClosestReachable(new Pos3D(mc.player.getEyePos()), getReach(), true);
+        return scanClosestReachable(new Pos3D(mc.player.getEyePosition()), getReach(), true);
     }
 
     /**
@@ -312,7 +312,7 @@ public class WorldScanner {
     @Nullable
     public Pos3D scanClosestReachable(boolean strict) {
         if (mc.player == null) return null;
-        return scanClosestReachable(new Pos3D(mc.player.getEyePos()), getReach(), strict);
+        return scanClosestReachable(new Pos3D(mc.player.getEyePosition()), getReach(), strict);
     }
 
     /**
@@ -322,15 +322,15 @@ public class WorldScanner {
      */
     @Nullable
     public Pos3D scanClosestReachable(Pos3D pos, double reach, boolean strict) {
-        Vec3d vec = pos.toMojangDoubleVector();
-        Vec3d centered = vec.subtract(0.5, 0.5, 0.5);
+        Vec3 vec = pos.toMojangDoubleVector();
+        Vec3 centered = vec.subtract(0.5, 0.5, 0.5);
         return scanReachableInternal(vec, reach, strict)
-                .min(Comparator.comparingDouble(p -> centered.squaredDistanceTo(p.x, p.y, p.z)))
+                .min(Comparator.comparingDouble(p -> centered.distanceToSqr(p.x, p.y, p.z)))
                 .orElse(null);
     }
 
     private double getReach() {
-        return mc.player != null ? mc.player.getBlockInteractionRange() : 4.5;
+        return mc.player != null ? mc.player.blockInteractionRange() : 4.5;
     }
 
     /**
@@ -338,12 +338,12 @@ public class WorldScanner {
      * @since 1.9.1
      */
     private Stream<Pos3D> scanCubeAreaInternal(int x1, int y1, int z1, int x2, int y2, int z2) {
-        int worldBottom = world.getBottomY();
+        int worldBottom = world.getMinY();
         int worldTop = world.getHeight() - 1;
         if (Math.min(y1, y2) > worldTop || Math.max(y1, y2) < worldBottom) return Stream.empty();
 
-        y1 = MathHelper.clamp(y1, worldBottom, worldTop);
-        y2 = MathHelper.clamp(y2, worldBottom, worldTop);
+        y1 = Mth.clamp(y1, worldBottom, worldTop);
+        y2 = Mth.clamp(y2, worldBottom, worldTop);
         int dx = (x2 - x1) >> 31 | 1;
         int dy = (y2 - y1) >> 31 | 1;
         int dz = (z2 - z1) >> 31 | 1;
@@ -352,7 +352,7 @@ public class WorldScanner {
         if (size < 255) { // honestly idk where's the threshold
             if (size == 0) return Stream.empty();
             List<Pos3D> list = new ArrayList<>();
-            BlockPos.Mutable pos = new BlockPos.Mutable();
+            BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
             for (int y = y1; (y < y2 ^ dy == -1) || y == y2; y += dy)
                 for (int z = z1; (z < z2 ^ dz == -1) || z == z2; z += dz)
                     for (int x = x1; (x < x2 ^ dx == -1) || x == x2; x += dx) {
@@ -369,7 +369,7 @@ public class WorldScanner {
         int maxX = dx == 1 ? x2 : x1;
         int maxY = dy == 1 ? y2 : y1;
         int maxZ = dz == 1 ? z2 : z1;
-        Stream<ChunkPos> stream = ChunkPos.stream(
+        Stream<ChunkPos> stream = ChunkPos.rangeClosed(
                 new ChunkPos(x1 >> 4, z1 >> 4),
                 new ChunkPos(x2 >> 4, z2 >> 4)
         );
@@ -386,7 +386,7 @@ public class WorldScanner {
     /**
      * @since 1.9.1
      */
-    private Stream<Pos3D> scanReachableInternal(Vec3d pos, double reach, boolean strict) {
+    private Stream<Pos3D> scanReachableInternal(Vec3 pos, double reach, boolean strict) {
         if (reach < 0) throw new IllegalArgumentException("reach cannot be negative!");
         double sq = reach * reach;
 
@@ -397,26 +397,26 @@ public class WorldScanner {
                 (int) Math.floor(pos.x + reach),
                 (int) Math.floor(pos.y + reach),
                 (int) Math.floor(pos.z + reach)
-        ).filter(p -> pos.squaredDistanceTo(
-                MathHelper.clamp(pos.x, p.x, p.x + 1),
-                MathHelper.clamp(pos.y, p.y, p.y + 1),
-                MathHelper.clamp(pos.z, p.z, p.z + 1)
+        ).filter(p -> pos.distanceToSqr(
+                Mth.clamp(pos.x, p.x, p.x + 1),
+                Mth.clamp(pos.y, p.y, p.y + 1),
+                Mth.clamp(pos.z, p.z, p.z + 1)
         ) <= sq);
 
         return !strict ? stream : stream.filter(p -> {
             BlockPos blockPos = p.toRawBlockPos();
-            VoxelShape vs = world.getBlockState(blockPos).getOutlineShape(world, blockPos);
+            VoxelShape vs = world.getBlockState(blockPos).getShape(world, blockPos);
             if (vs.isEmpty()) return false;
-            if (VoxelShapes.fullCube().equals(vs)) return true;
+            if (Shapes.block().equals(vs)) return true;
 
-            Vec3d relative = pos.subtract(p.x, p.y, p.z);
+            Vec3 relative = pos.subtract(p.x, p.y, p.z);
             boolean[] isInRange = {false};
-            vs.forEachBox((minX, minY, minZ, maxX, maxY, maxZ) -> {
+            vs.forAllBoxes((minX, minY, minZ, maxX, maxY, maxZ) -> {
                 if (isInRange[0]) return;
-                isInRange[0] = relative.squaredDistanceTo(
-                        MathHelper.clamp(relative.x, minX, maxX),
-                        MathHelper.clamp(relative.y, minY, maxY),
-                        MathHelper.clamp(relative.z, minZ, maxZ)
+                isInRange[0] = relative.distanceToSqr(
+                        Mth.clamp(relative.x, minX, maxX),
+                        Mth.clamp(relative.y, minY, maxY),
+                        Mth.clamp(relative.z, minZ, maxZ)
                 ) <= sq;
             });
             return isInRange[0];
@@ -433,7 +433,7 @@ public class WorldScanner {
     }
 
     private Stream<Pos3D> scanChunkInternal(ChunkPos pos, int minY, int maxY) {
-        if (!world.isChunkLoaded(pos.x, pos.z)) {
+        if (!world.hasChunk(pos.x, pos.z)) {
             return Stream.empty();
         }
 
@@ -443,7 +443,7 @@ public class WorldScanner {
         List<Pos3D> blocks = new ArrayList<>();
 
         streamChunkSections(world.getChunk(pos.x, pos.z), minY, maxY, (section, yOffset, isInFilter) -> {
-            PackedIntegerArray array = (PackedIntegerArray) ((IPalettedContainer<?>) section.getBlockStateContainer()).jsmacros_getData().jsmacros_getStorage();
+            SimpleBitStorage array = (SimpleBitStorage) ((IPalettedContainer<?>) section.getStates()).jsmacros_getData().jsmacros_getStorage();
             forEach(array, isInFilter, place -> blocks.add(new Pos3D(
                     chunkX + ((place & 255) & 15),
                     yOffset + (place >> 8),
@@ -486,13 +486,13 @@ public class WorldScanner {
         Object2IntOpenHashMap<String> result = new Object2IntOpenHashMap<>();
 
         getBestStream(chunkPositions).flatMap(pos -> {
-            if (!world.getChunkManager().isChunkLoaded(pos.x, pos.z)) {
+            if (!world.getChunkSource().hasChunk(pos.x, pos.z)) {
                 return Stream.empty();
             }
 
             Object2IntOpenHashMap<BlockState> blocks = new Object2IntOpenHashMap<>();
 
-            streamChunkSections(world.getChunk(pos.x, pos.z), (section, yOffset, isInFilter) -> count(section.getBlockStateContainer(), isInFilter, blocks::addTo));
+            streamChunkSections(world.getChunk(pos.x, pos.z), (section, yOffset, isInFilter) -> count(section.getStates(), isInFilter, blocks::addTo));
             return blocks.object2IntEntrySet().stream();
         }).forEach(blockStateEntry -> {
             BlockState state = blockStateEntry.getKey();
@@ -522,7 +522,7 @@ public class WorldScanner {
         boolean[] isInFilter = new boolean[palette.getSize()];
 
         for (int i = 0; i < palette.getSize(); i++) {
-            BlockState state = palette.get(i);
+            BlockState state = palette.valueFor(i);
             if (getFilterResult(state)) {
                 isInFilter[i] = true;
                 commonBlockFound = true;
@@ -554,24 +554,24 @@ public class WorldScanner {
         }
     }
 
-    private void streamChunkSections(Chunk chunk, TriConsumer<ChunkSection, Integer, boolean[]> consumer) {
+    private void streamChunkSections(ChunkAccess chunk, TriConsumer<LevelChunkSection, Integer, boolean[]> consumer) {
         streamChunkSections(chunk, Integer.MIN_VALUE, Integer.MAX_VALUE, consumer);
     }
 
-    private void streamChunkSections(Chunk chunk, int minY, int maxY, TriConsumer<ChunkSection, Integer, boolean[]> consumer) {
-        int yOffset = chunk.getBottomY() - 16;
+    private void streamChunkSections(ChunkAccess chunk, int minY, int maxY, TriConsumer<LevelChunkSection, Integer, boolean[]> consumer) {
+        int yOffset = chunk.getMinY() - 16;
         minY &= ~15;
-        for (ChunkSection section : chunk.getSectionArray()) {
+        for (LevelChunkSection section : chunk.getSections()) {
             yOffset += 16;
             if (yOffset < minY) continue;
             if (yOffset > maxY) break;
-            if (section == null || section.isEmpty()) {
+            if (section == null || section.hasOnlyAir()) {
                 continue;
             }
 
-            PalettedContainer<BlockState> sectionContainer = section.getBlockStateContainer();
+            PalettedContainer<BlockState> sectionContainer = section.getStates();
             //this won't work if the PaletteStorage is of the type EmptyPaletteStorage
-            if (!(((IPalettedContainer<?>) sectionContainer).jsmacros_getData().jsmacros_getStorage() instanceof PackedIntegerArray)) {
+            if (!(((IPalettedContainer<?>) sectionContainer).jsmacros_getData().jsmacros_getStorage() instanceof SimpleBitStorage)) {
                 continue;
             }
 
@@ -606,15 +606,15 @@ public class WorldScanner {
         }
     }
 
-    private static void forEach(PackedIntegerArray array, boolean[] isInFilter, IntConsumer action) {
+    private static void forEach(SimpleBitStorage array, boolean[] isInFilter, IntConsumer action) {
         int counter = 0;
 
         int elementsPerLong = ((IPackedIntegerArray) array).jsmacros_getElementsPerLong();
         long maxValue = ((IPackedIntegerArray) array).jsmacros_getMaxValue();
-        int elementBits = array.getElementBits();
+        int elementBits = array.getBits();
         int size = array.getSize();
 
-        for (long datum : array.getData()) {
+        for (long datum : array.getRaw()) {
             long row = datum;
             if (row == 0) {
                 counter += elementsPerLong;
@@ -634,20 +634,20 @@ public class WorldScanner {
         }
     }
 
-    private static void count(PalettedContainer<BlockState> container, boolean[] isInFilter, PalettedContainer.Counter<BlockState> counter) {
+    private static void count(PalettedContainer<BlockState> container, boolean[] isInFilter, PalettedContainer.CountConsumer<BlockState> counter) {
         IPalettedContainerData<BlockState> data = ((IPalettedContainer<BlockState>) container).jsmacros_getData();
         Palette<BlockState> palette = data.jsmacros_getPalette();
-        PaletteStorage storage = data.jsmacros_getStorage();
+        BitStorage storage = data.jsmacros_getStorage();
 
         int[] count = new int[palette.getSize()];
 
         if (palette.getSize() == 1) {
-            counter.accept(palette.get(0), storage.getSize());
+            counter.accept(palette.valueFor(0), storage.getSize());
         } else {
-            storage.forEach(key -> count[key]++);
+            storage.getAll(key -> count[key]++);
             for (int idx = 0; idx < count.length; idx++) {
                 if (isInFilter[idx]) {
-                    counter.accept(palette.get(idx), count[idx]);
+                    counter.accept(palette.valueFor(idx), count[idx]);
                 }
             }
         }

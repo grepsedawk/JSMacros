@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.helper;
 
-import net.minecraft.util.DyeColor;
+import net.minecraft.world.item.DyeColor;
 import xyz.wagyourtail.doclet.DocletReplaceReturn;
 import xyz.wagyourtail.jsmacros.core.helpers.BaseHelper;
 
@@ -21,7 +21,7 @@ public class DyeColorHelper extends BaseHelper<DyeColor> {
      */
     @DocletReplaceReturn("DyeColorName")
     public String getName() {
-        return base.getId();
+        return base.getName();
     }
 
     /**
@@ -29,7 +29,7 @@ public class DyeColorHelper extends BaseHelper<DyeColor> {
      * @since 1.8.4
      */
     public int getId() {
-        return base.getIndex();
+        return base.getId();
     }
 
     /**
@@ -37,7 +37,7 @@ public class DyeColorHelper extends BaseHelper<DyeColor> {
      * @since 1.8.4
      */
     public int getColorValue() {
-        return base.getEntityColor();
+        return base.getTextureDiffuseColor();
     }
 
     /**
@@ -53,7 +53,7 @@ public class DyeColorHelper extends BaseHelper<DyeColor> {
      * @since 1.8.4
      */
     public int getSignColor() {
-        return base.getSignColor();
+        return base.getTextColor();
     }
 
 }

@@ -1,15 +1,15 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive;
 
-import net.minecraft.entity.passive.BeeEntity;
+import net.minecraft.world.entity.animal.Bee;
 
 /**
  * @author Etheradon
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class BeeEntityHelper extends AnimalEntityHelper<BeeEntity> {
+public class BeeEntityHelper extends AnimalEntityHelper<Bee> {
 
-    public BeeEntityHelper(BeeEntity base) {
+    public BeeEntityHelper(Bee base) {
         super(base);
     }
 
@@ -26,7 +26,7 @@ public class BeeEntityHelper extends AnimalEntityHelper<BeeEntity> {
      * @since 1.8.4
      */
     public boolean isAngry() {
-        return base.hasAngerTime();
+        return base.isAngry();
     }
 
     /**

@@ -2,12 +2,12 @@ package xyz.wagyourtail.jsmacros.client.api.classes.inventory;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import net.minecraft.client.gui.screen.ingame.AbstractFurnaceScreen;
-import net.minecraft.item.Item;
-import net.minecraft.registry.Registries;
-import net.minecraft.screen.PropertyDelegate;
+import net.minecraft.client.gui.screens.inventory.AbstractFurnaceScreen;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.item.Item;
 import xyz.wagyourtail.jsmacros.client.api.helper.inventory.ItemStackHelper;
-import xyz.wagyourtail.jsmacros.client.mixin.access.MixinAbstractFurnaceScreenHandler;
+import xyz.wagyourtail.jsmacros.client.mixin.access.MixinAbstractFurnaceMenu;
 
 import java.util.Map;
 
@@ -24,7 +24,7 @@ public class FurnaceInventory extends RecipeInventory<AbstractFurnaceScreen<?>> 
 
     @Override
     public ItemStackHelper getOutput() {
-        return new ItemStackHelper(inventory.getScreenHandler().getOutputSlot().getStack());
+        return new ItemStackHelper(inventory.getMenu().getResultSlot().getItem());
     }
 
     /**
@@ -74,7 +74,7 @@ public class FurnaceInventory extends RecipeInventory<AbstractFurnaceScreen<?>> 
      * @since 1.8.4
      */
     public boolean canUseAsFuel(ItemStackHelper stack) {
-        return ((MixinAbstractFurnaceScreenHandler) inventory.getScreenHandler()).invokeIsFuel(stack.getRaw());
+        return ((MixinAbstractFurnaceMenu) inventory.getMenu()).invokeIsFuel(stack.getRaw());
     }
 
     /**
@@ -83,7 +83,7 @@ public class FurnaceInventory extends RecipeInventory<AbstractFurnaceScreen<?>> 
      * @since 1.8.4
      */
     public boolean isSmeltable(ItemStackHelper stack) {
-        return ((MixinAbstractFurnaceScreenHandler) inventory.getScreenHandler()).invokeIsSmeltable(stack.getRaw());
+        return ((MixinAbstractFurnaceMenu) inventory.getMenu()).invokeCanSmelt(stack.getRaw());
     }
 
     /**
@@ -92,8 +92,8 @@ public class FurnaceInventory extends RecipeInventory<AbstractFurnaceScreen<?>> 
      */
     public Map<String, Integer> getFuelValues() {
         Object2IntMap<String> fuelMap = new Object2IntOpenHashMap<>();
-        for (Map.Entry<Item, Integer> entry : mc.world.getFuelRegistry().fuelValues.entrySet()) {
-            fuelMap.put(Registries.ITEM.getId(entry.getKey()).toString(), entry.getValue().intValue());
+        for (Map.Entry<Item, Integer> entry : mc.level.fuelValues().values.entrySet()) {
+            fuelMap.put(BuiltInRegistries.ITEM.getKey(entry.getKey()).toString(), entry.getValue().intValue());
         }
         return fuelMap;
     }
@@ -140,8 +140,8 @@ public class FurnaceInventory extends RecipeInventory<AbstractFurnaceScreen<?>> 
         return getPropertyDelegate().get(1);
     }
 
-    private PropertyDelegate getPropertyDelegate() {
-        return ((MixinAbstractFurnaceScreenHandler) inventory.getScreenHandler()).getPropertyDelegate();
+    private ContainerData getPropertyDelegate() {
+        return ((MixinAbstractFurnaceMenu) inventory.getMenu()).getData();
     }
 
     /**
@@ -149,7 +149,7 @@ public class FurnaceInventory extends RecipeInventory<AbstractFurnaceScreen<?>> 
      * @since 1.8.4
      */
     public boolean isBurning() {
-        return inventory.getScreenHandler().isBurning();
+        return inventory.getMenu().isLit();
     }
 
     @Override

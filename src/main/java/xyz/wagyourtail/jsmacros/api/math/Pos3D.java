@@ -1,7 +1,7 @@
 package xyz.wagyourtail.jsmacros.api.math;
 
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -14,8 +14,8 @@ public class Pos3D extends Pos2D {
     public static final Pos3D ZERO = new Pos3D(0, 0, 0);
     public double z;
 
-    public Pos3D(Vec3d vec) {
-        this(vec.getX(), vec.getY(), vec.getZ());
+    public Pos3D(Vec3 vec) {
+        this(vec.x(), vec.y(), vec.z());
     }
 
     public Pos3D(double x, double y, double z) {
@@ -192,15 +192,15 @@ public class Pos3D extends Pos2D {
      * @since 1.8.0
      */
     public BlockPos toRawBlockPos() {
-        return BlockPos.ofFloored(x, y, z);
+        return BlockPos.containing(x, y, z);
     }
 
     /**
      * @return the raw minecraft double vector with the same coordinates as this position.
      * @since 1.8.4
      */
-    public Vec3d toMojangDoubleVector() {
-        return new Vec3d(x, y, z);
+    public Vec3 toMojangDoubleVector() {
+        return new Vec3(x, y, z);
     }
 
     @Override

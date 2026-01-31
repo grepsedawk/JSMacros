@@ -1,8 +1,8 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.fluid.FluidState;
-import net.minecraft.registry.Registries;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.level.material.FluidState;
 import xyz.wagyourtail.jsmacros.api.math.Pos3D;
 
 /**
@@ -21,7 +21,7 @@ public class FluidStateHelper extends StateHelper<FluidState> {
      * @since 1.8.4
      */
     public String getId() {
-        return Registries.FLUID.getId(base.getFluid()).toString();
+        return BuiltInRegistries.FLUID.getKey(base.getType()).toString();
     }
 
     /**
@@ -29,7 +29,7 @@ public class FluidStateHelper extends StateHelper<FluidState> {
      * @since 1.8.4
      */
     public boolean isStill() {
-        return base.isStill();
+        return base.isSource();
     }
 
     /**
@@ -46,7 +46,7 @@ public class FluidStateHelper extends StateHelper<FluidState> {
      * @since 1.8.4
      */
     public float getHeight() {
-        return base.getHeight();
+        return base.getOwnHeight();
     }
 
     /**
@@ -54,7 +54,7 @@ public class FluidStateHelper extends StateHelper<FluidState> {
      * @since 1.8.4
      */
     public int getLevel() {
-        return base.getLevel();
+        return base.getAmount();
     }
 
     /**
@@ -63,7 +63,7 @@ public class FluidStateHelper extends StateHelper<FluidState> {
      * @since 1.8.4
      */
     public boolean hasRandomTicks() {
-        return base.hasRandomTicks();
+        return base.isRandomlyTicking();
     }
 
     /**
@@ -72,7 +72,7 @@ public class FluidStateHelper extends StateHelper<FluidState> {
      * @since 1.8.4
      */
     public Pos3D getVelocity(BlockPosHelper pos) {
-        return new Pos3D(base.getVelocity(MinecraftClient.getInstance().world, pos.getRaw()));
+        return new Pos3D(base.getFlow(Minecraft.getInstance().level, pos.getRaw()));
     }
 
     /**
@@ -80,7 +80,7 @@ public class FluidStateHelper extends StateHelper<FluidState> {
      * @since 1.8.4
      */
     public BlockStateHelper getBlockState() {
-        return new BlockStateHelper(base.getBlockState());
+        return new BlockStateHelper(base.createLegacyBlock());
     }
 
     /**
@@ -88,7 +88,7 @@ public class FluidStateHelper extends StateHelper<FluidState> {
      * @since 1.8.4
      */
     public float getBlastResistance() {
-        return base.getBlastResistance();
+        return base.getExplosionResistance();
     }
 
     @Override

@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity;
 
-import net.minecraft.entity.player.PlayerAbilities;
+import net.minecraft.world.entity.player.Abilities;
 import xyz.wagyourtail.jsmacros.core.helpers.BaseHelper;
 
 /**
@@ -8,9 +8,9 @@ import xyz.wagyourtail.jsmacros.core.helpers.BaseHelper;
  * @since 1.0.3
  */
 @SuppressWarnings("unused")
-public class PlayerAbilitiesHelper extends BaseHelper<PlayerAbilities> {
+public class PlayerAbilitiesHelper extends BaseHelper<Abilities> {
 
-    public PlayerAbilitiesHelper(PlayerAbilities a) {
+    public PlayerAbilitiesHelper(Abilities a) {
         super(a);
     }
 
@@ -35,7 +35,7 @@ public class PlayerAbilitiesHelper extends BaseHelper<PlayerAbilities> {
      * @since 1.0.3
      */
     public boolean getAllowFlying() {
-        return base.allowFlying;
+        return base.mayfly;
     }
 
     /**
@@ -43,7 +43,7 @@ public class PlayerAbilitiesHelper extends BaseHelper<PlayerAbilities> {
      * @since 1.0.3
      */
     public boolean getCreativeMode() {
-        return base.creativeMode;
+        return base.instabuild;
     }
 
     /**
@@ -55,7 +55,7 @@ public class PlayerAbilitiesHelper extends BaseHelper<PlayerAbilities> {
      * @since 1.8.4
      */
     public boolean canModifyWorld() {
-        return base.allowModifyWorld;
+        return base.mayBuild;
     }
 
     /**
@@ -78,7 +78,7 @@ public class PlayerAbilitiesHelper extends BaseHelper<PlayerAbilities> {
      * @since 1.0.3
      */
     public PlayerAbilitiesHelper setAllowFlying(boolean b) {
-        base.allowFlying = b;
+        base.mayfly = b;
         return this;
     }
 
@@ -87,7 +87,7 @@ public class PlayerAbilitiesHelper extends BaseHelper<PlayerAbilities> {
      * @since 1.0.3
      */
     public float getFlySpeed() {
-        return base.getFlySpeed();
+        return base.getFlyingSpeed();
     }
 
     /**
@@ -98,7 +98,7 @@ public class PlayerAbilitiesHelper extends BaseHelper<PlayerAbilities> {
      * @since 1.0.3
      */
     public PlayerAbilitiesHelper setFlySpeed(double flySpeed) {
-        base.setFlySpeed((float) flySpeed);
+        base.setFlyingSpeed((float) flySpeed);
         return this;
     }
 
@@ -107,7 +107,7 @@ public class PlayerAbilitiesHelper extends BaseHelper<PlayerAbilities> {
      * @since 1.8.4
      */
     public float getWalkSpeed() {
-        return base.getWalkSpeed();
+        return base.getWalkingSpeed();
     }
 
     /**
@@ -116,7 +116,7 @@ public class PlayerAbilitiesHelper extends BaseHelper<PlayerAbilities> {
      * @since 1.8.4
      */
     public PlayerAbilitiesHelper setWalkSpeed(double speed) {
-        base.setWalkSpeed((float) speed);
+        base.setWalkingSpeed((float) speed);
         return this;
     }
 
@@ -124,12 +124,12 @@ public class PlayerAbilitiesHelper extends BaseHelper<PlayerAbilities> {
     public String toString() {
         return "PlayerAbilitiesHelper:{"
                 + "\"invulnerable\": " + base.invulnerable
-                + ", \"creativeMode\": " + base.creativeMode
-                + ", \"modifyWorld\": " + base.allowModifyWorld
+                + ", \"creativeMode\": " + base.instabuild
+                + ", \"modifyWorld\": " + base.mayBuild
                 + ", \"flying\": " + base.flying
-                + ", \"allowFlying\": " + base.allowFlying
-                + ", \"flySpeed\": " + base.getFlySpeed()
-                + ", \"walkSpeed\": " + base.getWalkSpeed()
+                + ", \"allowFlying\": " + base.mayfly
+                + ", \"flySpeed\": " + base.getFlyingSpeed()
+                + ", \"walkSpeed\": " + base.getWalkingSpeed()
                 + "}";
     }
 

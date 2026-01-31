@@ -1,12 +1,12 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.screen;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.widget.TextFieldWidget;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.components.EditBox;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.jsmacros.client.JsMacrosClient;
 import xyz.wagyourtail.jsmacros.client.api.classes.render.IScreen;
-import xyz.wagyourtail.jsmacros.client.mixin.access.MixinTextFieldWidget;
+import xyz.wagyourtail.jsmacros.client.mixin.access.MixinEditBox;
 import xyz.wagyourtail.jsmacros.core.MethodWrapper;
 
 import java.util.Objects;
@@ -18,12 +18,12 @@ import java.util.concurrent.atomic.AtomicReference;
  * @since 1.0.5
  */
 @SuppressWarnings("unused")
-public class TextFieldWidgetHelper extends ClickableWidgetHelper<TextFieldWidgetHelper, TextFieldWidget> {
-    public TextFieldWidgetHelper(TextFieldWidget t) {
+public class TextFieldWidgetHelper extends ClickableWidgetHelper<TextFieldWidgetHelper, EditBox> {
+    public TextFieldWidgetHelper(EditBox t) {
         super(t);
     }
 
-    public TextFieldWidgetHelper(TextFieldWidget t, int zIndex) {
+    public TextFieldWidgetHelper(EditBox t, int zIndex) {
         super(t, zIndex);
     }
 
@@ -32,7 +32,7 @@ public class TextFieldWidgetHelper extends ClickableWidgetHelper<TextFieldWidget
      * @since 1.0.5
      */
     public String getText() {
-        return base.getText();
+        return base.getValue();
     }
 
     /**
@@ -56,11 +56,11 @@ public class TextFieldWidgetHelper extends ClickableWidgetHelper<TextFieldWidget
      */
     public TextFieldWidgetHelper setText(String text, boolean await) throws InterruptedException {
         if (JsMacrosClient.clientCore.profile.checkJoinedThreadStack()) {
-            base.setText(text);
+            base.setValue(text);
         } else {
             final Semaphore waiter = new Semaphore(await ? 0 : 1);
-            MinecraftClient.getInstance().execute(() -> {
-                base.setText(text);
+            Minecraft.getInstance().execute(() -> {
+                base.setValue(text);
                 waiter.release();
             });
             waiter.acquire();
@@ -74,7 +74,7 @@ public class TextFieldWidgetHelper extends ClickableWidgetHelper<TextFieldWidget
      * @since 1.0.5
      */
     public TextFieldWidgetHelper setEditableColor(int color) {
-        base.setEditableColor(color);
+        base.setTextColor(color);
         return this;
     }
 
@@ -93,7 +93,7 @@ public class TextFieldWidgetHelper extends ClickableWidgetHelper<TextFieldWidget
      * @since 1.8.4
      */
     public boolean isEditable() {
-        return ((MixinTextFieldWidget) base).getEditable();
+        return ((MixinEditBox) base).getIsEditable();
     }
 
     /**
@@ -102,7 +102,7 @@ public class TextFieldWidgetHelper extends ClickableWidgetHelper<TextFieldWidget
      * @since 1.0.5
      */
     public TextFieldWidgetHelper setUneditableColor(int color) {
-        base.setUneditableColor(color);
+        base.setTextColorUneditable(color);
         return this;
     }
 
@@ -111,7 +111,7 @@ public class TextFieldWidgetHelper extends ClickableWidgetHelper<TextFieldWidget
      * @since 1.8.4
      */
     public String getSelectedText() {
-        return base.getSelectedText();
+        return base.getHighlighted();
     }
 
     /**
@@ -129,7 +129,7 @@ public class TextFieldWidgetHelper extends ClickableWidgetHelper<TextFieldWidget
      * @since 1.8.4
      */
     public int getMaxLength() {
-        return ((MixinTextFieldWidget) base).getMaxLength();
+        return ((MixinEditBox) base).getMaxLength();
     }
 
     /**
@@ -143,8 +143,8 @@ public class TextFieldWidgetHelper extends ClickableWidgetHelper<TextFieldWidget
     }
 
     public TextFieldWidgetHelper setSelection(int start, int end) {
-        base.setSelectionStart(start);
-        base.setSelectionEnd(end);
+        base.setCursorPosition(start);
+        base.setHighlightPos(end);
         return this;
     }
 
@@ -154,7 +154,7 @@ public class TextFieldWidgetHelper extends ClickableWidgetHelper<TextFieldWidget
      * @since 1.8.4
      */
     public TextFieldWidgetHelper setTextPredicate(MethodWrapper<String, ?, ?, ?> predicate) {
-        base.setTextPredicate(predicate);
+        base.setFilter(predicate);
         return this;
     }
 
@@ -163,7 +163,7 @@ public class TextFieldWidgetHelper extends ClickableWidgetHelper<TextFieldWidget
      * @since 1.8.4
      */
     public TextFieldWidgetHelper resetTextPredicate() {
-        base.setTextPredicate(Objects::nonNull);
+        base.setFilter(Objects::nonNull);
         return this;
     }
 
@@ -173,7 +173,7 @@ public class TextFieldWidgetHelper extends ClickableWidgetHelper<TextFieldWidget
      * @since 1.8.4
      */
     public TextFieldWidgetHelper setCursorPosition(int position) {
-        base.setCursor(position, false);
+        base.moveCursorTo(position, false);
         return this;
     }
 
@@ -182,7 +182,7 @@ public class TextFieldWidgetHelper extends ClickableWidgetHelper<TextFieldWidget
      * @since 1.9.0
      */
     public TextFieldWidgetHelper setCursorPosition(int position, boolean shift) {
-        base.setCursor(position, shift);
+        base.moveCursorTo(position, shift);
         return this;
     }
 
@@ -191,7 +191,7 @@ public class TextFieldWidgetHelper extends ClickableWidgetHelper<TextFieldWidget
      * @since 1.8.4
      */
     public TextFieldWidgetHelper setCursorToStart() {
-        base.setCursorToStart(false);
+        base.moveCursorToStart(false);
         return this;
     }
 
@@ -200,7 +200,7 @@ public class TextFieldWidgetHelper extends ClickableWidgetHelper<TextFieldWidget
      * @since 1.9.0
      */
     public TextFieldWidgetHelper setCursorToStart(boolean shift) {
-        base.setCursorToStart(shift);
+        base.moveCursorToStart(shift);
         return this;
     }
 
@@ -209,7 +209,7 @@ public class TextFieldWidgetHelper extends ClickableWidgetHelper<TextFieldWidget
      * @since 1.8.4
      */
     public TextFieldWidgetHelper setCursorToEnd() {
-        base.setCursorToEnd(false);
+        base.moveCursorToEnd(false);
         return this;
     }
 
@@ -218,27 +218,27 @@ public class TextFieldWidgetHelper extends ClickableWidgetHelper<TextFieldWidget
      * @since 1.9.0
      */
     public TextFieldWidgetHelper setCursorToEnd(boolean shift) {
-        base.setCursorToEnd(shift);
+        base.moveCursorToEnd(shift);
         return this;
     }
 
     @Override
     public String toString() {
-        return String.format("TextFieldWidgetHelper:{\"text\": \"%s\"}", base.getText());
+        return String.format("TextFieldWidgetHelper:{\"text\": \"%s\"}", base.getValue());
     }
 
     /**
      * @author Etheradon
      * @since 1.8.4
      */
-    public static class TextFieldBuilder extends AbstractWidgetBuilder<TextFieldBuilder, TextFieldWidget, TextFieldWidgetHelper> {
+    public static class TextFieldBuilder extends AbstractWidgetBuilder<TextFieldBuilder, EditBox, TextFieldWidgetHelper> {
 
         private String suggestion = "";
         @Nullable
         private MethodWrapper<String, IScreen, Object, ?> action;
-        private final TextRenderer textRenderer;
+        private final Font textRenderer;
 
-        public TextFieldBuilder(IScreen screen, TextRenderer textRenderer) {
+        public TextFieldBuilder(IScreen screen, Font textRenderer) {
             super(screen);
             this.textRenderer = textRenderer;
         }
@@ -283,8 +283,8 @@ public class TextFieldWidgetHelper extends ClickableWidgetHelper<TextFieldWidget
         @Override
         public TextFieldWidgetHelper createWidget() {
             AtomicReference<TextFieldWidgetHelper> b = new AtomicReference<>(null);
-            TextFieldWidget textField = new TextFieldWidget(textRenderer, getX(), getY(), getWidth(), getHeight(), getMessage().getRaw());
-            textField.setChangedListener(text -> {
+            EditBox textField = new EditBox(textRenderer, getX(), getY(), getWidth(), getHeight(), getMessage().getRaw());
+            textField.setResponder(text -> {
                 try {
                     if (action != null) {
                         action.accept(text, screen);

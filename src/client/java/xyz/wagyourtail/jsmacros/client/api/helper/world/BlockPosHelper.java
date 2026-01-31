@@ -1,7 +1,7 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world;
 
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import xyz.wagyourtail.jsmacros.api.math.Pos3D;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.EntityHelper;
 import xyz.wagyourtail.jsmacros.core.helpers.BaseHelper;
@@ -153,7 +153,7 @@ public class BlockPosHelper extends BaseHelper<BlockPos> {
      * @since 1.6.5
      */
     public BlockPosHelper offset(String direction) {
-        return new BlockPosHelper(base.offset(Direction.byId(direction)));
+        return new BlockPosHelper(base.relative(Direction.byName(direction)));
     }
 
     /**
@@ -163,7 +163,7 @@ public class BlockPosHelper extends BaseHelper<BlockPos> {
      * @since 1.6.5
      */
     public BlockPosHelper offset(String direction, int distance) {
-        return new BlockPosHelper(base.offset(Direction.byId(direction), distance));
+        return new BlockPosHelper(base.relative(Direction.byName(direction), distance));
     }
 
     /**
@@ -199,7 +199,7 @@ public class BlockPosHelper extends BaseHelper<BlockPos> {
      * @since 1.8.4
      */
     public double distanceTo(EntityHelper<?> entity) {
-        return Math.sqrt(base.getSquaredDistance(entity.getRaw().getPos()));
+        return Math.sqrt(base.distToCenterSqr(entity.getRaw().position()));
     }
 
     /**
@@ -208,7 +208,7 @@ public class BlockPosHelper extends BaseHelper<BlockPos> {
      * @since 1.8.4
      */
     public double distanceTo(BlockPosHelper pos) {
-        return Math.sqrt(base.getSquaredDistance(pos.base));
+        return Math.sqrt(base.distSqr(pos.base));
     }
 
     /**
@@ -217,7 +217,7 @@ public class BlockPosHelper extends BaseHelper<BlockPos> {
      * @since 1.8.4
      */
     public double distanceTo(Pos3D pos) {
-        return Math.sqrt(base.getSquaredDistance(pos.getX(), pos.getY(), pos.getZ()));
+        return Math.sqrt(base.distToLowCornerSqr(pos.getX(), pos.getY(), pos.getZ()));
     }
 
     /**
@@ -228,7 +228,7 @@ public class BlockPosHelper extends BaseHelper<BlockPos> {
      * @since 1.8.4
      */
     public double distanceTo(double x, double y, double z) {
-        return Math.sqrt(base.getSquaredDistance(x, y, z));
+        return Math.sqrt(base.distToLowCornerSqr(x, y, z));
     }
 
     /**

@@ -1,8 +1,8 @@
 package xyz.wagyourtail.jsmacros.client.gui.containers;
 
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.text.Text;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import xyz.wagyourtail.jsmacros.client.JsMacros;
 import xyz.wagyourtail.jsmacros.client.gui.screens.CancelScreen;
@@ -16,7 +16,7 @@ public class RunningContextContainer extends MultiElementContainer<CancelScreen>
     public BaseScriptContext<?> t;
     public boolean service;
 
-    public RunningContextContainer(int x, int y, int width, int height, TextRenderer textRenderer, CancelScreen parent, BaseScriptContext<?> t) {
+    public RunningContextContainer(int x, int y, int width, int height, Font textRenderer, CancelScreen parent, BaseScriptContext<?> t) {
         super(x, y, width, height, textRenderer, parent);
         this.t = t;
         this.service = this.t.getTriggeringEvent() instanceof EventService;
@@ -26,7 +26,7 @@ public class RunningContextContainer extends MultiElementContainer<CancelScreen>
     @Override
     public void init() {
         super.init();
-        cancelButton = this.addDrawableChild(new Button(x + 1, y + 1, height - 2, height - 2, textRenderer, 0, 0xFF000000, 0x7FFFFFFF, 0xFFFFFFFF, Text.literal("X"), (btn) -> {
+        cancelButton = this.addDrawableChild(new Button(x + 1, y + 1, height - 2, height - 2, textRenderer, 0, 0xFF000000, 0x7FFFFFFF, 0xFFFFFFFF, Component.literal("X"), (btn) -> {
             BaseScriptContext<?> ctx = t;
             if (ctx != null && !ctx.isContextClosed()) {
                 ctx.closeContext();
@@ -42,15 +42,15 @@ public class RunningContextContainer extends MultiElementContainer<CancelScreen>
     }
 
     @Override
-    public void render(DrawContext drawContext, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphics drawContext, int mouseX, int mouseY, float delta) {
         try {
             if (t != null) {
                 if (t.isContextClosed()) {
                     JsMacros.LOGGER.warn("Closed context {} was still in list", t.getMainThread().getName());
                     parent.removeContainer(this);
                 } else if (this.visible) {
-                    drawContext.drawCenteredTextWithShadow(textRenderer, textRenderer.trimToWidth(service ? ((EventService) t.getTriggeringEvent()).serviceName : t.getMainThread().getName(), width - 105 - height), x + (width - 105 - height) / 2 + height + 4, y + 2, 0xFFFFFFFF);
-                    drawContext.drawCenteredTextWithShadow(textRenderer, textRenderer.trimToWidth(DurationFormatUtils.formatDurationHMS(System.currentTimeMillis() - t.startTime), 100), x + width - 50 + height, y + 2, 0xFFFFFFFF);
+                    drawContext.drawCenteredString(textRenderer, textRenderer.plainSubstrByWidth(service ? ((EventService) t.getTriggeringEvent()).serviceName : t.getMainThread().getName(), width - 105 - height), x + (width - 105 - height) / 2 + height + 4, y + 2, 0xFFFFFFFF);
+                    drawContext.drawCenteredString(textRenderer, textRenderer.plainSubstrByWidth(DurationFormatUtils.formatDurationHMS(System.currentTimeMillis() - t.startTime), 100), x + width - 50 + height, y + 2, 0xFFFFFFFF);
                     drawContext.fill(x + width - 101, y, x + width - 100, y + height, 0xFFFFFFFF);
                     drawContext.fill(x + height, y, x + height + 1, y + height, 0xFFFFFFFF);
                     // border

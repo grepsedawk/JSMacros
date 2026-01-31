@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.boss;
 
-import net.minecraft.entity.boss.WitherEntity;
+import net.minecraft.world.entity.boss.wither.WitherBoss;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.MobEntityHelper;
 
 /**
@@ -8,9 +8,9 @@ import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.MobEntityHelper;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class WitherEntityHelper extends MobEntityHelper<WitherEntity> {
+public class WitherEntityHelper extends MobEntityHelper<WitherBoss> {
 
-    public WitherEntityHelper(WitherEntity base) {
+    public WitherEntityHelper(WitherBoss base) {
         super(base);
     }
 
@@ -19,7 +19,7 @@ public class WitherEntityHelper extends MobEntityHelper<WitherEntity> {
      * @since 1.8.4
      */
     public int getRemainingInvulnerableTime() {
-        return base.getInvulnerableTimer();
+        return base.getInvulnerableTicks();
     }
 
     /**
@@ -29,7 +29,7 @@ public class WitherEntityHelper extends MobEntityHelper<WitherEntity> {
      * @since 1.8.4
      */
     public boolean isInvulnerable() {
-        return base.getInvulnerableTimer() > 0;
+        return base.getInvulnerableTicks() > 0;
     }
 
     /**
@@ -48,7 +48,7 @@ public class WitherEntityHelper extends MobEntityHelper<WitherEntity> {
      * @since 1.8.4
      */
     public boolean isSecondPhase() {
-        return base.shouldRenderOverlay();
+        return base.isPowered();
     }
 
 }

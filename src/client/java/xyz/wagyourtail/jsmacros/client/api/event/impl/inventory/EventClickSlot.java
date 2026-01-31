@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.event.impl.inventory;
 
-import net.minecraft.client.gui.screen.ingame.HandledScreen;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import xyz.wagyourtail.doclet.DocletReplaceReturn;
 import xyz.wagyourtail.jsmacros.client.JsMacrosClient;
 import xyz.wagyourtail.jsmacros.client.api.classes.inventory.Inventory;
@@ -15,7 +15,7 @@ import xyz.wagyourtail.jsmacros.core.event.Event;
  */
 @Event(value = "ClickSlot", cancellable = true)
 public class EventClickSlot extends BaseEvent {
-    protected final HandledScreen<?> screen;
+    protected final AbstractContainerScreen<?> screen;
     /**
      * <a href="https://wiki.vg/Protocol#Click_Window" target="_blank">https://wiki.vg/Protocol#Click_Window</a>
      */
@@ -24,7 +24,7 @@ public class EventClickSlot extends BaseEvent {
     public final int button;
     public final int slot;
 
-    public EventClickSlot(HandledScreen<?> screen, int mode, int button, int slot) {
+    public EventClickSlot(AbstractContainerScreen<?> screen, int mode, int button, int slot) {
         super(JsMacrosClient.clientCore);
         this.screen = screen;
         this.mode = mode;

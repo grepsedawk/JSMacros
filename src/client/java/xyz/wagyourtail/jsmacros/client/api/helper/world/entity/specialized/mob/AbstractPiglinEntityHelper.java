@@ -1,15 +1,15 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.mob;
 
-import net.minecraft.entity.mob.AbstractPiglinEntity;
+import net.minecraft.world.entity.monster.piglin.AbstractPiglin;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.MobEntityHelper;
-import xyz.wagyourtail.jsmacros.client.mixin.access.MixinAbstractPiglinEntity;
+import xyz.wagyourtail.jsmacros.client.mixin.access.MixinAbstractPiglin;
 
 /**
  * @author Etheradon
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class AbstractPiglinEntityHelper<T extends AbstractPiglinEntity> extends MobEntityHelper<T> {
+public class AbstractPiglinEntityHelper<T extends AbstractPiglin> extends MobEntityHelper<T> {
 
     public AbstractPiglinEntityHelper(T base) {
         super(base);
@@ -21,7 +21,7 @@ public class AbstractPiglinEntityHelper<T extends AbstractPiglinEntity> extends 
      * @since 1.8.4
      */
     public boolean canBeZombified() {
-        return !((MixinAbstractPiglinEntity) base).invokeIsImmuneToZombification();
+        return !((MixinAbstractPiglin) base).invokeIsImmuneToZombification();
     }
 
 }

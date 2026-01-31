@@ -1,16 +1,39 @@
 package xyz.wagyourtail.jsmacros.client.api.classes.inventory;
 
 import com.mojang.brigadier.StringReader;
-import com.mojang.brigadier.arguments.*;
+import com.mojang.brigadier.arguments.ArgumentType;
+import com.mojang.brigadier.arguments.BoolArgumentType;
+import com.mojang.brigadier.arguments.DoubleArgumentType;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.arguments.LongArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
-import net.minecraft.command.CommandRegistryAccess;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.argument.*;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.commands.arguments.AngleArgument;
+import net.minecraft.commands.arguments.ColorArgument;
+import net.minecraft.commands.arguments.ComponentArgument;
+import net.minecraft.commands.arguments.CompoundTagArgument;
+import net.minecraft.commands.arguments.DimensionArgument;
+import net.minecraft.commands.arguments.NbtTagArgument;
+import net.minecraft.commands.arguments.ParticleArgument;
+import net.minecraft.commands.arguments.RangeArgument;
+import net.minecraft.commands.arguments.ResourceLocationArgument;
+import net.minecraft.commands.arguments.SlotArgument;
+import net.minecraft.commands.arguments.TimeArgument;
+import net.minecraft.commands.arguments.UuidArgument;
+import net.minecraft.commands.arguments.blocks.BlockPredicateArgument;
+import net.minecraft.commands.arguments.blocks.BlockStateArgument;
+import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
+import net.minecraft.commands.arguments.coordinates.ColumnPosArgument;
+import net.minecraft.commands.arguments.coordinates.Vec3Argument;
+import net.minecraft.commands.arguments.item.ItemArgument;
+import net.minecraft.commands.arguments.item.ItemPredicateArgument;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import xyz.wagyourtail.jsmacros.client.JsMacrosClient;
 import xyz.wagyourtail.jsmacros.client.api.helper.CommandContextHelper;
 import xyz.wagyourtail.jsmacros.client.api.helper.SuggestionsBuilderHelper;
@@ -39,7 +62,7 @@ public abstract class CommandBuilder implements Registrable<CommandBuilder> {
 
     protected abstract void argument(String name, Supplier<ArgumentType<?>> type);
 
-    protected abstract void argument(String name, Function<CommandRegistryAccess, ArgumentType<?>> type);
+    protected abstract void argument(String name, Function<CommandBuildContext, ArgumentType<?>> type);
 
     public abstract CommandBuilder literalArg(String name);
 
@@ -59,7 +82,7 @@ public abstract class CommandBuilder implements Registrable<CommandBuilder> {
     }
 
     public CommandBuilder intRangeArg(String name) {
-        argument(name, NumberRangeArgumentType::intRange);
+        argument(name, RangeArgument::intRange);
         return this;
     }
 
@@ -74,7 +97,7 @@ public abstract class CommandBuilder implements Registrable<CommandBuilder> {
     }
 
     public CommandBuilder floatRangeArg(String name) {
-        argument(name, NumberRangeArgumentType::floatRange);
+        argument(name, RangeArgument::floatRange);
         return this;
     }
 
@@ -89,7 +112,7 @@ public abstract class CommandBuilder implements Registrable<CommandBuilder> {
     }
 
     public CommandBuilder uuidArgType(String name) {
-        argument(name, UuidArgumentType::uuid);
+        argument(name, UuidArgument::uuid);
         return this;
     }
 
@@ -129,17 +152,17 @@ public abstract class CommandBuilder implements Registrable<CommandBuilder> {
     }
 
     public CommandBuilder textArgType(String name) {
-        argument(name, TextArgumentType::text);
+        argument(name, ComponentArgument::textComponent);
         return this;
     }
 
     public CommandBuilder timeArg(String name) {
-        argument(name, (Supplier<ArgumentType<?>>) TimeArgumentType::time);
+        argument(name, (Supplier<ArgumentType<?>>) TimeArgument::time);
         return this;
     }
 
     public CommandBuilder identifierArg(String name) {
-        argument(name, IdentifierArgumentType::identifier);
+        argument(name, ResourceLocationArgument::id);
         return this;
     }
 
@@ -148,22 +171,22 @@ public abstract class CommandBuilder implements Registrable<CommandBuilder> {
     }
 
     public CommandBuilder nbtElementArg(String name) {
-        argument(name, NbtElementArgumentType::nbtElement);
+        argument(name, NbtTagArgument::nbtTag);
         return this;
     }
 
     public CommandBuilder nbtCompoundArg(String name) {
-        argument(name, (NbtCompoundArgumentType::nbtCompound));
+        argument(name, (CompoundTagArgument::compoundTag));
         return this;
     }
 
     public CommandBuilder colorArg(String name) {
-        argument(name, ColorArgumentType::color);
+        argument(name, ColorArgument::color);
         return this;
     }
 
     public CommandBuilder angleArg(String name) {
-        argument(name, AngleArgumentType::new);
+        argument(name, AngleArgument::new);
         return this;
     }
 
@@ -172,12 +195,12 @@ public abstract class CommandBuilder implements Registrable<CommandBuilder> {
     }
 
     public CommandBuilder itemStackArg(String name) {
-        argument(name, ItemStackArgumentType::itemStack);
+        argument(name, ItemArgument::item);
         return this;
     }
 
     public CommandBuilder itemPredicateArg(String name) {
-        argument(name, ItemPredicateArgumentType::new);
+        argument(name, ItemPredicateArgument::new);
         return this;
     }
 
@@ -186,17 +209,17 @@ public abstract class CommandBuilder implements Registrable<CommandBuilder> {
     }
 
     public CommandBuilder blockStateArg(String name) {
-        argument(name, BlockStateArgumentType::blockState);
+        argument(name, BlockStateArgument::block);
         return this;
     }
 
     public CommandBuilder blockPredicateArg(String name) {
-        argument(name, BlockPredicateArgumentType::new);
+        argument(name, BlockPredicateArgument::new);
         return this;
     }
 
     public CommandBuilder blockPosArg(String name) {
-        argument(name, BlockPosArgumentType::new);
+        argument(name, BlockPosArgument::new);
         return this;
     }
 
@@ -205,17 +228,17 @@ public abstract class CommandBuilder implements Registrable<CommandBuilder> {
     }
 
     public CommandBuilder posArg(String name, boolean centerArgs) {
-        argument(name, () -> Vec3ArgumentType.vec3(centerArgs));
+        argument(name, () -> Vec3Argument.vec3(centerArgs));
         return this;
     }
 
     public CommandBuilder columnPosArg(String name) {
-        argument(name, ColumnPosArgumentType::new);
+        argument(name, ColumnPosArgument::new);
         return this;
     }
 
     public CommandBuilder dimensionArg(String name) {
-        argument(name, DimensionArgumentType::new);
+        argument(name, DimensionArgument::new);
         return this;
     }
 
@@ -233,12 +256,12 @@ public abstract class CommandBuilder implements Registrable<CommandBuilder> {
     //TODO: Add client side EntitySelector, because the default one requires a server world.
 
     public CommandBuilder itemSlotArg(String name) {
-        argument(name, ItemSlotArgumentType::new);
+        argument(name, SlotArgument::new);
         return this;
     }
 
     public CommandBuilder particleArg(String name) {
-        argument(name, ParticleEffectArgumentType::new);
+        argument(name, ParticleArgument::new);
         return this;
     }
 
@@ -278,7 +301,7 @@ public abstract class CommandBuilder implements Registrable<CommandBuilder> {
      * @since 1.8.4
      */
     public CommandBuilder suggestMatching(Collection<String> suggestions) {
-        suggests((ctx, builder) -> CommandSource.suggestMatching(suggestions, builder));
+        suggests((ctx, builder) -> SharedSuggestionProvider.suggest(suggestions, builder));
         return this;
     }
 
@@ -297,7 +320,7 @@ public abstract class CommandBuilder implements Registrable<CommandBuilder> {
      * @since 1.8.4
      */
     public CommandBuilder suggestIdentifier(Collection<String> suggestions) {
-        suggests((ctx, builder) -> CommandSource.suggestIdentifiers(suggestions.stream().map(Identifier::of), builder));
+        suggests((ctx, builder) -> SharedSuggestionProvider.suggestResource(suggestions.stream().map(ResourceLocation::parse), builder));
         return this;
     }
 
@@ -340,9 +363,9 @@ public abstract class CommandBuilder implements Registrable<CommandBuilder> {
      * @since 1.8.4
      */
     public CommandBuilder suggestPositions(Collection<String> positions) {
-        suggests((ctx, builder) -> CommandSource.suggestPositions(builder.getRemaining(), positions.stream().map(p -> {
+        suggests((ctx, builder) -> SharedSuggestionProvider.suggestCoordinates(builder.getRemaining(), positions.stream().map(p -> {
                     String[] split = p.split(" ");
-                    return new CommandSource.RelativePosition(split[0], split[1], split[2]);
+                    return new SharedSuggestionProvider.TextCoordinates(split[0], split[1], split[2]);
                 }).collect(Collectors.toList()), builder, s -> true)
         );
         return this;
@@ -435,7 +458,7 @@ public abstract class CommandBuilder implements Registrable<CommandBuilder> {
                 reader.setCursor(i + m.group(0).length());
                 return args;
             } else {
-                throw new SimpleCommandExceptionType(Text.translatable(
+                throw new SimpleCommandExceptionType(Component.translatable(
                         "jsmacros.commandfailedregex",
                         "/" + pattern.pattern() + "/"
                 )).createWithContext(reader);

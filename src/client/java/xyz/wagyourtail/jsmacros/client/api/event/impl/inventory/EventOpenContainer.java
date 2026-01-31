@@ -1,7 +1,7 @@
 package xyz.wagyourtail.jsmacros.client.api.event.impl.inventory;
 
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.screen.ingame.HandledScreen;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import xyz.wagyourtail.jsmacros.client.JsMacrosClient;
 import xyz.wagyourtail.jsmacros.client.api.classes.inventory.Inventory;
 import xyz.wagyourtail.jsmacros.client.api.classes.render.IScreen;
@@ -17,7 +17,7 @@ public class EventOpenContainer extends BaseEvent {
     public final Inventory<?> inventory;
     public final IScreen screen;
 
-    public EventOpenContainer(HandledScreen<?> screen) {
+    public EventOpenContainer(AbstractContainerScreen<?> screen) {
         super(JsMacrosClient.clientCore);
         this.inventory = Inventory.create(screen);
         this.screen = (IScreen) screen;

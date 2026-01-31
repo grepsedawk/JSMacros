@@ -1,7 +1,7 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world;
 
-import net.minecraft.client.network.ServerInfo;
-import net.minecraft.text.TranslatableTextContent;
+import net.minecraft.client.multiplayer.ServerData;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import xyz.wagyourtail.jsmacros.client.api.helper.NBTElementHelper;
 import xyz.wagyourtail.jsmacros.client.api.helper.TextHelper;
 import xyz.wagyourtail.jsmacros.core.helpers.BaseHelper;
@@ -13,9 +13,9 @@ import java.util.stream.Collectors;
  * @since 1.6.5
  */
 @SuppressWarnings("unused")
-public class ServerInfoHelper extends BaseHelper<ServerInfo> {
+public class ServerInfoHelper extends BaseHelper<ServerData> {
 
-    public ServerInfoHelper(ServerInfo base) {
+    public ServerInfoHelper(ServerData base) {
         super(base);
     }
 
@@ -24,15 +24,15 @@ public class ServerInfoHelper extends BaseHelper<ServerInfo> {
     }
 
     public String getAddress() {
-        return base.address;
+        return base.ip;
     }
 
     public TextHelper getPlayerCountLabel() {
-        return TextHelper.wrap(base.playerCountLabel);
+        return TextHelper.wrap(base.status);
     }
 
     public TextHelper getLabel() {
-        return TextHelper.wrap(base.label);
+        return TextHelper.wrap(base.motd);
     }
 
     public long getPing() {
@@ -40,7 +40,7 @@ public class ServerInfoHelper extends BaseHelper<ServerInfo> {
     }
 
     public int getProtocolVersion() {
-        return base.protocolVersion;
+        return base.protocol;
     }
 
     public TextHelper getVersion() {
@@ -48,27 +48,27 @@ public class ServerInfoHelper extends BaseHelper<ServerInfo> {
     }
 
     public List<TextHelper> getPlayerListSummary() {
-        return base.playerListSummary.stream().map(TextHelper::wrap).collect(Collectors.toList());
+        return base.playerList.stream().map(TextHelper::wrap).collect(Collectors.toList());
     }
 
     public String resourcePackPolicy() {
-        return ((TranslatableTextContent) base.getResourcePackPolicy().getName().getContent()).getKey();
+        return ((TranslatableContents) base.getResourcePackStatus().getName().getContents()).getKey();
     }
 
     public byte[] getIcon() {
-        return base.getFavicon();
+        return base.getIconBytes();
     }
 
     public boolean isOnline() {
-        return !base.isLocal();
+        return !base.isLan();
     }
 
     public boolean isLocal() {
-        return base.isLocal();
+        return base.isLan();
     }
 
     public NBTElementHelper.NBTCompoundHelper getNbt() {
-        return NBTElementHelper.wrapCompound(base.toNbt());
+        return NBTElementHelper.wrapCompound(base.write());
     }
 
     @Override

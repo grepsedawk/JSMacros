@@ -1,21 +1,21 @@
 package xyz.wagyourtail.jsmacros.client.mixin.access;
 
-import net.minecraft.world.chunk.ChunkSection;
+import net.minecraft.world.level.chunk.LevelChunkSection;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import xyz.wagyourtail.jsmacros.client.access.IChunkSection;
 
-@Mixin(ChunkSection.class)
+@Mixin(LevelChunkSection.class)
 public class MixinChunkSelection implements IChunkSection {
 
     @Shadow
     private short nonEmptyBlockCount;
 
     @Shadow
-    private short randomTickableBlockCount;
+    private short tickingBlockCount;
 
     @Shadow
-    private short nonEmptyFluidCount;
+    private short tickingFluidCount;
 
     @Override
     public short jsmacros_getNonEmptyBlockCount() {
@@ -24,12 +24,12 @@ public class MixinChunkSelection implements IChunkSection {
 
     @Override
     public short jsmacros_getRandomTickableBlockCount() {
-        return randomTickableBlockCount;
+        return tickingBlockCount;
     }
 
     @Override
     public short jsmacros_getNonEmptyFluidCount() {
-        return nonEmptyFluidCount;
+        return tickingFluidCount;
     }
 
 }

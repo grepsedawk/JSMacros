@@ -1,7 +1,7 @@
 package xyz.wagyourtail.jsmacros.client.api.event.impl.world;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.jsmacros.client.JsMacrosClient;
 import xyz.wagyourtail.jsmacros.client.api.helper.TextHelper;
@@ -21,7 +21,7 @@ public class EventNameChange extends BaseEvent {
     @Nullable
     public TextHelper newName;
 
-    public EventNameChange(Entity entity, @Nullable Text oldName, @Nullable Text newName) {
+    public EventNameChange(Entity entity, @Nullable Component oldName, @Nullable Component newName) {
         super(JsMacrosClient.clientCore);
         this.entity = EntityHelper.create(entity);
         this.oldName = TextHelper.wrap(oldName);

@@ -11,22 +11,26 @@ import it.unimi.dsi.fastutil.objects.Object2BooleanArrayMap;
 import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
 import it.unimi.dsi.fastutil.objects.Object2IntArrayMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.listener.ClientPlayPacketListener;
-import net.minecraft.network.packet.Packet;
-import net.minecraft.network.packet.c2s.common.CustomPayloadC2SPacket;
-import net.minecraft.network.packet.s2c.common.CustomPayloadS2CPacket;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.hit.HitResult;
-import net.minecraft.util.math.*;
-import net.minecraft.world.World;
-import net.minecraft.world.chunk.Chunk;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.GlobalPos;
+import net.minecraft.core.Registry;
+import net.minecraft.core.SectionPos;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
+import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.doclet.DocletReplaceParams;
 import xyz.wagyourtail.doclet.DocletReplaceReturn;
@@ -43,7 +47,15 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.security.PublicKey;
 import java.time.Instant;
-import java.util.*;
+import java.util.Arrays;
+import java.util.BitSet;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -52,13 +64,13 @@ import java.util.stream.Stream;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class PacketByteBufferHelper extends BaseHelper<PacketByteBuf> {
-    private static final MinecraftClient mc = MinecraftClient.getInstance();
+public class PacketByteBufferHelper extends BaseHelper<FriendlyByteBuf> {
+    private static final Minecraft mc = Minecraft.getInstance();
 
     /**
      * Don't touch this here!
      */
-    public static final Map<Class<? extends Packet<?>>, Function<PacketByteBuf, ? extends Packet<?>>> BUFFER_TO_PACKET = new HashMap<>();
+    public static final Map<Class<? extends Packet<?>>, Function<FriendlyByteBuf, ? extends Packet<?>>> BUFFER_TO_PACKET = new HashMap<>();
     private static final Object2IntMap<Class<? extends Packet<?>>> PACKET_IDS = new Object2IntArrayMap<>();
     private static final Object2IntMap<Class<? extends Packet<?>>> PACKET_STATES = new Object2IntArrayMap<>();
     private static final Object2BooleanMap<Class<? extends Packet<?>>> PACKET_SIDES = new Object2BooleanArrayMap<>();
@@ -78,7 +90,7 @@ public class PacketByteBufferHelper extends BaseHelper<PacketByteBuf> {
         this.original = base.copy();
     }
 
-    public PacketByteBufferHelper(PacketByteBuf base) {
+    public PacketByteBufferHelper(FriendlyByteBuf base) {
         super(base);
         this.packet = null;
         this.original = base.copy();
@@ -93,8 +105,8 @@ public class PacketByteBufferHelper extends BaseHelper<PacketByteBuf> {
         // get the PacketCodec static field and use it to write
         try {
             Class<?> packetClass = packet.getClass();
-            Field f = Arrays.stream(packetClass.getFields()).filter(e -> e.getType().isAssignableFrom(PacketCodec.class)).findFirst().orElseThrow();
-            PacketCodec<PacketByteBuf, Packet<?>> codec = (PacketCodec<PacketByteBuf, Packet<?>>) f.get(null);
+            Field f = Arrays.stream(packetClass.getFields()).filter(e -> e.getType().isAssignableFrom(StreamCodec.class)).findFirst().orElseThrow();
+            StreamCodec<FriendlyByteBuf, Packet<?>> codec = (StreamCodec<FriendlyByteBuf, Packet<?>>) f.get(null);
             codec.encode(base, packet);
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
@@ -103,9 +115,9 @@ public class PacketByteBufferHelper extends BaseHelper<PacketByteBuf> {
         this.original = base.copy();
     }
 
-    private static PacketByteBuf getBuffer(Packet<?> packet) {
+    private static FriendlyByteBuf getBuffer(Packet<?> packet) {
         ByteBuf buffer = Unpooled.buffer();
-        return new PacketByteBuf(buffer);
+        return new FriendlyByteBuf(buffer);
     }
 
     /**
@@ -182,7 +194,7 @@ public class PacketByteBufferHelper extends BaseHelper<PacketByteBuf> {
      */
     public PacketByteBufferHelper sendPacket() {
         if (packet != null) {
-            MinecraftClient.getInstance().getNetworkHandler().sendPacket(toPacket());
+            Minecraft.getInstance().getConnection().send(toPacket());
         }
         return this;
     }
@@ -204,7 +216,7 @@ public class PacketByteBufferHelper extends BaseHelper<PacketByteBuf> {
      * @since 1.8.4
      */
     public PacketByteBufferHelper sendPacket(Class<? extends Packet<?>> clazz) {
-        MinecraftClient.getInstance().getNetworkHandler().sendPacket(toPacket(clazz));
+        Minecraft.getInstance().getConnection().send(toPacket(clazz));
         return this;
     }
 
@@ -214,7 +226,7 @@ public class PacketByteBufferHelper extends BaseHelper<PacketByteBuf> {
      */
     public PacketByteBufferHelper receivePacket() {
         if (packet != null) {
-            ((Packet<ClientPlayPacketListener>) packet).apply(MinecraftClient.getInstance().getNetworkHandler());
+            ((Packet<ClientGamePacketListener>) packet).handle(Minecraft.getInstance().getConnection());
         }
         return this;
     }
@@ -228,7 +240,7 @@ public class PacketByteBufferHelper extends BaseHelper<PacketByteBuf> {
     @DocletReplaceParams("packetName: PacketName")
     public PacketByteBufferHelper receivePacket(String packetName) {
         if (packet != null) {
-            ((Packet<ClientPlayPacketListener>) toPacket(packetName)).apply(MinecraftClient.getInstance().getNetworkHandler());
+            ((Packet<ClientGamePacketListener>) toPacket(packetName)).handle(Minecraft.getInstance().getConnection());
         }
         return this;
     }
@@ -240,7 +252,7 @@ public class PacketByteBufferHelper extends BaseHelper<PacketByteBuf> {
      */
     public PacketByteBufferHelper receivePacket(Class<? extends Packet> clazz) {
         if (packet != null) {
-            ((Packet<ClientPlayPacketListener>) toPacket(clazz)).apply(MinecraftClient.getInstance().getNetworkHandler());
+            ((Packet<ClientGamePacketListener>) toPacket(clazz)).handle(Minecraft.getInstance().getConnection());
         }
         return this;
     }
@@ -264,7 +276,7 @@ public class PacketByteBufferHelper extends BaseHelper<PacketByteBuf> {
      * @since 1.8.4
      */
     public PacketByteBufferHelper reset() {
-        base = new PacketByteBuf(original.copy());
+        base = new FriendlyByteBuf(original.copy());
         return this;
     }
 
@@ -273,8 +285,8 @@ public class PacketByteBufferHelper extends BaseHelper<PacketByteBuf> {
      * @return self for chaining.
      * @since 1.8.4
      */
-    public PacketByteBufferHelper writeRegistryKey(RegistryKey<?> key) {
-        base.writeRegistryKey(key);
+    public PacketByteBufferHelper writeRegistryKey(ResourceKey<?> key) {
+        base.writeResourceKey(key);
         return this;
     }
 
@@ -283,8 +295,8 @@ public class PacketByteBufferHelper extends BaseHelper<PacketByteBuf> {
      * @return the registry key.
      * @since 1.8.4
      */
-    public <T> RegistryKey<T> readRegistryKey(RegistryKey<? extends Registry<T>> registry) {
-        return base.readRegistryKey(registry);
+    public <T> ResourceKey<T> readRegistryKey(ResourceKey<? extends Registry<T>> registry) {
+        return base.readResourceKey(registry);
     }
 
     /**
@@ -293,7 +305,7 @@ public class PacketByteBufferHelper extends BaseHelper<PacketByteBuf> {
      * @return self for chaining.
      * @since 1.8.4
      */
-    public <T> PacketByteBufferHelper writeCollection(Collection<T> collection, MethodWrapper<PacketByteBuf, T, ?, ?> writer) {
+    public <T> PacketByteBufferHelper writeCollection(Collection<T> collection, MethodWrapper<FriendlyByteBuf, T, ?, ?> writer) {
         base.writeCollection(collection, writer::accept);
         return this;
     }
@@ -303,7 +315,7 @@ public class PacketByteBufferHelper extends BaseHelper<PacketByteBuf> {
      * @return the read list.
      * @since 1.8.4
      */
-    public <T> List<T> readList(MethodWrapper<PacketByteBuf, ?, T, ?> reader) {
+    public <T> List<T> readList(MethodWrapper<FriendlyByteBuf, ?, T, ?> reader) {
         return base.readList(reader::apply);
     }
 
@@ -313,7 +325,7 @@ public class PacketByteBufferHelper extends BaseHelper<PacketByteBuf> {
      * @since 1.8.4
      */
     public PacketByteBufferHelper writeIntList(Collection<Integer> list) {
-        base.writeIntList(new IntArrayList(list));
+        base.writeIntIdList(new IntArrayList(list));
         return this;
     }
 
@@ -322,7 +334,7 @@ public class PacketByteBufferHelper extends BaseHelper<PacketByteBuf> {
      * @since 1.8.4
      */
     public IntList readIntList() {
-        return base.readIntList();
+        return base.readIntIdList();
     }
 
     /**
@@ -332,7 +344,7 @@ public class PacketByteBufferHelper extends BaseHelper<PacketByteBuf> {
      * @return self for chaining.
      * @since 1.8.4
      */
-    public <K, V> PacketByteBufferHelper writeMap(Map<K, V> map, MethodWrapper<PacketByteBuf, K, ?, ?> keyWriter, MethodWrapper<PacketByteBuf, V, ?, ?> valueWriter) {
+    public <K, V> PacketByteBufferHelper writeMap(Map<K, V> map, MethodWrapper<FriendlyByteBuf, K, ?, ?> keyWriter, MethodWrapper<FriendlyByteBuf, V, ?, ?> valueWriter) {
         base.writeMap(map, keyWriter::accept, valueWriter::accept);
         return this;
     }
@@ -343,7 +355,7 @@ public class PacketByteBufferHelper extends BaseHelper<PacketByteBuf> {
      * @return the read map.
      * @since 1.8.4
      */
-    public <K, V> Map<K, V> readMap(MethodWrapper<PacketByteBuf, ?, K, ?> keyReader, MethodWrapper<PacketByteBuf, ?, V, ?> valueReader) {
+    public <K, V> Map<K, V> readMap(MethodWrapper<FriendlyByteBuf, ?, K, ?> keyReader, MethodWrapper<FriendlyByteBuf, ?, V, ?> valueReader) {
         return base.readMap(keyReader::apply, valueReader::apply);
     }
 
@@ -352,8 +364,8 @@ public class PacketByteBufferHelper extends BaseHelper<PacketByteBuf> {
      * @return self for chaining.
      * @since 1.8.4
      */
-    public PacketByteBufferHelper forEachInCollection(MethodWrapper<PacketByteBuf, ?, Object, ?> reader) {
-        base.forEachInCollection(reader);
+    public PacketByteBufferHelper forEachInCollection(MethodWrapper<FriendlyByteBuf, ?, Object, ?> reader) {
+        base.readWithCount(reader);
         return this;
     }
 
@@ -364,7 +376,7 @@ public class PacketByteBufferHelper extends BaseHelper<PacketByteBuf> {
      * @see #writeNullable(Object, MethodWrapper)
      * @since 1.8.4
      */
-    public <T> PacketByteBufferHelper writeOptional(T value, MethodWrapper<PacketByteBuf, T, ?, ?> writer) {
+    public <T> PacketByteBufferHelper writeOptional(T value, MethodWrapper<FriendlyByteBuf, T, ?, ?> writer) {
         base.writeOptional(Optional.ofNullable(value), writer::accept);
         return this;
     }
@@ -375,7 +387,7 @@ public class PacketByteBufferHelper extends BaseHelper<PacketByteBuf> {
      * @see #readNullable(MethodWrapper)
      * @since 1.8.4
      */
-    public <T> Optional<T> readOptional(MethodWrapper<PacketByteBuf, ?, T, ?> reader) {
+    public <T> Optional<T> readOptional(MethodWrapper<FriendlyByteBuf, ?, T, ?> reader) {
         return base.readOptional(reader::apply);
     }
 
@@ -386,7 +398,7 @@ public class PacketByteBufferHelper extends BaseHelper<PacketByteBuf> {
      * @see #writeOptional(Object, MethodWrapper)
      * @since 1.8.4
      */
-    public PacketByteBufferHelper writeNullable(Object value, MethodWrapper<PacketByteBuf, Object, ?, ?> writer) {
+    public PacketByteBufferHelper writeNullable(Object value, MethodWrapper<FriendlyByteBuf, Object, ?, ?> writer) {
         base.writeNullable(value, writer::accept);
         return this;
     }
@@ -397,7 +409,7 @@ public class PacketByteBufferHelper extends BaseHelper<PacketByteBuf> {
      * @see #readOptional(MethodWrapper)
      * @since 1.8.4
      */
-    public <T> T readNullable(MethodWrapper<PacketByteBuf, ?, T, ?> reader) {
+    public <T> T readNullable(MethodWrapper<FriendlyByteBuf, ?, T, ?> reader) {
         return base.readNullable(reader::apply);
     }
 
@@ -436,7 +448,7 @@ public class PacketByteBufferHelper extends BaseHelper<PacketByteBuf> {
      * @since 1.8.4
      */
     public PacketByteBufferHelper writeIntArray(int[] ints) {
-        base.writeIntArray(ints);
+        base.writeVarIntArray(ints);
         return this;
     }
 
@@ -445,7 +457,7 @@ public class PacketByteBufferHelper extends BaseHelper<PacketByteBuf> {
      * @since 1.8.4
      */
     public int[] readIntArray() {
-        return base.readIntArray();
+        return base.readVarIntArray();
     }
 
     /**
@@ -456,7 +468,7 @@ public class PacketByteBufferHelper extends BaseHelper<PacketByteBuf> {
      * @since 1.8.4
      */
     public PacketByteBufferHelper readIntArray(int maxSize) {
-        base.readIntArray(maxSize);
+        base.readVarIntArray(maxSize);
         return this;
     }
 
@@ -556,8 +568,8 @@ public class PacketByteBufferHelper extends BaseHelper<PacketByteBuf> {
     @Nullable
     public ChunkHelper readChunkHelper() {
         ChunkPos pos = base.readChunkPos();
-        assert MinecraftClient.getInstance().world != null;
-        Chunk chunk = MinecraftClient.getInstance().world.getChunk(pos.x, pos.z);
+        assert Minecraft.getInstance().level != null;
+        ChunkAccess chunk = Minecraft.getInstance().level.getChunk(pos.x, pos.z);
         return chunk == null ? null : new ChunkHelper(chunk);
     }
 
@@ -569,7 +581,7 @@ public class PacketByteBufferHelper extends BaseHelper<PacketByteBuf> {
      * @since 1.8.4
      */
     public PacketByteBufferHelper writeChunkSectionPos(int chunkX, int y, int chunkZ) {
-        base.writeChunkSectionPos(ChunkSectionPos.from(chunkX, y, chunkZ));
+        base.writeSectionPos(SectionPos.of(chunkX, y, chunkZ));
         return this;
     }
 
@@ -580,7 +592,7 @@ public class PacketByteBufferHelper extends BaseHelper<PacketByteBuf> {
      * @since 1.8.4
      */
     public PacketByteBufferHelper writeChunkSectionPos(ChunkHelper chunk, int y) {
-        base.writeChunkSectionPos(ChunkSectionPos.from(chunk.getRaw().getPos(), y));
+        base.writeSectionPos(SectionPos.of(chunk.getRaw().getPos(), y));
         return this;
     }
 
@@ -589,8 +601,8 @@ public class PacketByteBufferHelper extends BaseHelper<PacketByteBuf> {
      * @since 1.8.4
      */
     public BlockPosHelper readChunkSectionPos() {
-        ChunkSectionPos pos = base.readChunkSectionPos();
-        return new BlockPosHelper(pos.getSectionX(), pos.getSectionY(), pos.getSectionZ());
+        SectionPos pos = base.readSectionPos();
+        return new BlockPosHelper(pos.x(), pos.y(), pos.z());
     }
 
     /**
@@ -602,8 +614,8 @@ public class PacketByteBufferHelper extends BaseHelper<PacketByteBuf> {
      */
     @DocletReplaceParams("dimension: CanOmitNamespace<Dimension>, pos: BlockPosHelper")
     public PacketByteBufferHelper writeGlobalPos(String dimension, BlockPosHelper pos) {
-        RegistryKey<World> key = RegistryKey.of(RegistryKeys.WORLD, Identifier.of(dimension));
-        base.writeGlobalPos(GlobalPos.create(key, pos.getRaw()));
+        ResourceKey<Level> key = ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse(dimension));
+        base.writeGlobalPos(GlobalPos.of(key, pos.getRaw()));
         return this;
     }
 
@@ -618,8 +630,8 @@ public class PacketByteBufferHelper extends BaseHelper<PacketByteBuf> {
      */
     @DocletReplaceParams("dimension: CanOmitNamespace<Dimension>, x: int, y: int, z: int")
     public PacketByteBufferHelper writeGlobalPos(String dimension, int x, int y, int z) {
-        RegistryKey<World> key = RegistryKey.of(RegistryKeys.WORLD, Identifier.of(dimension));
-        base.writeGlobalPos(GlobalPos.create(key, new BlockPos(x, y, z)));
+        ResourceKey<Level> key = ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse(dimension));
+        base.writeGlobalPos(GlobalPos.of(key, new BlockPos(x, y, z)));
         return this;
     }
 
@@ -629,7 +641,7 @@ public class PacketByteBufferHelper extends BaseHelper<PacketByteBuf> {
      * @since 1.8.4
      */
     public PacketByteBufferHelper writeEnumConstant(Enum<?> constant) {
-        base.writeEnumConstant(constant);
+        base.writeEnum(constant);
         return this;
     }
 
@@ -639,7 +651,7 @@ public class PacketByteBufferHelper extends BaseHelper<PacketByteBuf> {
      * @since 1.8.4
      */
     public <T extends Enum<T>> T readEnumConstant(Class<T> enumClass) {
-        return base.readEnumConstant(enumClass);
+        return base.readEnum(enumClass);
     }
 
     /**
@@ -684,7 +696,7 @@ public class PacketByteBufferHelper extends BaseHelper<PacketByteBuf> {
      * @since 1.8.4
      */
     public PacketByteBufferHelper writeUuid(String uuid) {
-        base.writeUuid(UUID.fromString(uuid));
+        base.writeUUID(UUID.fromString(uuid));
         return this;
     }
 
@@ -693,7 +705,7 @@ public class PacketByteBufferHelper extends BaseHelper<PacketByteBuf> {
      * @since 1.8.4
      */
     public UUID readUuid() {
-        return base.readUuid();
+        return base.readUUID();
     }
 
     /**
@@ -720,7 +732,7 @@ public class PacketByteBufferHelper extends BaseHelper<PacketByteBuf> {
      * @since 1.8.4
      */
     public PacketByteBufferHelper writeString(String string) {
-        base.writeString(string);
+        base.writeUtf(string);
         return this;
     }
 
@@ -733,7 +745,7 @@ public class PacketByteBufferHelper extends BaseHelper<PacketByteBuf> {
      * @since 1.8.4
      */
     public PacketByteBufferHelper writeString(String string, int maxLength) {
-        base.writeString(string, maxLength);
+        base.writeUtf(string, maxLength);
         return this;
     }
 
@@ -742,7 +754,7 @@ public class PacketByteBufferHelper extends BaseHelper<PacketByteBuf> {
      * @since 1.8.4
      */
     public String readString() {
-        return base.readString();
+        return base.readUtf();
     }
 
     /**
@@ -753,7 +765,7 @@ public class PacketByteBufferHelper extends BaseHelper<PacketByteBuf> {
      * @since 1.8.4
      */
     public String readString(int maxLength) {
-        return base.readString(maxLength);
+        return base.readUtf(maxLength);
     }
 
     /**
@@ -762,7 +774,7 @@ public class PacketByteBufferHelper extends BaseHelper<PacketByteBuf> {
      * @since 1.8.4
      */
     public PacketByteBufferHelper writeIdentifier(String id) {
-        base.writeIdentifier(RegistryHelper.parseIdentifier(id));
+        base.writeResourceLocation(RegistryHelper.parseIdentifier(id));
         return this;
     }
 
@@ -771,7 +783,7 @@ public class PacketByteBufferHelper extends BaseHelper<PacketByteBuf> {
      * @since 1.8.4
      */
     public String readIdentifier() {
-        return base.readIdentifier().toString();
+        return base.readResourceLocation().toString();
     }
 
     /**
@@ -862,7 +874,7 @@ public class PacketByteBufferHelper extends BaseHelper<PacketByteBuf> {
     public PacketByteBufferHelper writeBlockHitResult(Pos3D pos, String direction, BlockPosHelper blockPos, boolean missed, boolean insideBlock) {
         BlockHitResult result;
         if (missed) {
-            result = BlockHitResult.createMissed(pos.toMojangDoubleVector(), Direction.valueOf(direction), blockPos.getRaw());
+            result = BlockHitResult.miss(pos.toMojangDoubleVector(), Direction.valueOf(direction), blockPos.getRaw());
         } else {
             result = new BlockHitResult(pos.toMojangDoubleVector(), Direction.valueOf(direction), blockPos.getRaw(), insideBlock);
         }
@@ -888,7 +900,7 @@ public class PacketByteBufferHelper extends BaseHelper<PacketByteBuf> {
     @Deprecated
     public Map<String, Object> readBlockHitResultMap() {
         BlockHitResult hitResult = base.readBlockHitResult();
-        return ImmutableMap.of("side", new DirectionHelper(hitResult.getSide()), "blockPos", new BlockPosHelper(hitResult.getBlockPos()), "missed", hitResult.getType() == HitResult.Type.MISS, "inside", hitResult.isInsideBlock());
+        return ImmutableMap.of("side", new DirectionHelper(hitResult.getDirection()), "blockPos", new BlockPosHelper(hitResult.getBlockPos()), "missed", hitResult.getType() == HitResult.Type.MISS, "inside", hitResult.isInside());
     }
 
     /**
@@ -1547,207 +1559,207 @@ public class PacketByteBufferHelper extends BaseHelper<PacketByteBuf> {
 //            }
 //        }
 
-        PACKETS.put("WorldBorderWarningTimeChangedS2CPacket", net.minecraft.network.packet.s2c.play.WorldBorderWarningTimeChangedS2CPacket.class);
-        PACKETS.put("SelectMerchantTradeC2SPacket", net.minecraft.network.packet.c2s.play.SelectMerchantTradeC2SPacket.class);
-        PACKETS.put("SelectAdvancementTabS2CPacket", net.minecraft.network.packet.s2c.play.SelectAdvancementTabS2CPacket.class);
-        PACKETS.put("ChunkBiomeDataS2CPacket", net.minecraft.network.packet.s2c.play.ChunkBiomeDataS2CPacket.class);
-        PACKETS.put("ChunkDeltaUpdateS2CPacket", net.minecraft.network.packet.s2c.play.ChunkDeltaUpdateS2CPacket.class);
-        PACKETS.put("EntityStatusEffectS2CPacket", net.minecraft.network.packet.s2c.play.EntityStatusEffectS2CPacket.class);
-        PACKETS.put("AcknowledgeReconfigurationC2SPacket", net.minecraft.network.packet.c2s.play.AcknowledgeReconfigurationC2SPacket.class);
-        PACKETS.put("GameJoinS2CPacket", net.minecraft.network.packet.s2c.play.GameJoinS2CPacket.class);
-        PACKETS.put("RemoveEntityStatusEffectS2CPacket", net.minecraft.network.packet.s2c.play.RemoveEntityStatusEffectS2CPacket.class);
-        PACKETS.put("RemoveMessageS2CPacket", net.minecraft.network.packet.s2c.play.RemoveMessageS2CPacket.class);
-        PACKETS.put("EntityStatusS2CPacket", net.minecraft.network.packet.s2c.play.EntityStatusS2CPacket.class);
-        PACKETS.put("OpenWrittenBookS2CPacket", net.minecraft.network.packet.s2c.play.OpenWrittenBookS2CPacket.class);
-        PACKETS.put("ClickSlotC2SPacket", net.minecraft.network.packet.c2s.play.ClickSlotC2SPacket.class);
-        PACKETS.put("PingResultS2CPacket", net.minecraft.network.packet.s2c.query.PingResultS2CPacket.class);
-        PACKETS.put("TeamS2CPacket", net.minecraft.network.packet.s2c.play.TeamS2CPacket.class);
-        PACKETS.put("UpdateSelectedSlotS2CPacket", net.minecraft.network.packet.s2c.play.UpdateSelectedSlotS2CPacket.class);
-        PACKETS.put("SubtitleS2CPacket", net.minecraft.network.packet.s2c.play.SubtitleS2CPacket.class);
-        PACKETS.put("EntityAnimationS2CPacket", net.minecraft.network.packet.s2c.play.EntityAnimationS2CPacket.class);
-        PACKETS.put("StartChunkSendS2CPacket", net.minecraft.network.packet.s2c.play.StartChunkSendS2CPacket.class);
-        PACKETS.put("DamageTiltS2CPacket", net.minecraft.network.packet.s2c.play.DamageTiltS2CPacket.class);
-        PACKETS.put("UpdateCommandBlockMinecartC2SPacket", net.minecraft.network.packet.c2s.play.UpdateCommandBlockMinecartC2SPacket.class);
-        PACKETS.put("UnloadChunkS2CPacket", net.minecraft.network.packet.s2c.play.UnloadChunkS2CPacket.class);
-        PACKETS.put("BlockEventS2CPacket", net.minecraft.network.packet.s2c.play.BlockEventS2CPacket.class);
-        PACKETS.put("ParticleS2CPacket", net.minecraft.network.packet.s2c.play.ParticleS2CPacket.class);
-        PACKETS.put("UpdateSelectedSlotC2SPacket", net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket.class);
-        PACKETS.put("UpdateDifficultyLockC2SPacket", net.minecraft.network.packet.c2s.play.UpdateDifficultyLockC2SPacket.class);
-        PACKETS.put("CloseScreenS2CPacket", net.minecraft.network.packet.s2c.play.CloseScreenS2CPacket.class);
-        PACKETS.put("ClearTitleS2CPacket", net.minecraft.network.packet.s2c.play.ClearTitleS2CPacket.class);
-        PACKETS.put("AdvancementUpdateS2CPacket", net.minecraft.network.packet.s2c.play.AdvancementUpdateS2CPacket.class);
-        PACKETS.put("SetTradeOffersS2CPacket", net.minecraft.network.packet.s2c.play.SetTradeOffersS2CPacket.class);
-        PACKETS.put("RecipeBookDataC2SPacket", net.minecraft.network.packet.c2s.play.RecipeBookDataC2SPacket.class);
-        PACKETS.put("RequestCommandCompletionsC2SPacket", net.minecraft.network.packet.c2s.play.RequestCommandCompletionsC2SPacket.class);
-        PACKETS.put("ResourcePackStatusC2SPacket", net.minecraft.network.packet.c2s.common.ResourcePackStatusC2SPacket.class);
-        PACKETS.put("PlaySoundFromEntityS2CPacket", net.minecraft.network.packet.s2c.play.PlaySoundFromEntityS2CPacket.class);
-        PACKETS.put("BoatPaddleStateC2SPacket", net.minecraft.network.packet.c2s.play.BoatPaddleStateC2SPacket.class);
-        PACKETS.put("KeepAliveS2CPacket", net.minecraft.network.packet.s2c.common.KeepAliveS2CPacket.class);
-        PACKETS.put("PlayerInteractBlockC2SPacket", net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket.class);
-        PACKETS.put("WorldBorderInterpolateSizeS2CPacket", net.minecraft.network.packet.s2c.play.WorldBorderInterpolateSizeS2CPacket.class);
-        PACKETS.put("DynamicRegistriesS2CPacket", net.minecraft.network.packet.s2c.config.DynamicRegistriesS2CPacket.class);
-        PACKETS.put("VehicleMoveS2CPacket", net.minecraft.network.packet.s2c.play.VehicleMoveS2CPacket.class);
-        PACKETS.put("PlayerAbilitiesS2CPacket", net.minecraft.network.packet.s2c.play.PlayerAbilitiesS2CPacket.class);
-        PACKETS.put("WorldEventS2CPacket", net.minecraft.network.packet.s2c.play.WorldEventS2CPacket.class);
-        PACKETS.put("CommonPingS2CPacket", net.minecraft.network.packet.s2c.common.CommonPingS2CPacket.class);
-        PACKETS.put("ChatSuggestionsS2CPacket", net.minecraft.network.packet.s2c.play.ChatSuggestionsS2CPacket.class);
-        PACKETS.put("PlayerInteractItemC2SPacket", net.minecraft.network.packet.c2s.play.PlayerInteractItemC2SPacket.class);
-        PACKETS.put("ChatMessageC2SPacket", net.minecraft.network.packet.c2s.play.ChatMessageC2SPacket.class);
-        PACKETS.put("LookAtS2CPacket", net.minecraft.network.packet.s2c.play.LookAtS2CPacket.class);
-        PACKETS.put("LightUpdateS2CPacket", net.minecraft.network.packet.s2c.play.LightUpdateS2CPacket.class);
-        PACKETS.put("ScoreboardObjectiveUpdateS2CPacket", net.minecraft.network.packet.s2c.play.ScoreboardObjectiveUpdateS2CPacket.class);
-        PACKETS.put("RecipeCategoryOptionsC2SPacket", net.minecraft.network.packet.c2s.play.RecipeCategoryOptionsC2SPacket.class);
-        PACKETS.put("PlayerRespawnS2CPacket", net.minecraft.network.packet.s2c.play.PlayerRespawnS2CPacket.class);
-        PACKETS.put("PlayerInteractEntityC2SPacket", net.minecraft.network.packet.c2s.play.PlayerInteractEntityC2SPacket.class);
-        PACKETS.put("GameStateChangeS2CPacket", net.minecraft.network.packet.s2c.play.GameStateChangeS2CPacket.class);
-        PACKETS.put("LoginHelloS2CPacket", net.minecraft.network.packet.s2c.login.LoginHelloS2CPacket.class);
-        PACKETS.put("ClientOptionsC2SPacket", net.minecraft.network.packet.c2s.common.ClientOptionsC2SPacket.class);
-        PACKETS.put("EnterReconfigurationS2CPacket", net.minecraft.network.packet.s2c.play.EnterReconfigurationS2CPacket.class);
-        PACKETS.put("PlaySoundS2CPacket", net.minecraft.network.packet.s2c.play.PlaySoundS2CPacket.class);
-        PACKETS.put("OpenScreenS2CPacket", net.minecraft.network.packet.s2c.play.OpenScreenS2CPacket.class);
-        PACKETS.put("QueryRequestC2SPacket", net.minecraft.network.packet.c2s.query.QueryRequestC2SPacket.class);
-        PACKETS.put("ChatMessageS2CPacket", net.minecraft.network.packet.s2c.play.ChatMessageS2CPacket.class);
-        PACKETS.put("PlayerPositionLookS2CPacket", net.minecraft.network.packet.s2c.play.PlayerPositionLookS2CPacket.class);
-        PACKETS.put("UpdateStructureBlockC2SPacket", net.minecraft.network.packet.c2s.play.UpdateStructureBlockC2SPacket.class);
-        PACKETS.put("RenameItemC2SPacket", net.minecraft.network.packet.c2s.play.RenameItemC2SPacket.class);
-        PACKETS.put("ChunkSentS2CPacket", net.minecraft.network.packet.s2c.play.ChunkSentS2CPacket.class);
-        PACKETS.put("EntityVelocityUpdateS2CPacket", net.minecraft.network.packet.s2c.play.EntityVelocityUpdateS2CPacket.class);
-        PACKETS.put("EntityPositionS2CPacket", net.minecraft.network.packet.s2c.play.EntityPositionS2CPacket.class);
-        PACKETS.put("EntityS2CPacket", net.minecraft.network.packet.s2c.play.EntityS2CPacket.class);
-        PACKETS.put("EntityS2CPacket$Rotate", net.minecraft.network.packet.s2c.play.EntityS2CPacket.Rotate.class);
-        PACKETS.put("EntityS2CPacket$MoveRelative", net.minecraft.network.packet.s2c.play.EntityS2CPacket.MoveRelative.class);
-        PACKETS.put("EntityS2CPacket$RotateAndMoveRelative", net.minecraft.network.packet.s2c.play.EntityS2CPacket.RotateAndMoveRelative.class);
-        PACKETS.put("EntitiesDestroyS2CPacket", net.minecraft.network.packet.s2c.play.EntitiesDestroyS2CPacket.class);
-        PACKETS.put("CommandSuggestionsS2CPacket", net.minecraft.network.packet.s2c.play.CommandSuggestionsS2CPacket.class);
-        PACKETS.put("AdvancementTabC2SPacket", net.minecraft.network.packet.c2s.play.AdvancementTabC2SPacket.class);
-        PACKETS.put("EntityEquipmentUpdateS2CPacket", net.minecraft.network.packet.s2c.play.EntityEquipmentUpdateS2CPacket.class);
-        PACKETS.put("DisconnectS2CPacket", net.minecraft.network.packet.s2c.common.DisconnectS2CPacket.class);
-        PACKETS.put("SignEditorOpenS2CPacket", net.minecraft.network.packet.s2c.play.SignEditorOpenS2CPacket.class);
-        PACKETS.put("PlayerSpawnPositionS2CPacket", net.minecraft.network.packet.s2c.play.PlayerSpawnPositionS2CPacket.class);
-        PACKETS.put("NbtQueryResponseS2CPacket", net.minecraft.network.packet.s2c.play.NbtQueryResponseS2CPacket.class);
-        PACKETS.put("EndCombatS2CPacket", net.minecraft.network.packet.s2c.play.EndCombatS2CPacket.class);
-        PACKETS.put("CustomPayloadS2CPacket", CustomPayloadS2CPacket.class);
-        PACKETS.put("MapUpdateS2CPacket", net.minecraft.network.packet.s2c.play.MapUpdateS2CPacket.class);
-        PACKETS.put("CustomPayloadC2SPacket", CustomPayloadC2SPacket.class);
-        PACKETS.put("ButtonClickC2SPacket", net.minecraft.network.packet.c2s.play.ButtonClickC2SPacket.class);
-        PACKETS.put("LoginSuccessS2CPacket", net.minecraft.network.packet.s2c.login.LoginSuccessS2CPacket.class);
-        PACKETS.put("SynchronizeTagsS2CPacket", net.minecraft.network.packet.s2c.common.SynchronizeTagsS2CPacket.class);
-        PACKETS.put("MessageAcknowledgmentC2SPacket", net.minecraft.network.packet.c2s.play.MessageAcknowledgmentC2SPacket.class);
-        PACKETS.put("ChunkDataS2CPacket", net.minecraft.network.packet.s2c.play.ChunkDataS2CPacket.class);
-        PACKETS.put("EntityPassengersSetS2CPacket", net.minecraft.network.packet.s2c.play.EntityPassengersSetS2CPacket.class);
-        PACKETS.put("TitleS2CPacket", net.minecraft.network.packet.s2c.play.TitleS2CPacket.class);
-        PACKETS.put("BlockUpdateS2CPacket", net.minecraft.network.packet.s2c.play.BlockUpdateS2CPacket.class);
-        PACKETS.put("BlockBreakingProgressS2CPacket", net.minecraft.network.packet.s2c.play.BlockBreakingProgressS2CPacket.class);
-        PACKETS.put("ScreenHandlerPropertyUpdateS2CPacket", net.minecraft.network.packet.s2c.play.ScreenHandlerPropertyUpdateS2CPacket.class);
-        PACKETS.put("PlayerActionC2SPacket", net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket.class);
-        PACKETS.put("LoginQueryRequestS2CPacket", net.minecraft.network.packet.s2c.login.LoginQueryRequestS2CPacket.class);
-        PACKETS.put("ClientStatusC2SPacket", net.minecraft.network.packet.c2s.play.ClientStatusC2SPacket.class);
-        PACKETS.put("DifficultyS2CPacket", net.minecraft.network.packet.s2c.play.DifficultyS2CPacket.class);
-        PACKETS.put("TeleportConfirmC2SPacket", net.minecraft.network.packet.c2s.play.TeleportConfirmC2SPacket.class);
-        PACKETS.put("InventoryS2CPacket", net.minecraft.network.packet.s2c.play.InventoryS2CPacket.class);
-        PACKETS.put("FeaturesS2CPacket", net.minecraft.network.packet.s2c.config.FeaturesS2CPacket.class);
-        PACKETS.put("BossBarS2CPacket", net.minecraft.network.packet.s2c.play.BossBarS2CPacket.class);
-        PACKETS.put("WorldBorderInitializeS2CPacket", net.minecraft.network.packet.s2c.play.WorldBorderInitializeS2CPacket.class);
-        PACKETS.put("EntityAttachS2CPacket", net.minecraft.network.packet.s2c.play.EntityAttachS2CPacket.class);
-        PACKETS.put("ExperienceBarUpdateS2CPacket", net.minecraft.network.packet.s2c.play.ExperienceBarUpdateS2CPacket.class);
-        PACKETS.put("QueryBlockNbtC2SPacket", net.minecraft.network.packet.c2s.play.QueryBlockNbtC2SPacket.class);
-        PACKETS.put("SpectatorTeleportC2SPacket", net.minecraft.network.packet.c2s.play.SpectatorTeleportC2SPacket.class);
-        PACKETS.put("PlayerActionResponseS2CPacket", net.minecraft.network.packet.s2c.play.PlayerActionResponseS2CPacket.class);
-        PACKETS.put("ProfilelessChatMessageS2CPacket", net.minecraft.network.packet.s2c.play.ProfilelessChatMessageS2CPacket.class);
-        PACKETS.put("PlayerListS2CPacket", net.minecraft.network.packet.s2c.play.PlayerListS2CPacket.class);
-        PACKETS.put("EnterCombatS2CPacket", net.minecraft.network.packet.s2c.play.EnterCombatS2CPacket.class);
-        PACKETS.put("OpenHorseScreenS2CPacket", net.minecraft.network.packet.s2c.play.OpenHorseScreenS2CPacket.class);
-        PACKETS.put("CommandExecutionC2SPacket", net.minecraft.network.packet.c2s.play.CommandExecutionC2SPacket.class);
-        PACKETS.put("CraftRequestC2SPacket", net.minecraft.network.packet.c2s.play.CraftRequestC2SPacket.class);
-        PACKETS.put("HandSwingC2SPacket", net.minecraft.network.packet.c2s.play.HandSwingC2SPacket.class);
-        PACKETS.put("HandshakeC2SPacket", net.minecraft.network.packet.c2s.handshake.HandshakeC2SPacket.class);
-        PACKETS.put("ChunkRenderDistanceCenterS2CPacket", net.minecraft.network.packet.s2c.play.ChunkRenderDistanceCenterS2CPacket.class);
-        PACKETS.put("CommonPongC2SPacket", net.minecraft.network.packet.c2s.common.CommonPongC2SPacket.class);
-        PACKETS.put("PlayerRemoveS2CPacket", net.minecraft.network.packet.s2c.play.PlayerRemoveS2CPacket.class);
-        PACKETS.put("SetCameraEntityS2CPacket", net.minecraft.network.packet.s2c.play.SetCameraEntityS2CPacket.class);
-        PACKETS.put("VehicleMoveC2SPacket", net.minecraft.network.packet.c2s.play.VehicleMoveC2SPacket.class);
-        PACKETS.put("UpdateSignC2SPacket", net.minecraft.network.packet.c2s.play.UpdateSignC2SPacket.class);
-        PACKETS.put("ServerMetadataS2CPacket", net.minecraft.network.packet.s2c.play.ServerMetadataS2CPacket.class);
-        PACKETS.put("ResourcePackSendS2CPacket", net.minecraft.network.packet.s2c.common.ResourcePackSendS2CPacket.class);
-        PACKETS.put("ReadyC2SPacket", net.minecraft.network.packet.c2s.config.ReadyC2SPacket.class);
-        PACKETS.put("BlockEntityUpdateS2CPacket", net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket.class);
-        PACKETS.put("ScreenHandlerSlotUpdateS2CPacket", net.minecraft.network.packet.s2c.play.ScreenHandlerSlotUpdateS2CPacket.class);
-        PACKETS.put("ClientCommandC2SPacket", net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket.class);
-        PACKETS.put("EntityTrackerUpdateS2CPacket", net.minecraft.network.packet.s2c.play.EntityTrackerUpdateS2CPacket.class);
-        PACKETS.put("EnterConfigurationC2SPacket", net.minecraft.network.packet.c2s.login.EnterConfigurationC2SPacket.class);
-        PACKETS.put("QueryResponseS2CPacket", net.minecraft.network.packet.s2c.query.QueryResponseS2CPacket.class);
-        PACKETS.put("UpdateCommandBlockC2SPacket", net.minecraft.network.packet.c2s.play.UpdateCommandBlockC2SPacket.class);
-        PACKETS.put("QueryEntityNbtC2SPacket", net.minecraft.network.packet.c2s.play.QueryEntityNbtC2SPacket.class);
-        PACKETS.put("LoginHelloC2SPacket", net.minecraft.network.packet.c2s.login.LoginHelloC2SPacket.class);
-        PACKETS.put("BookUpdateC2SPacket", net.minecraft.network.packet.c2s.play.BookUpdateC2SPacket.class);
-        PACKETS.put("ExplosionS2CPacket", net.minecraft.network.packet.s2c.play.ExplosionS2CPacket.class);
-        PACKETS.put("PlayerMoveC2SPacket", net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket.class);
-        PACKETS.put("PlayerMoveC2SPacket$OnGroundOnly", net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket.OnGroundOnly.class);
-        PACKETS.put("PlayerMoveC2SPacket$LookAndOnGround", net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket.LookAndOnGround.class);
-        PACKETS.put("PlayerMoveC2SPacket$PositionAndOnGround", net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket.PositionAndOnGround.class);
-        PACKETS.put("PlayerMoveC2SPacket$Full", net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket.Full.class);
-        PACKETS.put("JigsawGeneratingC2SPacket", net.minecraft.network.packet.c2s.play.JigsawGeneratingC2SPacket.class);
-        PACKETS.put("WorldBorderCenterChangedS2CPacket", net.minecraft.network.packet.s2c.play.WorldBorderCenterChangedS2CPacket.class);
-        PACKETS.put("HealthUpdateS2CPacket", net.minecraft.network.packet.s2c.play.HealthUpdateS2CPacket.class);
-        PACKETS.put("ItemPickupAnimationS2CPacket", net.minecraft.network.packet.s2c.play.ItemPickupAnimationS2CPacket.class);
-        PACKETS.put("EntityDamageS2CPacket", net.minecraft.network.packet.s2c.play.EntityDamageS2CPacket.class);
-        PACKETS.put("UpdateJigsawC2SPacket", net.minecraft.network.packet.c2s.play.UpdateJigsawC2SPacket.class);
-        PACKETS.put("WorldTimeUpdateS2CPacket", net.minecraft.network.packet.s2c.play.WorldTimeUpdateS2CPacket.class);
-        PACKETS.put("CooldownUpdateS2CPacket", net.minecraft.network.packet.s2c.play.CooldownUpdateS2CPacket.class);
-        PACKETS.put("KeepAliveC2SPacket", net.minecraft.network.packet.c2s.common.KeepAliveC2SPacket.class);
-        PACKETS.put("ChunkLoadDistanceS2CPacket", net.minecraft.network.packet.s2c.play.ChunkLoadDistanceS2CPacket.class);
-        PACKETS.put("EntitySetHeadYawS2CPacket", net.minecraft.network.packet.s2c.play.EntitySetHeadYawS2CPacket.class);
-        PACKETS.put("DeathMessageS2CPacket", net.minecraft.network.packet.s2c.play.DeathMessageS2CPacket.class);
-        PACKETS.put("SimulationDistanceS2CPacket", net.minecraft.network.packet.s2c.play.SimulationDistanceS2CPacket.class);
-        PACKETS.put("WorldBorderSizeChangedS2CPacket", net.minecraft.network.packet.s2c.play.WorldBorderSizeChangedS2CPacket.class);
-        PACKETS.put("LoginCompressionS2CPacket", net.minecraft.network.packet.s2c.login.LoginCompressionS2CPacket.class);
-        PACKETS.put("CraftFailedResponseS2CPacket", net.minecraft.network.packet.s2c.play.CraftFailedResponseS2CPacket.class);
-        PACKETS.put("QueryPingC2SPacket", net.minecraft.network.packet.c2s.query.QueryPingC2SPacket.class);
-        PACKETS.put("UpdateDifficultyC2SPacket", net.minecraft.network.packet.c2s.play.UpdateDifficultyC2SPacket.class);
-        PACKETS.put("OverlayMessageS2CPacket", net.minecraft.network.packet.s2c.play.OverlayMessageS2CPacket.class);
-        PACKETS.put("ScoreboardDisplayS2CPacket", net.minecraft.network.packet.s2c.play.ScoreboardDisplayS2CPacket.class);
-        PACKETS.put("CloseHandledScreenC2SPacket", net.minecraft.network.packet.c2s.play.CloseHandledScreenC2SPacket.class);
-        PACKETS.put("PlayerListHeaderS2CPacket", net.minecraft.network.packet.s2c.play.PlayerListHeaderS2CPacket.class);
-        PACKETS.put("WorldBorderWarningBlocksChangedS2CPacket", net.minecraft.network.packet.s2c.play.WorldBorderWarningBlocksChangedS2CPacket.class);
-        PACKETS.put("CreativeInventoryActionC2SPacket", net.minecraft.network.packet.c2s.play.CreativeInventoryActionC2SPacket.class);
-        PACKETS.put("EntitySpawnS2CPacket", net.minecraft.network.packet.s2c.play.EntitySpawnS2CPacket.class);
-        PACKETS.put("TitleFadeS2CPacket", net.minecraft.network.packet.s2c.play.TitleFadeS2CPacket.class);
-        PACKETS.put("ReadyS2CPacket", net.minecraft.network.packet.s2c.config.ReadyS2CPacket.class);
-        PACKETS.put("SynchronizeRecipesS2CPacket", net.minecraft.network.packet.s2c.play.SynchronizeRecipesS2CPacket.class);
-        PACKETS.put("LoginDisconnectS2CPacket", net.minecraft.network.packet.s2c.login.LoginDisconnectS2CPacket.class);
-        PACKETS.put("PlayerSessionC2SPacket", net.minecraft.network.packet.c2s.play.PlayerSessionC2SPacket.class);
-        PACKETS.put("StopSoundS2CPacket", net.minecraft.network.packet.s2c.play.StopSoundS2CPacket.class);
-        PACKETS.put("UpdatePlayerAbilitiesC2SPacket", net.minecraft.network.packet.c2s.play.UpdatePlayerAbilitiesC2SPacket.class);
-        PACKETS.put("GameMessageS2CPacket", net.minecraft.network.packet.s2c.play.GameMessageS2CPacket.class);
-        PACKETS.put("LoginKeyC2SPacket", net.minecraft.network.packet.c2s.login.LoginKeyC2SPacket.class);
-        PACKETS.put("EntityAttributesS2CPacket", net.minecraft.network.packet.s2c.play.EntityAttributesS2CPacket.class);
-        PACKETS.put("PlayerInputC2SPacket", net.minecraft.network.packet.c2s.play.PlayerInputC2SPacket.class);
-        PACKETS.put("AcknowledgeChunksC2SPacket", net.minecraft.network.packet.c2s.play.AcknowledgeChunksC2SPacket.class);
-        PACKETS.put("UpdateBeaconC2SPacket", net.minecraft.network.packet.c2s.play.UpdateBeaconC2SPacket.class);
-        PACKETS.put("BundleS2CPacket", net.minecraft.network.packet.s2c.play.BundleS2CPacket.class);
-        PACKETS.put("LoginQueryResponseC2SPacket", net.minecraft.network.packet.c2s.login.LoginQueryResponseC2SPacket.class);
-        PACKETS.put("StatisticsS2CPacket", net.minecraft.network.packet.s2c.play.StatisticsS2CPacket.class);
-        PACKETS.put("CommandTreeS2CPacket", net.minecraft.network.packet.s2c.play.CommandTreeS2CPacket.class);
-        PACKETS.put("ChatCommandSignedC2SPacket", net.minecraft.network.packet.c2s.play.ChatCommandSignedC2SPacket.class);
-        PACKETS.put("SlotChangedStateC2SPacket", net.minecraft.network.packet.c2s.play.SlotChangedStateC2SPacket.class);
-        PACKETS.put("ResourcePackRemoveS2CPacket", net.minecraft.network.packet.s2c.common.ResourcePackRemoveS2CPacket.class);
-        PACKETS.put("ServerTransferS2CPacket", net.minecraft.network.packet.s2c.common.ServerTransferS2CPacket.class);
-        PACKETS.put("SelectKnownPacksS2CPacket", net.minecraft.network.packet.s2c.config.SelectKnownPacksS2CPacket.class);
-        PACKETS.put("StoreCookieS2CPacket", net.minecraft.network.packet.s2c.common.StoreCookieS2CPacket.class);
-        PACKETS.put("DebugSampleS2CPacket", net.minecraft.network.packet.s2c.play.DebugSampleS2CPacket.class);
-        PACKETS.put("ProjectilePowerS2CPacket", net.minecraft.network.packet.s2c.play.ProjectilePowerS2CPacket.class);
-        PACKETS.put("TickStepS2CPacket", net.minecraft.network.packet.s2c.play.TickStepS2CPacket.class);
-        PACKETS.put("SelectKnownPacksC2SPacket", net.minecraft.network.packet.c2s.config.SelectKnownPacksC2SPacket.class);
-        PACKETS.put("CookieRequestS2CPacket", net.minecraft.network.packet.s2c.common.CookieRequestS2CPacket.class);
-        PACKETS.put("ResetChatS2CPacket", net.minecraft.network.packet.s2c.config.ResetChatS2CPacket.class);
-        PACKETS.put("ScoreboardScoreUpdateS2CPacket", net.minecraft.network.packet.s2c.play.ScoreboardScoreUpdateS2CPacket.class);
-        PACKETS.put("DebugSampleSubscriptionC2SPacket", net.minecraft.network.packet.c2s.play.DebugSampleSubscriptionC2SPacket.class);
-        PACKETS.put("ServerLinksS2CPacket", net.minecraft.network.packet.s2c.common.ServerLinksS2CPacket.class);
-        PACKETS.put("CookieResponseC2SPacket", net.minecraft.network.packet.c2s.common.CookieResponseC2SPacket.class);
-        PACKETS.put("UpdateTickRateS2CPacket", net.minecraft.network.packet.s2c.play.UpdateTickRateS2CPacket.class);
-        PACKETS.put("BundleDelimiterS2CPacket", net.minecraft.network.packet.s2c.play.BundleDelimiterS2CPacket.class);
-        PACKETS.put("CustomReportDetailsS2CPacket", net.minecraft.network.packet.s2c.common.CustomReportDetailsS2CPacket.class);
-        PACKETS.put("ScoreboardScoreResetS2CPacket", net.minecraft.network.packet.s2c.play.ScoreboardScoreResetS2CPacket.class);
+        PACKETS.put("WorldBorderWarningTimeChangedS2CPacket", net.minecraft.network.protocol.game.ClientboundSetBorderWarningDelayPacket.class);
+        PACKETS.put("SelectMerchantTradeC2SPacket", net.minecraft.network.protocol.game.ServerboundSelectTradePacket.class);
+        PACKETS.put("SelectAdvancementTabS2CPacket", net.minecraft.network.protocol.game.ClientboundSelectAdvancementsTabPacket.class);
+        PACKETS.put("ChunkBiomeDataS2CPacket", net.minecraft.network.protocol.game.ClientboundChunksBiomesPacket.class);
+        PACKETS.put("ChunkDeltaUpdateS2CPacket", net.minecraft.network.protocol.game.ClientboundSectionBlocksUpdatePacket.class);
+        PACKETS.put("EntityStatusEffectS2CPacket", net.minecraft.network.protocol.game.ClientboundUpdateMobEffectPacket.class);
+        PACKETS.put("AcknowledgeReconfigurationC2SPacket", net.minecraft.network.protocol.game.ServerboundConfigurationAcknowledgedPacket.class);
+        PACKETS.put("GameJoinS2CPacket", net.minecraft.network.protocol.game.ClientboundLoginPacket.class);
+        PACKETS.put("RemoveEntityStatusEffectS2CPacket", net.minecraft.network.protocol.game.ClientboundRemoveMobEffectPacket.class);
+        PACKETS.put("RemoveMessageS2CPacket", net.minecraft.network.protocol.game.ClientboundDeleteChatPacket.class);
+        PACKETS.put("EntityStatusS2CPacket", net.minecraft.network.protocol.game.ClientboundEntityEventPacket.class);
+        PACKETS.put("OpenWrittenBookS2CPacket", net.minecraft.network.protocol.game.ClientboundOpenBookPacket.class);
+        PACKETS.put("ClickSlotC2SPacket", net.minecraft.network.protocol.game.ServerboundContainerClickPacket.class);
+        PACKETS.put("PingResultS2CPacket", net.minecraft.network.protocol.ping.ClientboundPongResponsePacket.class);
+        PACKETS.put("TeamS2CPacket", net.minecraft.network.protocol.game.ClientboundSetPlayerTeamPacket.class);
+        PACKETS.put("UpdateSelectedSlotS2CPacket", net.minecraft.network.protocol.game.ClientboundSetHeldSlotPacket.class);
+        PACKETS.put("SubtitleS2CPacket", net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket.class);
+        PACKETS.put("EntityAnimationS2CPacket", net.minecraft.network.protocol.game.ClientboundAnimatePacket.class);
+        PACKETS.put("StartChunkSendS2CPacket", net.minecraft.network.protocol.game.ClientboundChunkBatchStartPacket.class);
+        PACKETS.put("DamageTiltS2CPacket", net.minecraft.network.protocol.game.ClientboundHurtAnimationPacket.class);
+        PACKETS.put("UpdateCommandBlockMinecartC2SPacket", net.minecraft.network.protocol.game.ServerboundSetCommandMinecartPacket.class);
+        PACKETS.put("UnloadChunkS2CPacket", net.minecraft.network.protocol.game.ClientboundForgetLevelChunkPacket.class);
+        PACKETS.put("BlockEventS2CPacket", net.minecraft.network.protocol.game.ClientboundBlockEventPacket.class);
+        PACKETS.put("ParticleS2CPacket", net.minecraft.network.protocol.game.ClientboundLevelParticlesPacket.class);
+        PACKETS.put("UpdateSelectedSlotC2SPacket", net.minecraft.network.protocol.game.ServerboundSetCarriedItemPacket.class);
+        PACKETS.put("UpdateDifficultyLockC2SPacket", net.minecraft.network.protocol.game.ServerboundLockDifficultyPacket.class);
+        PACKETS.put("CloseScreenS2CPacket", net.minecraft.network.protocol.game.ClientboundContainerClosePacket.class);
+        PACKETS.put("ClearTitleS2CPacket", net.minecraft.network.protocol.game.ClientboundClearTitlesPacket.class);
+        PACKETS.put("AdvancementUpdateS2CPacket", net.minecraft.network.protocol.game.ClientboundUpdateAdvancementsPacket.class);
+        PACKETS.put("SetTradeOffersS2CPacket", net.minecraft.network.protocol.game.ClientboundMerchantOffersPacket.class);
+        PACKETS.put("RecipeBookDataC2SPacket", net.minecraft.network.protocol.game.ServerboundRecipeBookSeenRecipePacket.class);
+        PACKETS.put("RequestCommandCompletionsC2SPacket", net.minecraft.network.protocol.game.ServerboundCommandSuggestionPacket.class);
+        PACKETS.put("ResourcePackStatusC2SPacket", net.minecraft.network.protocol.common.ServerboundResourcePackPacket.class);
+        PACKETS.put("PlaySoundFromEntityS2CPacket", net.minecraft.network.protocol.game.ClientboundSoundEntityPacket.class);
+        PACKETS.put("BoatPaddleStateC2SPacket", net.minecraft.network.protocol.game.ServerboundPaddleBoatPacket.class);
+        PACKETS.put("KeepAliveS2CPacket", net.minecraft.network.protocol.common.ClientboundKeepAlivePacket.class);
+        PACKETS.put("PlayerInteractBlockC2SPacket", net.minecraft.network.protocol.game.ServerboundUseItemOnPacket.class);
+        PACKETS.put("WorldBorderInterpolateSizeS2CPacket", net.minecraft.network.protocol.game.ClientboundSetBorderLerpSizePacket.class);
+        PACKETS.put("DynamicRegistriesS2CPacket", net.minecraft.network.protocol.configuration.ClientboundRegistryDataPacket.class);
+        PACKETS.put("VehicleMoveS2CPacket", net.minecraft.network.protocol.game.ClientboundMoveVehiclePacket.class);
+        PACKETS.put("PlayerAbilitiesS2CPacket", net.minecraft.network.protocol.game.ClientboundPlayerAbilitiesPacket.class);
+        PACKETS.put("WorldEventS2CPacket", net.minecraft.network.protocol.game.ClientboundLevelEventPacket.class);
+        PACKETS.put("CommonPingS2CPacket", net.minecraft.network.protocol.common.ClientboundPingPacket.class);
+        PACKETS.put("ChatSuggestionsS2CPacket", net.minecraft.network.protocol.game.ClientboundCustomChatCompletionsPacket.class);
+        PACKETS.put("PlayerInteractItemC2SPacket", net.minecraft.network.protocol.game.ServerboundUseItemPacket.class);
+        PACKETS.put("ChatMessageC2SPacket", net.minecraft.network.protocol.game.ServerboundChatPacket.class);
+        PACKETS.put("LookAtS2CPacket", net.minecraft.network.protocol.game.ClientboundPlayerLookAtPacket.class);
+        PACKETS.put("LightUpdateS2CPacket", net.minecraft.network.protocol.game.ClientboundLightUpdatePacket.class);
+        PACKETS.put("ScoreboardObjectiveUpdateS2CPacket", net.minecraft.network.protocol.game.ClientboundSetObjectivePacket.class);
+        PACKETS.put("RecipeCategoryOptionsC2SPacket", net.minecraft.network.protocol.game.ServerboundRecipeBookChangeSettingsPacket.class);
+        PACKETS.put("PlayerRespawnS2CPacket", net.minecraft.network.protocol.game.ClientboundRespawnPacket.class);
+        PACKETS.put("PlayerInteractEntityC2SPacket", net.minecraft.network.protocol.game.ServerboundInteractPacket.class);
+        PACKETS.put("GameStateChangeS2CPacket", net.minecraft.network.protocol.game.ClientboundGameEventPacket.class);
+        PACKETS.put("LoginHelloS2CPacket", net.minecraft.network.protocol.login.ClientboundHelloPacket.class);
+        PACKETS.put("ClientOptionsC2SPacket", net.minecraft.network.protocol.common.ServerboundClientInformationPacket.class);
+        PACKETS.put("EnterReconfigurationS2CPacket", net.minecraft.network.protocol.game.ClientboundStartConfigurationPacket.class);
+        PACKETS.put("PlaySoundS2CPacket", net.minecraft.network.protocol.game.ClientboundSoundPacket.class);
+        PACKETS.put("OpenScreenS2CPacket", net.minecraft.network.protocol.game.ClientboundOpenScreenPacket.class);
+        PACKETS.put("QueryRequestC2SPacket", net.minecraft.network.protocol.status.ServerboundStatusRequestPacket.class);
+        PACKETS.put("ChatMessageS2CPacket", net.minecraft.network.protocol.game.ClientboundPlayerChatPacket.class);
+        PACKETS.put("PlayerPositionLookS2CPacket", net.minecraft.network.protocol.game.ClientboundPlayerPositionPacket.class);
+        PACKETS.put("UpdateStructureBlockC2SPacket", net.minecraft.network.protocol.game.ServerboundSetStructureBlockPacket.class);
+        PACKETS.put("RenameItemC2SPacket", net.minecraft.network.protocol.game.ServerboundRenameItemPacket.class);
+        PACKETS.put("ChunkSentS2CPacket", net.minecraft.network.protocol.game.ClientboundChunkBatchFinishedPacket.class);
+        PACKETS.put("EntityVelocityUpdateS2CPacket", net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket.class);
+        PACKETS.put("EntityPositionS2CPacket", net.minecraft.network.protocol.game.ClientboundTeleportEntityPacket.class);
+        PACKETS.put("EntityS2CPacket", net.minecraft.network.protocol.game.ClientboundMoveEntityPacket.class);
+        PACKETS.put("EntityS2CPacket$Rotate", net.minecraft.network.protocol.game.ClientboundMoveEntityPacket.Rot.class);
+        PACKETS.put("EntityS2CPacket$MoveRelative", net.minecraft.network.protocol.game.ClientboundMoveEntityPacket.Pos.class);
+        PACKETS.put("EntityS2CPacket$RotateAndMoveRelative", net.minecraft.network.protocol.game.ClientboundMoveEntityPacket.PosRot.class);
+        PACKETS.put("EntitiesDestroyS2CPacket", net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket.class);
+        PACKETS.put("CommandSuggestionsS2CPacket", net.minecraft.network.protocol.game.ClientboundCommandSuggestionsPacket.class);
+        PACKETS.put("AdvancementTabC2SPacket", net.minecraft.network.protocol.game.ServerboundSeenAdvancementsPacket.class);
+        PACKETS.put("EntityEquipmentUpdateS2CPacket", net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket.class);
+        PACKETS.put("DisconnectS2CPacket", net.minecraft.network.protocol.common.ClientboundDisconnectPacket.class);
+        PACKETS.put("SignEditorOpenS2CPacket", net.minecraft.network.protocol.game.ClientboundOpenSignEditorPacket.class);
+        PACKETS.put("PlayerSpawnPositionS2CPacket", net.minecraft.network.protocol.game.ClientboundSetDefaultSpawnPositionPacket.class);
+        PACKETS.put("NbtQueryResponseS2CPacket", net.minecraft.network.protocol.game.ClientboundTagQueryPacket.class);
+        PACKETS.put("EndCombatS2CPacket", net.minecraft.network.protocol.game.ClientboundPlayerCombatEndPacket.class);
+        PACKETS.put("CustomPayloadS2CPacket", ClientboundCustomPayloadPacket.class);
+        PACKETS.put("MapUpdateS2CPacket", net.minecraft.network.protocol.game.ClientboundMapItemDataPacket.class);
+        PACKETS.put("CustomPayloadC2SPacket", ServerboundCustomPayloadPacket.class);
+        PACKETS.put("ButtonClickC2SPacket", net.minecraft.network.protocol.game.ServerboundContainerButtonClickPacket.class);
+        PACKETS.put("LoginSuccessS2CPacket", net.minecraft.network.protocol.login.ClientboundLoginFinishedPacket.class);
+        PACKETS.put("SynchronizeTagsS2CPacket", net.minecraft.network.protocol.common.ClientboundUpdateTagsPacket.class);
+        PACKETS.put("MessageAcknowledgmentC2SPacket", net.minecraft.network.protocol.game.ServerboundChatAckPacket.class);
+        PACKETS.put("ChunkDataS2CPacket", net.minecraft.network.protocol.game.ClientboundLevelChunkWithLightPacket.class);
+        PACKETS.put("EntityPassengersSetS2CPacket", net.minecraft.network.protocol.game.ClientboundSetPassengersPacket.class);
+        PACKETS.put("TitleS2CPacket", net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket.class);
+        PACKETS.put("BlockUpdateS2CPacket", net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket.class);
+        PACKETS.put("BlockBreakingProgressS2CPacket", net.minecraft.network.protocol.game.ClientboundBlockDestructionPacket.class);
+        PACKETS.put("ScreenHandlerPropertyUpdateS2CPacket", net.minecraft.network.protocol.game.ClientboundContainerSetDataPacket.class);
+        PACKETS.put("PlayerActionC2SPacket", net.minecraft.network.protocol.game.ServerboundPlayerActionPacket.class);
+        PACKETS.put("LoginQueryRequestS2CPacket", net.minecraft.network.protocol.login.ClientboundCustomQueryPacket.class);
+        PACKETS.put("ClientStatusC2SPacket", net.minecraft.network.protocol.game.ServerboundClientCommandPacket.class);
+        PACKETS.put("DifficultyS2CPacket", net.minecraft.network.protocol.game.ClientboundChangeDifficultyPacket.class);
+        PACKETS.put("TeleportConfirmC2SPacket", net.minecraft.network.protocol.game.ServerboundAcceptTeleportationPacket.class);
+        PACKETS.put("InventoryS2CPacket", net.minecraft.network.protocol.game.ClientboundContainerSetContentPacket.class);
+        PACKETS.put("FeaturesS2CPacket", net.minecraft.network.protocol.configuration.ClientboundUpdateEnabledFeaturesPacket.class);
+        PACKETS.put("BossBarS2CPacket", net.minecraft.network.protocol.game.ClientboundBossEventPacket.class);
+        PACKETS.put("WorldBorderInitializeS2CPacket", net.minecraft.network.protocol.game.ClientboundInitializeBorderPacket.class);
+        PACKETS.put("EntityAttachS2CPacket", net.minecraft.network.protocol.game.ClientboundSetEntityLinkPacket.class);
+        PACKETS.put("ExperienceBarUpdateS2CPacket", net.minecraft.network.protocol.game.ClientboundSetExperiencePacket.class);
+        PACKETS.put("QueryBlockNbtC2SPacket", net.minecraft.network.protocol.game.ServerboundBlockEntityTagQueryPacket.class);
+        PACKETS.put("SpectatorTeleportC2SPacket", net.minecraft.network.protocol.game.ServerboundTeleportToEntityPacket.class);
+        PACKETS.put("PlayerActionResponseS2CPacket", net.minecraft.network.protocol.game.ClientboundBlockChangedAckPacket.class);
+        PACKETS.put("ProfilelessChatMessageS2CPacket", net.minecraft.network.protocol.game.ClientboundDisguisedChatPacket.class);
+        PACKETS.put("PlayerListS2CPacket", net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket.class);
+        PACKETS.put("EnterCombatS2CPacket", net.minecraft.network.protocol.game.ClientboundPlayerCombatEnterPacket.class);
+        PACKETS.put("OpenHorseScreenS2CPacket", net.minecraft.network.protocol.game.ClientboundHorseScreenOpenPacket.class);
+        PACKETS.put("CommandExecutionC2SPacket", net.minecraft.network.protocol.game.ServerboundChatCommandPacket.class);
+        PACKETS.put("CraftRequestC2SPacket", net.minecraft.network.protocol.game.ServerboundPlaceRecipePacket.class);
+        PACKETS.put("HandSwingC2SPacket", net.minecraft.network.protocol.game.ServerboundSwingPacket.class);
+        PACKETS.put("HandshakeC2SPacket", net.minecraft.network.protocol.handshake.ClientIntentionPacket.class);
+        PACKETS.put("ChunkRenderDistanceCenterS2CPacket", net.minecraft.network.protocol.game.ClientboundSetChunkCacheCenterPacket.class);
+        PACKETS.put("CommonPongC2SPacket", net.minecraft.network.protocol.common.ServerboundPongPacket.class);
+        PACKETS.put("PlayerRemoveS2CPacket", net.minecraft.network.protocol.game.ClientboundPlayerInfoRemovePacket.class);
+        PACKETS.put("SetCameraEntityS2CPacket", net.minecraft.network.protocol.game.ClientboundSetCameraPacket.class);
+        PACKETS.put("VehicleMoveC2SPacket", net.minecraft.network.protocol.game.ServerboundMoveVehiclePacket.class);
+        PACKETS.put("UpdateSignC2SPacket", net.minecraft.network.protocol.game.ServerboundSignUpdatePacket.class);
+        PACKETS.put("ServerMetadataS2CPacket", net.minecraft.network.protocol.game.ClientboundServerDataPacket.class);
+        PACKETS.put("ResourcePackSendS2CPacket", net.minecraft.network.protocol.common.ClientboundResourcePackPushPacket.class);
+        PACKETS.put("ReadyC2SPacket", net.minecraft.network.protocol.configuration.ServerboundFinishConfigurationPacket.class);
+        PACKETS.put("BlockEntityUpdateS2CPacket", net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket.class);
+        PACKETS.put("ScreenHandlerSlotUpdateS2CPacket", net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket.class);
+        PACKETS.put("ClientCommandC2SPacket", net.minecraft.network.protocol.game.ServerboundPlayerCommandPacket.class);
+        PACKETS.put("EntityTrackerUpdateS2CPacket", net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket.class);
+        PACKETS.put("EnterConfigurationC2SPacket", net.minecraft.network.protocol.login.ServerboundLoginAcknowledgedPacket.class);
+        PACKETS.put("QueryResponseS2CPacket", net.minecraft.network.protocol.status.ClientboundStatusResponsePacket.class);
+        PACKETS.put("UpdateCommandBlockC2SPacket", net.minecraft.network.protocol.game.ServerboundSetCommandBlockPacket.class);
+        PACKETS.put("QueryEntityNbtC2SPacket", net.minecraft.network.protocol.game.ServerboundEntityTagQueryPacket.class);
+        PACKETS.put("LoginHelloC2SPacket", net.minecraft.network.protocol.login.ServerboundHelloPacket.class);
+        PACKETS.put("BookUpdateC2SPacket", net.minecraft.network.protocol.game.ServerboundEditBookPacket.class);
+        PACKETS.put("ExplosionS2CPacket", net.minecraft.network.protocol.game.ClientboundExplodePacket.class);
+        PACKETS.put("PlayerMoveC2SPacket", net.minecraft.network.protocol.game.ServerboundMovePlayerPacket.class);
+        PACKETS.put("PlayerMoveC2SPacket$OnGroundOnly", net.minecraft.network.protocol.game.ServerboundMovePlayerPacket.StatusOnly.class);
+        PACKETS.put("PlayerMoveC2SPacket$LookAndOnGround", net.minecraft.network.protocol.game.ServerboundMovePlayerPacket.Rot.class);
+        PACKETS.put("PlayerMoveC2SPacket$PositionAndOnGround", net.minecraft.network.protocol.game.ServerboundMovePlayerPacket.Pos.class);
+        PACKETS.put("PlayerMoveC2SPacket$Full", net.minecraft.network.protocol.game.ServerboundMovePlayerPacket.PosRot.class);
+        PACKETS.put("JigsawGeneratingC2SPacket", net.minecraft.network.protocol.game.ServerboundJigsawGeneratePacket.class);
+        PACKETS.put("WorldBorderCenterChangedS2CPacket", net.minecraft.network.protocol.game.ClientboundSetBorderCenterPacket.class);
+        PACKETS.put("HealthUpdateS2CPacket", net.minecraft.network.protocol.game.ClientboundSetHealthPacket.class);
+        PACKETS.put("ItemPickupAnimationS2CPacket", net.minecraft.network.protocol.game.ClientboundTakeItemEntityPacket.class);
+        PACKETS.put("EntityDamageS2CPacket", net.minecraft.network.protocol.game.ClientboundDamageEventPacket.class);
+        PACKETS.put("UpdateJigsawC2SPacket", net.minecraft.network.protocol.game.ServerboundSetJigsawBlockPacket.class);
+        PACKETS.put("WorldTimeUpdateS2CPacket", net.minecraft.network.protocol.game.ClientboundSetTimePacket.class);
+        PACKETS.put("CooldownUpdateS2CPacket", net.minecraft.network.protocol.game.ClientboundCooldownPacket.class);
+        PACKETS.put("KeepAliveC2SPacket", net.minecraft.network.protocol.common.ServerboundKeepAlivePacket.class);
+        PACKETS.put("ChunkLoadDistanceS2CPacket", net.minecraft.network.protocol.game.ClientboundSetChunkCacheRadiusPacket.class);
+        PACKETS.put("EntitySetHeadYawS2CPacket", net.minecraft.network.protocol.game.ClientboundRotateHeadPacket.class);
+        PACKETS.put("DeathMessageS2CPacket", net.minecraft.network.protocol.game.ClientboundPlayerCombatKillPacket.class);
+        PACKETS.put("SimulationDistanceS2CPacket", net.minecraft.network.protocol.game.ClientboundSetSimulationDistancePacket.class);
+        PACKETS.put("WorldBorderSizeChangedS2CPacket", net.minecraft.network.protocol.game.ClientboundSetBorderSizePacket.class);
+        PACKETS.put("LoginCompressionS2CPacket", net.minecraft.network.protocol.login.ClientboundLoginCompressionPacket.class);
+        PACKETS.put("CraftFailedResponseS2CPacket", net.minecraft.network.protocol.game.ClientboundPlaceGhostRecipePacket.class);
+        PACKETS.put("QueryPingC2SPacket", net.minecraft.network.protocol.ping.ServerboundPingRequestPacket.class);
+        PACKETS.put("UpdateDifficultyC2SPacket", net.minecraft.network.protocol.game.ServerboundChangeDifficultyPacket.class);
+        PACKETS.put("OverlayMessageS2CPacket", net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket.class);
+        PACKETS.put("ScoreboardDisplayS2CPacket", net.minecraft.network.protocol.game.ClientboundSetDisplayObjectivePacket.class);
+        PACKETS.put("CloseHandledScreenC2SPacket", net.minecraft.network.protocol.game.ServerboundContainerClosePacket.class);
+        PACKETS.put("PlayerListHeaderS2CPacket", net.minecraft.network.protocol.game.ClientboundTabListPacket.class);
+        PACKETS.put("WorldBorderWarningBlocksChangedS2CPacket", net.minecraft.network.protocol.game.ClientboundSetBorderWarningDistancePacket.class);
+        PACKETS.put("CreativeInventoryActionC2SPacket", net.minecraft.network.protocol.game.ServerboundSetCreativeModeSlotPacket.class);
+        PACKETS.put("EntitySpawnS2CPacket", net.minecraft.network.protocol.game.ClientboundAddEntityPacket.class);
+        PACKETS.put("TitleFadeS2CPacket", net.minecraft.network.protocol.game.ClientboundSetTitlesAnimationPacket.class);
+        PACKETS.put("ReadyS2CPacket", net.minecraft.network.protocol.configuration.ClientboundFinishConfigurationPacket.class);
+        PACKETS.put("SynchronizeRecipesS2CPacket", net.minecraft.network.protocol.game.ClientboundUpdateRecipesPacket.class);
+        PACKETS.put("LoginDisconnectS2CPacket", net.minecraft.network.protocol.login.ClientboundLoginDisconnectPacket.class);
+        PACKETS.put("PlayerSessionC2SPacket", net.minecraft.network.protocol.game.ServerboundChatSessionUpdatePacket.class);
+        PACKETS.put("StopSoundS2CPacket", net.minecraft.network.protocol.game.ClientboundStopSoundPacket.class);
+        PACKETS.put("UpdatePlayerAbilitiesC2SPacket", net.minecraft.network.protocol.game.ServerboundPlayerAbilitiesPacket.class);
+        PACKETS.put("GameMessageS2CPacket", net.minecraft.network.protocol.game.ClientboundSystemChatPacket.class);
+        PACKETS.put("LoginKeyC2SPacket", net.minecraft.network.protocol.login.ServerboundKeyPacket.class);
+        PACKETS.put("EntityAttributesS2CPacket", net.minecraft.network.protocol.game.ClientboundUpdateAttributesPacket.class);
+        PACKETS.put("PlayerInputC2SPacket", net.minecraft.network.protocol.game.ServerboundPlayerInputPacket.class);
+        PACKETS.put("AcknowledgeChunksC2SPacket", net.minecraft.network.protocol.game.ServerboundChunkBatchReceivedPacket.class);
+        PACKETS.put("UpdateBeaconC2SPacket", net.minecraft.network.protocol.game.ServerboundSetBeaconPacket.class);
+        PACKETS.put("BundleS2CPacket", net.minecraft.network.protocol.game.ClientboundBundlePacket.class);
+        PACKETS.put("LoginQueryResponseC2SPacket", net.minecraft.network.protocol.login.ServerboundCustomQueryAnswerPacket.class);
+        PACKETS.put("StatisticsS2CPacket", net.minecraft.network.protocol.game.ClientboundAwardStatsPacket.class);
+        PACKETS.put("CommandTreeS2CPacket", net.minecraft.network.protocol.game.ClientboundCommandsPacket.class);
+        PACKETS.put("ChatCommandSignedC2SPacket", net.minecraft.network.protocol.game.ServerboundChatCommandSignedPacket.class);
+        PACKETS.put("SlotChangedStateC2SPacket", net.minecraft.network.protocol.game.ServerboundContainerSlotStateChangedPacket.class);
+        PACKETS.put("ResourcePackRemoveS2CPacket", net.minecraft.network.protocol.common.ClientboundResourcePackPopPacket.class);
+        PACKETS.put("ServerTransferS2CPacket", net.minecraft.network.protocol.common.ClientboundTransferPacket.class);
+        PACKETS.put("SelectKnownPacksS2CPacket", net.minecraft.network.protocol.configuration.ClientboundSelectKnownPacks.class);
+        PACKETS.put("StoreCookieS2CPacket", net.minecraft.network.protocol.common.ClientboundStoreCookiePacket.class);
+        PACKETS.put("DebugSampleS2CPacket", net.minecraft.network.protocol.game.ClientboundDebugSamplePacket.class);
+        PACKETS.put("ProjectilePowerS2CPacket", net.minecraft.network.protocol.game.ClientboundProjectilePowerPacket.class);
+        PACKETS.put("TickStepS2CPacket", net.minecraft.network.protocol.game.ClientboundTickingStepPacket.class);
+        PACKETS.put("SelectKnownPacksC2SPacket", net.minecraft.network.protocol.configuration.ServerboundSelectKnownPacks.class);
+        PACKETS.put("CookieRequestS2CPacket", net.minecraft.network.protocol.cookie.ClientboundCookieRequestPacket.class);
+        PACKETS.put("ResetChatS2CPacket", net.minecraft.network.protocol.configuration.ClientboundResetChatPacket.class);
+        PACKETS.put("ScoreboardScoreUpdateS2CPacket", net.minecraft.network.protocol.game.ClientboundSetScorePacket.class);
+        PACKETS.put("DebugSampleSubscriptionC2SPacket", net.minecraft.network.protocol.game.ServerboundDebugSampleSubscriptionPacket.class);
+        PACKETS.put("ServerLinksS2CPacket", net.minecraft.network.protocol.common.ClientboundServerLinksPacket.class);
+        PACKETS.put("CookieResponseC2SPacket", net.minecraft.network.protocol.cookie.ServerboundCookieResponsePacket.class);
+        PACKETS.put("UpdateTickRateS2CPacket", net.minecraft.network.protocol.game.ClientboundTickingStatePacket.class);
+        PACKETS.put("BundleDelimiterS2CPacket", net.minecraft.network.protocol.game.ClientboundBundleDelimiterPacket.class);
+        PACKETS.put("CustomReportDetailsS2CPacket", net.minecraft.network.protocol.common.ClientboundCustomReportDetailsPacket.class);
+        PACKETS.put("ScoreboardScoreResetS2CPacket", net.minecraft.network.protocol.game.ClientboundResetScorePacket.class);
 
         PACKETS.forEach((name, clazz) -> PACKET_NAMES.put(clazz, name));
     }
@@ -1756,7 +1768,7 @@ public class PacketByteBufferHelper extends BaseHelper<PacketByteBuf> {
         StringBuilder builder = new StringBuilder();
         PacketByteBufferHelper.init();
         ClassPath.from(PacketByteBufferHelper.class.getClassLoader())
-                .getTopLevelClassesRecursive("net.minecraft.network.packet")
+                .getTopLevelClassesRecursive("net.minecraft.network.protocol")
                 .stream()
                 .map(ClassPath.ClassInfo::load)
                 .flatMap(c -> Stream.concat(Stream.of(c), Arrays.stream(c.getDeclaredClasses())))

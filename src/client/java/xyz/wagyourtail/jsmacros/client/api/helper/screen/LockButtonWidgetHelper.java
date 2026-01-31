@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.screen;
 
-import net.minecraft.client.gui.widget.LockButtonWidget;
+import net.minecraft.client.gui.components.LockIconButton;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.jsmacros.client.JsMacrosClient;
 import xyz.wagyourtail.jsmacros.client.api.classes.render.IScreen;
@@ -13,13 +13,13 @@ import java.util.concurrent.atomic.AtomicReference;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class LockButtonWidgetHelper extends ClickableWidgetHelper<LockButtonWidgetHelper, LockButtonWidget> {
+public class LockButtonWidgetHelper extends ClickableWidgetHelper<LockButtonWidgetHelper, LockIconButton> {
 
-    public LockButtonWidgetHelper(LockButtonWidget btn) {
+    public LockButtonWidgetHelper(LockIconButton btn) {
         super(btn);
     }
 
-    public LockButtonWidgetHelper(LockButtonWidget btn, int zIndex) {
+    public LockButtonWidgetHelper(LockIconButton btn, int zIndex) {
         super(btn, zIndex);
     }
 
@@ -50,7 +50,7 @@ public class LockButtonWidgetHelper extends ClickableWidgetHelper<LockButtonWidg
      * @author Etheradon
      * @since 1.8.4
      */
-    public static class LockButtonBuilder extends AbstractWidgetBuilder<LockButtonBuilder, LockButtonWidget, LockButtonWidgetHelper> {
+    public static class LockButtonBuilder extends AbstractWidgetBuilder<LockButtonBuilder, LockIconButton, LockButtonWidgetHelper> {
 
         private boolean locked = false;
         @Nullable
@@ -100,7 +100,7 @@ public class LockButtonWidgetHelper extends ClickableWidgetHelper<LockButtonWidg
         @Override
         public LockButtonWidgetHelper createWidget() {
             AtomicReference<LockButtonWidgetHelper> b = new AtomicReference<>(null);
-            LockButtonWidget lockButton = new LockButtonWidget(getX(), getY(), btn -> {
+            LockIconButton lockButton = new LockIconButton(getX(), getY(), btn -> {
                 try {
                     if (action != null) {
                         action.accept(b.get(), screen);

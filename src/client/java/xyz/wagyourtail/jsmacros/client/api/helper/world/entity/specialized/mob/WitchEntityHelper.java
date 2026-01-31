@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.mob;
 
-import net.minecraft.entity.mob.WitchEntity;
+import net.minecraft.world.entity.monster.Witch;
 import xyz.wagyourtail.jsmacros.client.api.helper.inventory.ItemStackHelper;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.MobEntityHelper;
 
@@ -9,9 +9,9 @@ import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.MobEntityHelper;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class WitchEntityHelper extends MobEntityHelper<WitchEntity> {
+public class WitchEntityHelper extends MobEntityHelper<Witch> {
 
-    public WitchEntityHelper(WitchEntity base) {
+    public WitchEntityHelper(Witch base) {
         super(base);
     }
 
@@ -20,7 +20,7 @@ public class WitchEntityHelper extends MobEntityHelper<WitchEntity> {
      * @since 1.8.4
      */
     public boolean isDrinkingPotion() {
-        return base.isDrinking();
+        return base.isDrinkingPotion();
     }
 
     /**

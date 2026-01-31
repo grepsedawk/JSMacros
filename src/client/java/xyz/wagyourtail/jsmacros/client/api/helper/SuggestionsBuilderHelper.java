@@ -1,8 +1,8 @@
 package xyz.wagyourtail.jsmacros.client.api.helper;
 
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
-import net.minecraft.command.CommandSource;
-import net.minecraft.util.Identifier;
+import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.resources.ResourceLocation;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.BlockPosHelper;
 import xyz.wagyourtail.jsmacros.core.helpers.BaseHelper;
 
@@ -70,7 +70,7 @@ public class SuggestionsBuilderHelper extends BaseHelper<SuggestionsBuilder> {
      * @since 1.8.4
      */
     public SuggestionsBuilderHelper suggestMatching(Collection<String> suggestions) {
-        CommandSource.suggestMatching(suggestions, base);
+        SharedSuggestionProvider.suggest(suggestions, base);
         return this;
     }
 
@@ -89,7 +89,7 @@ public class SuggestionsBuilderHelper extends BaseHelper<SuggestionsBuilder> {
      * @since 1.8.4
      */
     public SuggestionsBuilderHelper suggestIdentifier(Collection<String> identifiers) {
-        CommandSource.suggestIdentifiers(identifiers.stream().map(Identifier::of), base);
+        SharedSuggestionProvider.suggestResource(identifiers.stream().map(ResourceLocation::parse), base);
         return this;
     }
 
@@ -132,9 +132,9 @@ public class SuggestionsBuilderHelper extends BaseHelper<SuggestionsBuilder> {
      * @since 1.8.4
      */
     public SuggestionsBuilderHelper suggestPositions(Collection<String> positions) {
-        CommandSource.suggestPositions(getRemaining(), positions.stream().map(p -> {
+        SharedSuggestionProvider.suggestCoordinates(getRemaining(), positions.stream().map(p -> {
             String[] split = p.split(" ");
-            return new CommandSource.RelativePosition(split[0], split[1], split[2]);
+            return new SharedSuggestionProvider.TextCoordinates(split[0], split[1], split[2]);
         }).collect(Collectors.toList()), base, s -> true);
         return this;
     }

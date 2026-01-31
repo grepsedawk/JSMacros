@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.screen;
 
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.Mth;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.jsmacros.client.JsMacrosClient;
 import xyz.wagyourtail.jsmacros.client.api.classes.render.IScreen;
@@ -94,7 +94,7 @@ public class SliderWidgetHelper extends ClickableWidgetHelper<SliderWidgetHelper
          * @since 1.8.4
          */
         public SliderBuilder steps(int steps) {
-            this.steps = MathHelper.clamp(steps, 2, Integer.MAX_VALUE);
+            this.steps = Mth.clamp(steps, 2, Integer.MAX_VALUE);
             return this;
         }
 
@@ -112,7 +112,7 @@ public class SliderWidgetHelper extends ClickableWidgetHelper<SliderWidgetHelper
          * @since 1.8.4
          */
         public SliderBuilder initially(int value) {
-            this.value = MathHelper.clamp(value, 0, steps - 1);
+            this.value = Mth.clamp(value, 0, steps - 1);
             return this;
         }
 

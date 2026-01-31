@@ -1,7 +1,7 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.other;
 
-import net.minecraft.entity.AreaEffectCloudEntity;
-import net.minecraft.registry.Registries;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.entity.AreaEffectCloud;
 import xyz.wagyourtail.doclet.DocletReplaceReturn;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.EntityHelper;
 
@@ -10,9 +10,9 @@ import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.EntityHelper;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class AreaEffectCloudEntityHelper extends EntityHelper<AreaEffectCloudEntity> {
+public class AreaEffectCloudEntityHelper extends EntityHelper<AreaEffectCloud> {
 
-    public AreaEffectCloudEntityHelper(AreaEffectCloudEntity e) {
+    public AreaEffectCloudEntityHelper(AreaEffectCloud e) {
         super(e);
     }
 
@@ -29,7 +29,7 @@ public class AreaEffectCloudEntityHelper extends EntityHelper<AreaEffectCloudEnt
      * @since 1.8.4
      */
     public int getColor() {
-        return base.getTeamColorValue();
+        return base.getTeamColor();
     }
 
     /**
@@ -38,7 +38,7 @@ public class AreaEffectCloudEntityHelper extends EntityHelper<AreaEffectCloudEnt
      */
     @DocletReplaceReturn("ParticleId")
     public String getParticleType() {
-        return Registries.PARTICLE_TYPE.getId(base.getParticleType().getType()).toString();
+        return BuiltInRegistries.PARTICLE_TYPE.getKey(base.getParticle().getType()).toString();
     }
 
     /**

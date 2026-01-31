@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.access;
 
-import net.minecraft.text.ClickEvent;
+import net.minecraft.network.chat.ClickEvent;
 
 public class CustomClickEvent implements ClickEvent {
     Runnable event;
@@ -19,7 +19,7 @@ public class CustomClickEvent implements ClickEvent {
     }
 
     @Override
-    public Action getAction() {
+    public Action action() {
         return null;
     }
 }

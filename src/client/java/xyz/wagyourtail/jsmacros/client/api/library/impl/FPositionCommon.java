@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.library.impl;
 
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.phys.Vec3;
 import xyz.wagyourtail.jsmacros.api.math.Pos2D;
 import xyz.wagyourtail.jsmacros.api.math.Pos3D;
 import xyz.wagyourtail.jsmacros.api.math.Vec2D;
@@ -46,7 +46,7 @@ public class FPositionCommon extends BaseLibrary {
      * @since 1.8.4
      */
     public Vec3D createLookingVector(EntityHelper<?> entity) {
-        Vec3d rotation = entity.getRaw().getRotationVector();
+        Vec3 rotation = entity.getRaw().getLookAngle();
         return new Vec3D(0, 0, 0, rotation.x, rotation.y, rotation.z);
     }
 
@@ -57,7 +57,7 @@ public class FPositionCommon extends BaseLibrary {
      * @since 1.8.4
      */
     public Vec3D createLookingVector(double yaw, double pitch) {
-        Vec3d rotation = Vec3d.fromPolar((float) pitch, (float) yaw);
+        Vec3 rotation = Vec3.directionFromRotation((float) pitch, (float) yaw);
         return new Vec3D(0, 0, 0, rotation.x, rotation.y, rotation.z);
     }
 

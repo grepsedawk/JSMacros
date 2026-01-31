@@ -1,9 +1,17 @@
 package xyz.wagyourtail.jsmacros.client.gui.settings.settingcontainer;
 
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
 import xyz.wagyourtail.jsmacros.client.gui.settings.SettingsOverlay;
-import xyz.wagyourtail.jsmacros.client.gui.settings.settingfields.*;
+import xyz.wagyourtail.jsmacros.client.gui.settings.settingfields.AbstractSettingField;
+import xyz.wagyourtail.jsmacros.client.gui.settings.settingfields.BooleanField;
+import xyz.wagyourtail.jsmacros.client.gui.settings.settingfields.DoubleField;
+import xyz.wagyourtail.jsmacros.client.gui.settings.settingfields.FileField;
+import xyz.wagyourtail.jsmacros.client.gui.settings.settingfields.FloatField;
+import xyz.wagyourtail.jsmacros.client.gui.settings.settingfields.IntField;
+import xyz.wagyourtail.jsmacros.client.gui.settings.settingfields.LongField;
+import xyz.wagyourtail.jsmacros.client.gui.settings.settingfields.OptionsField;
+import xyz.wagyourtail.jsmacros.client.gui.settings.settingfields.StringField;
 import xyz.wagyourtail.wagyourgui.elements.Scrollbar;
 
 import java.util.LinkedList;
@@ -14,7 +22,7 @@ public class PrimitiveSettingGroup extends AbstractSettingContainer {
     int topScroll = 0;
     int settingHeight = 0;
 
-    public PrimitiveSettingGroup(int x, int y, int width, int height, TextRenderer textRenderer, SettingsOverlay parent, String[] group) {
+    public PrimitiveSettingGroup(int x, int y, int width, int height, Font textRenderer, SettingsOverlay parent, String[] group) {
         super(x, y, width, height, textRenderer, parent, group);
     }
 
@@ -35,7 +43,7 @@ public class PrimitiveSettingGroup extends AbstractSettingContainer {
     }
 
     @Override
-    public void render(DrawContext drawContext, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphics drawContext, int mouseX, int mouseY, float delta) {
         for (AbstractSettingField<?> setting : settings) {
             setting.render(drawContext, mouseX, mouseY, delta);
         }

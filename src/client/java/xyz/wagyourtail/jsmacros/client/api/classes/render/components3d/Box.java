@@ -1,11 +1,11 @@
 package xyz.wagyourtail.jsmacros.client.api.classes.render.components3d;
 
 import com.mojang.blaze3d.platform.DepthTestFunction;
-import net.minecraft.client.gl.RenderPipelines;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.VertexRendering;
-import net.minecraft.client.util.math.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.ShapeRenderer;
 import xyz.wagyourtail.doclet.DocletIgnore;
 import xyz.wagyourtail.jsmacros.api.math.Pos3D;
 import xyz.wagyourtail.jsmacros.api.math.Vec3D;
@@ -188,7 +188,7 @@ public class Box implements RenderElement3D<Box> {
 
     @Override
     @DocletIgnore
-    public void render(MatrixStack matrixStack, VertexConsumerProvider consumers, float tickDelta) {
+    public void render(PoseStack matrixStack, MultiBufferSource consumers, float tickDelta) {
         float x1 = (float) pos.x1;
         float y1 = (float) pos.y1;
         float z1 = (float) pos.z1;
@@ -197,30 +197,30 @@ public class Box implements RenderElement3D<Box> {
         float z2 = (float) pos.z2;
 
         boolean seeThrough = !this.cull;
-        VertexConsumerProvider.Immediate immediate = (VertexConsumerProvider.Immediate) consumers;
+        MultiBufferSource.BufferSource immediate = (MultiBufferSource.BufferSource) consumers;
         try {
             if (seeThrough) {
                 lineDepthTestFunction.set(RenderPipelines.LINES, DepthTestFunction.NO_DEPTH_TEST);
                 boxDepthTestFunction.set(RenderPipelines.DEBUG_FILLED_BOX, DepthTestFunction.NO_DEPTH_TEST);
             }
-            RenderLayer linesLayer = RenderLayer.getLines();
-            RenderLayer fillLayer = RenderLayer.getDebugFilledBox();
+            RenderType linesLayer = RenderType.lines();
+            RenderType fillLayer = RenderType.debugFilledBox();
 
             if (this.fill) {
                 float fa = ((fillColor >> 24) & 0xFF) / 255.0F;
                 float fr = ((fillColor >> 16) & 0xFF) / 255.0F;
                 float fg = ((fillColor >> 8) & 0xFF) / 255.0F;
                 float fb = (fillColor & 0xFF) / 255.0F;
-                VertexRendering.drawFilledBox(matrixStack, consumers.getBuffer(fillLayer), x1, y1, z1, x2, y2, z2, fr, fg, fb, fa);
+                ShapeRenderer.addChainedFilledBoxVertices(matrixStack, consumers.getBuffer(fillLayer), x1, y1, z1, x2, y2, z2, fr, fg, fb, fa);
             }
 
             float r = ((color >> 16) & 0xFF) / 255.0F;
             float g = ((color >> 8) & 0xFF) / 255.0F;
             float b = (color & 0xFF) / 255.0F;
             float a = ((color >> 24) & 0xFF) / 255.0F;
-            VertexRendering.drawBox(matrixStack, consumers.getBuffer(linesLayer), x1, y1, z1, x2, y2, z2, r, g, b, a);
+            ShapeRenderer.renderLineBox(matrixStack, consumers.getBuffer(linesLayer), x1, y1, z1, x2, y2, z2, r, g, b, a);
             if (seeThrough) {
-                immediate.draw();
+                immediate.endBatch();
             }
         } catch (IllegalAccessException e) {
             e.printStackTrace();

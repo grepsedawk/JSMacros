@@ -1,7 +1,7 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world;
 
-import net.minecraft.block.Block;
-import net.minecraft.registry.Registries;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.level.block.Block;
 import xyz.wagyourtail.doclet.DocletReplaceReturn;
 import xyz.wagyourtail.jsmacros.client.api.helper.TextHelper;
 import xyz.wagyourtail.jsmacros.client.api.helper.inventory.ItemStackHelper;
@@ -26,7 +26,7 @@ public class BlockHelper extends BaseHelper<Block> {
      * @since 1.6.5
      */
     public BlockStateHelper getDefaultState() {
-        return new BlockStateHelper(base.getDefaultState());
+        return new BlockStateHelper(base.defaultBlockState());
     }
 
     /**
@@ -34,11 +34,11 @@ public class BlockHelper extends BaseHelper<Block> {
      * @since 1.6.5
      */
     public ItemStackHelper getDefaultItemStack() {
-        return new ItemStackHelper(base.asItem().getDefaultStack());
+        return new ItemStackHelper(base.asItem().getDefaultInstance());
     }
 
     public boolean canMobSpawnInside() {
-        return base.canMobSpawnInside(base.getDefaultState());
+        return base.isPossibleToRespawnInThis(base.defaultBlockState());
     }
 
     /**
@@ -46,7 +46,7 @@ public class BlockHelper extends BaseHelper<Block> {
      * @since 1.6.5
      */
     public boolean hasDynamicBounds() {
-        return base.hasDynamicBounds();
+        return base.hasDynamicShape();
     }
 
     /**
@@ -54,7 +54,7 @@ public class BlockHelper extends BaseHelper<Block> {
      * @since 1.6.5
      */
     public float getBlastResistance() {
-        return base.getBlastResistance();
+        return base.getExplosionResistance();
     }
 
     /**
@@ -62,7 +62,7 @@ public class BlockHelper extends BaseHelper<Block> {
      * @since 1.6.5
      */
     public float getJumpVelocityMultiplier() {
-        return base.getJumpVelocityMultiplier();
+        return base.getJumpFactor();
     }
 
     /**
@@ -70,7 +70,7 @@ public class BlockHelper extends BaseHelper<Block> {
      * @since 1.6.5
      */
     public float getSlipperiness() {
-        return base.getSlipperiness();
+        return base.getFriction();
     }
 
     /**
@@ -78,7 +78,7 @@ public class BlockHelper extends BaseHelper<Block> {
      * @since 1.6.5
      */
     public float getHardness() {
-        return base.getHardness();
+        return base.defaultDestroyTime();
     }
 
     /**
@@ -86,7 +86,7 @@ public class BlockHelper extends BaseHelper<Block> {
      * @since 1.6.5
      */
     public float getVelocityMultiplier() {
-        return base.getVelocityMultiplier();
+        return base.getSpeedFactor();
     }
 
     /**
@@ -95,7 +95,7 @@ public class BlockHelper extends BaseHelper<Block> {
      */
     @DocletReplaceReturn("JavaList<BlockTag>")
     public List<String> getTags() {
-        return base.getRegistryEntry().streamTags().map(t -> t.id().toString()).collect(Collectors.toList());
+        return base.builtInRegistryHolder().tags().map(t -> t.location().toString()).collect(Collectors.toList());
     }
 
     /**
@@ -103,7 +103,7 @@ public class BlockHelper extends BaseHelper<Block> {
      * @since 1.6.5
      */
     public List<BlockStateHelper> getStates() {
-        return base.getStateManager().getStates().stream().map(BlockStateHelper::new).collect(Collectors.toList());
+        return base.getStateDefinition().getPossibleStates().stream().map(BlockStateHelper::new).collect(Collectors.toList());
     }
 
     /**
@@ -112,7 +112,7 @@ public class BlockHelper extends BaseHelper<Block> {
      */
     @DocletReplaceReturn("BlockId")
     public String getId() {
-        return Registries.BLOCK.getId(base).toString();
+        return BuiltInRegistries.BLOCK.getKey(base).toString();
     }
 
     /**

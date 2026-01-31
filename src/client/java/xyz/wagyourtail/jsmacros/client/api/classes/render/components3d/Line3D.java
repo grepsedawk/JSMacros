@@ -1,10 +1,10 @@
 package xyz.wagyourtail.jsmacros.client.api.classes.render.components3d;
 
 import com.mojang.blaze3d.platform.DepthTestFunction;
-import net.minecraft.client.gl.RenderPipelines;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.util.math.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.renderer.RenderType;
 import xyz.wagyourtail.doclet.DocletIgnore;
 import xyz.wagyourtail.jsmacros.api.math.Pos3D;
 import xyz.wagyourtail.jsmacros.api.math.Vec3D;
@@ -106,26 +106,26 @@ public class Line3D implements RenderElement3D<Line3D> {
 
     @Override
     @DocletIgnore
-    public void render(MatrixStack matrixStack, VertexConsumerProvider consumers, float tickDelta) {
+    public void render(PoseStack matrixStack, MultiBufferSource consumers, float tickDelta) {
         boolean seeThrough = !this.cull;
-        var consumer = consumers.getBuffer(RenderLayer.getLines());
+        var consumer = consumers.getBuffer(RenderType.lines());
 
         try {
             if (seeThrough) {
                 lineDepthTestFunction.set(RenderPipelines.LINES, DepthTestFunction.NO_DEPTH_TEST);
             }
-            MatrixStack.Entry entry = matrixStack.peek();
+            PoseStack.Pose entry = matrixStack.last();
 
             // Draw 3 lines in each of the normals for consistency
-            consumer.vertex(entry, (float) pos.x1, (float) pos.y1, (float) pos.z1).color(color).normal(entry, 1, 0, 0);
-            consumer.vertex(entry, (float) pos.x2, (float) pos.y2, (float) pos.z2).color(color).normal(entry, 1, 0, 0);
-            consumer.vertex(entry, (float) pos.x1, (float) pos.y1, (float) pos.z1).color(color).normal(entry, 0, 1, 0);
-            consumer.vertex(entry, (float) pos.x2, (float) pos.y2, (float) pos.z2).color(color).normal(entry, 0, 1, 0);
-            consumer.vertex(entry, (float) pos.x1, (float) pos.y1, (float) pos.z1).color(color).normal(entry, 0, 0, 1);
-            consumer.vertex(entry, (float) pos.x2, (float) pos.y2, (float) pos.z2).color(color).normal(entry, 0, 0, 1);
+            consumer.addVertex(entry, (float) pos.x1, (float) pos.y1, (float) pos.z1).setColor(color).setNormal(entry, 1, 0, 0);
+            consumer.addVertex(entry, (float) pos.x2, (float) pos.y2, (float) pos.z2).setColor(color).setNormal(entry, 1, 0, 0);
+            consumer.addVertex(entry, (float) pos.x1, (float) pos.y1, (float) pos.z1).setColor(color).setNormal(entry, 0, 1, 0);
+            consumer.addVertex(entry, (float) pos.x2, (float) pos.y2, (float) pos.z2).setColor(color).setNormal(entry, 0, 1, 0);
+            consumer.addVertex(entry, (float) pos.x1, (float) pos.y1, (float) pos.z1).setColor(color).setNormal(entry, 0, 0, 1);
+            consumer.addVertex(entry, (float) pos.x2, (float) pos.y2, (float) pos.z2).setColor(color).setNormal(entry, 0, 0, 1);
 
-          if (seeThrough && consumer instanceof VertexConsumerProvider.Immediate immediate) {
-            immediate.draw();
+          if (seeThrough && consumer instanceof MultiBufferSource.BufferSource immediate) {
+            immediate.endBatch();
           }
         } catch (IllegalAccessException e) {
             e.printStackTrace();

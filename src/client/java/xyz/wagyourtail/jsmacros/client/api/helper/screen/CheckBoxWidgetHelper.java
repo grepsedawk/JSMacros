@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.screen;
 
-import net.minecraft.client.gui.widget.CheckboxWidget;
+import net.minecraft.client.gui.components.Checkbox;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.jsmacros.client.JsMacrosClient;
 import xyz.wagyourtail.jsmacros.client.api.classes.render.IScreen;
@@ -13,13 +13,13 @@ import java.util.concurrent.atomic.AtomicReference;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class CheckBoxWidgetHelper extends ClickableWidgetHelper<CheckBoxWidgetHelper, CheckboxWidget> {
+public class CheckBoxWidgetHelper extends ClickableWidgetHelper<CheckBoxWidgetHelper, Checkbox> {
 
-    public CheckBoxWidgetHelper(CheckboxWidget btn) {
+    public CheckBoxWidgetHelper(Checkbox btn) {
         super(btn);
     }
 
-    public CheckBoxWidgetHelper(CheckboxWidget btn, int zIndex) {
+    public CheckBoxWidgetHelper(Checkbox btn, int zIndex) {
         super(btn, zIndex);
     }
 
@@ -28,7 +28,7 @@ public class CheckBoxWidgetHelper extends ClickableWidgetHelper<CheckBoxWidgetHe
      * @since 1.8.4
      */
     public boolean isChecked() {
-        return base.isChecked();
+        return base.selected();
     }
 
     /**
@@ -36,7 +36,7 @@ public class CheckBoxWidgetHelper extends ClickableWidgetHelper<CheckBoxWidgetHe
      * @since 1.8.4
      */
     public CheckBoxWidgetHelper toggle() {
-        return setChecked(!base.isChecked());
+        return setChecked(!base.selected());
     }
 
     /**
@@ -45,7 +45,7 @@ public class CheckBoxWidgetHelper extends ClickableWidgetHelper<CheckBoxWidgetHe
      * @since 1.8.4
      */
     public CheckBoxWidgetHelper setChecked(boolean checked) {
-        if (base.isChecked() != checked) {
+        if (base.selected() != checked) {
             base.onPress();
         }
         return this;
@@ -60,7 +60,7 @@ public class CheckBoxWidgetHelper extends ClickableWidgetHelper<CheckBoxWidgetHe
      * @author Etheradon
      * @since 1.8.4
      */
-    public static class CheckBoxBuilder extends AbstractWidgetBuilder<CheckBoxBuilder, CheckboxWidget, CheckBoxWidgetHelper> {
+    public static class CheckBoxBuilder extends AbstractWidgetBuilder<CheckBoxBuilder, Checkbox, CheckBoxWidgetHelper> {
 
         private boolean checked = false;
         @Nullable
@@ -110,7 +110,7 @@ public class CheckBoxWidgetHelper extends ClickableWidgetHelper<CheckBoxWidgetHe
         @Override
         public CheckBoxWidgetHelper createWidget() {
             AtomicReference<CheckBoxWidgetHelper> b = new AtomicReference<>(null);
-            CheckboxWidget checkBox = CheckboxWidget.builder(getMessage().getRaw(), mc.textRenderer).callback((btn, value) -> {
+            Checkbox checkBox = Checkbox.builder(getMessage().getRaw(), mc.font).onValueChange((btn, value) -> {
                 try {
                     if (action != null) {
                         action.accept(b.get(), screen);
@@ -118,7 +118,7 @@ public class CheckBoxWidgetHelper extends ClickableWidgetHelper<CheckBoxWidgetHe
                 } catch (Exception e) {
                     JsMacrosClient.clientCore.profile.logError(e);
                 }
-            }).pos(getX(), getY()).checked(isChecked()).build();
+            }).pos(getX(), getY()).selected(isChecked()).build();
             checkBox.setWidth(getWidth());
             checkBox.setHeight(getHeight());
             b.set(new CheckBoxWidgetHelper(checkBox, getZIndex()));

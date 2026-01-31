@@ -1,16 +1,16 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.mob;
 
-import net.minecraft.entity.mob.SpellcastingIllagerEntity;
+import net.minecraft.world.entity.monster.SpellcasterIllager;
 import xyz.wagyourtail.doclet.DocletDeclareType;
 import xyz.wagyourtail.doclet.DocletReplaceReturn;
-import xyz.wagyourtail.jsmacros.client.mixin.access.MixinSpellcastingIllagerEntityHelper;
+import xyz.wagyourtail.jsmacros.client.mixin.access.MixinSpellcasterIllagerHelper;
 
 /**
  * @author Etheradon
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class SpellcastingIllagerEntityHelper<T extends SpellcastingIllagerEntity> extends IllagerEntityHelper<T> {
+public class SpellcastingIllagerEntityHelper<T extends SpellcasterIllager> extends IllagerEntityHelper<T> {
 
     public SpellcastingIllagerEntityHelper(T base) {
         super(base);
@@ -22,7 +22,7 @@ public class SpellcastingIllagerEntityHelper<T extends SpellcastingIllagerEntity
      * @since 1.8.4
      */
     public boolean isCastingSpell() {
-        return base.isSpellcasting();
+        return base.isCastingSpell();
     }
 
     /**
@@ -32,7 +32,7 @@ public class SpellcastingIllagerEntityHelper<T extends SpellcastingIllagerEntity
     @DocletReplaceReturn("IllagerSpell")
     @DocletDeclareType(name = "IllagerSpell", type = "'NONE' | 'SUMMON_VEX' | 'FANGS' | 'WOLOLO' | 'DISAPPEAR' | 'BLINDNESS' | 'ERROR'")
     public String getCastedSpell() {
-        switch (base.getDataTracker().get(((MixinSpellcastingIllagerEntityHelper) base).getSpellKey())) {
+        switch (base.getEntityData().get(((MixinSpellcasterIllagerHelper) base).getSpellKey())) {
             case 0:
                 return "NONE";
             case 1:

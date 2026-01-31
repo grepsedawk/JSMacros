@@ -1,14 +1,20 @@
 package xyz.wagyourtail.jsmacros.client.api.classes.render;
 
 import com.google.common.collect.ImmutableList;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.Drawable;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Renderable;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.doclet.DocletIgnore;
 import xyz.wagyourtail.doclet.DocletReplaceParams;
 import xyz.wagyourtail.jsmacros.client.JsMacrosClient;
-import xyz.wagyourtail.jsmacros.client.api.classes.render.components.*;
+import xyz.wagyourtail.jsmacros.client.api.classes.render.components.Draw2DElement;
+import xyz.wagyourtail.jsmacros.client.api.classes.render.components.Image;
+import xyz.wagyourtail.jsmacros.client.api.classes.render.components.Item;
+import xyz.wagyourtail.jsmacros.client.api.classes.render.components.Line;
+import xyz.wagyourtail.jsmacros.client.api.classes.render.components.Rect;
+import xyz.wagyourtail.jsmacros.client.api.classes.render.components.RenderElement;
+import xyz.wagyourtail.jsmacros.client.api.classes.render.components.Text;
 import xyz.wagyourtail.jsmacros.client.api.classes.render.components3d.Surface;
 import xyz.wagyourtail.jsmacros.client.api.helper.TextHelper;
 import xyz.wagyourtail.jsmacros.client.api.helper.inventory.ItemStackHelper;
@@ -16,7 +22,14 @@ import xyz.wagyourtail.jsmacros.client.api.library.impl.FHud;
 import xyz.wagyourtail.jsmacros.core.MethodWrapper;
 import xyz.wagyourtail.jsmacros.core.classes.Registrable;
 
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.Comparator;
+import java.util.Deque;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 import java.util.function.IntSupplier;
 import java.util.stream.Collectors;
 
@@ -48,12 +61,12 @@ public class Draw2D implements IDraw2D<Draw2D>, Registrable<Draw2D> {
     @Nullable
     public MethodWrapper<String, Object, Object, ?> catchInit;
 
-    protected final MinecraftClient mc;
+    protected final Minecraft mc;
 
     public Draw2D() {
-        this.mc = MinecraftClient.getInstance();
-        this.widthSupplier = () -> mc.getWindow().getScaledWidth();
-        this.heightSupplier = () -> mc.getWindow().getScaledHeight();
+        this.mc = Minecraft.getInstance();
+        this.widthSupplier = () -> mc.getWindow().getGuiScaledWidth();
+        this.heightSupplier = () -> mc.getWindow().getGuiScaledHeight();
     }
 
     /**
@@ -82,7 +95,7 @@ public class Draw2D implements IDraw2D<Draw2D>, Registrable<Draw2D> {
     public List<Text> getTexts() {
         List<Text> list = new LinkedList<>();
         synchronized (elements) {
-            for (Drawable e : elements) {
+            for (Renderable e : elements) {
                 if (e instanceof Text) {
                     list.add((Text) e);
                 }
@@ -99,7 +112,7 @@ public class Draw2D implements IDraw2D<Draw2D>, Registrable<Draw2D> {
     public List<Rect> getRects() {
         List<Rect> list = new LinkedList<>();
         synchronized (elements) {
-            for (Drawable e : elements) {
+            for (Renderable e : elements) {
                 if (e instanceof Rect) {
                     list.add((Rect) e);
                 }
@@ -112,7 +125,7 @@ public class Draw2D implements IDraw2D<Draw2D>, Registrable<Draw2D> {
     public List<Line> getLines() {
         List<Line> list = new LinkedList<>();
         synchronized (elements) {
-            for (Drawable e : elements) {
+            for (Renderable e : elements) {
                 if (e instanceof Line) {
                     list.add((Line) e);
                 }
@@ -129,7 +142,7 @@ public class Draw2D implements IDraw2D<Draw2D>, Registrable<Draw2D> {
     public List<Item> getItems() {
         List<Item> list = new LinkedList<>();
         synchronized (elements) {
-            for (Drawable e : elements) {
+            for (Renderable e : elements) {
                 if (e instanceof Item) {
                     list.add((Item) e);
                 }
@@ -146,7 +159,7 @@ public class Draw2D implements IDraw2D<Draw2D>, Registrable<Draw2D> {
     public List<Image> getImages() {
         List<Image> list = new LinkedList<>();
         synchronized (elements) {
-            for (Drawable e : elements) {
+            for (Renderable e : elements) {
                 if (e instanceof Image) {
                     list.add((Image) e);
                 }
@@ -159,7 +172,7 @@ public class Draw2D implements IDraw2D<Draw2D>, Registrable<Draw2D> {
     public List<Draw2DElement> getDraw2Ds() {
         List<Draw2DElement> list = new LinkedList<>();
         synchronized (elements) {
-            for (Drawable e : elements) {
+            for (Renderable e : elements) {
                 if (e instanceof Draw2DElement) {
                     list.add((Draw2DElement) e);
                 }
@@ -591,7 +604,7 @@ public class Draw2D implements IDraw2D<Draw2D>, Registrable<Draw2D> {
 
     @Override
     @DocletIgnore
-    public void render(DrawContext drawContext) {
+    public void render(GuiGraphics drawContext) {
         if (drawContext == null || !visible) {
             return;
         }

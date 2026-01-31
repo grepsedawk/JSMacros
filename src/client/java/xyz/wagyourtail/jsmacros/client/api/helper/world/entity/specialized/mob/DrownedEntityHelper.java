@@ -1,16 +1,16 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.mob;
 
-import net.minecraft.entity.mob.DrownedEntity;
-import net.minecraft.item.Items;
+import net.minecraft.world.entity.monster.Drowned;
+import net.minecraft.world.item.Items;
 
 /**
  * @author Etheradon
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class DrownedEntityHelper extends ZombieEntityHelper<DrownedEntity> {
+public class DrownedEntityHelper extends ZombieEntityHelper<Drowned> {
 
-    public DrownedEntityHelper(DrownedEntity base) {
+    public DrownedEntityHelper(Drowned base) {
         super(base);
     }
 

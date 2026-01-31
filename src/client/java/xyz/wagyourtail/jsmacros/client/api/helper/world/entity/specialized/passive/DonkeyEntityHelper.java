@@ -1,13 +1,13 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive;
 
-import net.minecraft.entity.passive.AbstractDonkeyEntity;
+import net.minecraft.world.entity.animal.horse.AbstractChestedHorse;
 
 /**
  * @author Etheradon
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class DonkeyEntityHelper<T extends AbstractDonkeyEntity> extends AbstractHorseEntityHelper<T> {
+public class DonkeyEntityHelper<T extends AbstractChestedHorse> extends AbstractHorseEntityHelper<T> {
 
     public DonkeyEntityHelper(T base) {
         super(base);

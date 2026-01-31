@@ -1,10 +1,10 @@
 package xyz.wagyourtail.jsmacros.client.api.library.impl;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.ChatScreen;
-import net.minecraft.client.toast.SystemToast;
-import net.minecraft.client.toast.ToastManager;
-import net.minecraft.text.Text;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.toasts.SystemToast;
+import net.minecraft.client.gui.components.toasts.ToastManager;
+import net.minecraft.client.gui.screens.ChatScreen;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +35,7 @@ import java.util.regex.Pattern;
 @Library("Chat")
 @SuppressWarnings("unused")
 public class FChat extends BaseLibrary {
-    private static final MinecraftClient mc = MinecraftClient.getInstance();
+    private static final Minecraft mc = Minecraft.getInstance();
 
     public FChat(Core<?, ?> runner) {
         super(runner);
@@ -136,14 +136,14 @@ public class FChat extends BaseLibrary {
 
     private static void logInternal(String message) {
         if (message != null) {
-            Text text = Text.literal(message);
-            ((IChatHud) mc.inGameHud.getChatHud()).jsmacros_addMessageBypass(text);
+            Component text = Component.literal(message);
+            ((IChatHud) mc.gui.getChat()).jsmacros_addMessageBypass(text);
         }
     }
 
     private static void logInternal(TextHelper text) {
-        MinecraftClient mc = MinecraftClient.getInstance();
-        ((IChatHud) mc.inGameHud.getChatHud()).jsmacros_addMessageBypass(text.getRaw());
+        Minecraft mc = Minecraft.getInstance();
+        ((IChatHud) mc.gui.getChat()).jsmacros_addMessageBypass(text.getRaw());
     }
 
     /**
@@ -184,9 +184,9 @@ public class FChat extends BaseLibrary {
 
     private void sayInternal(String message) {
         if (message.startsWith("/")) {
-            mc.getNetworkHandler().sendChatCommand(message.substring(1));
+            mc.getConnection().sendCommand(message.substring(1));
         } else {
-            mc.getNetworkHandler().sendChatMessage(message);
+            mc.getConnection().sendChat(message);
         }
     }
 
@@ -265,29 +265,29 @@ public class FChat extends BaseLibrary {
      * @since 1.2.1
      */
     public void title(Object title, Object subtitle, int fadeIn, int remain, int fadeOut) {
-        Text titlee = null;
-        Text subtitlee = null;
+        Component titlee = null;
+        Component subtitlee = null;
         if (title instanceof TextHelper) {
             titlee = ((TextHelper) title).getRaw();
         } else if (title != null) {
-            titlee = Text.literal(title.toString());
+            titlee = Component.literal(title.toString());
         }
         if (subtitle instanceof TextHelper) {
             subtitlee = ((TextHelper) subtitle).getRaw();
         } else if (subtitle != null) {
-            subtitlee = Text.literal(subtitle.toString());
+            subtitlee = Component.literal(subtitle.toString());
         }
         if (title != null) {
-            mc.inGameHud.setTitle(titlee);
+            mc.gui.setTitle(titlee);
         }
         if (subtitle != null) {
-            mc.inGameHud.setSubtitle(subtitlee);
+            mc.gui.setSubtitle(subtitlee);
         }
         if (title == null && subtitle == null) {
-            mc.inGameHud.setTitle(null);
-            mc.inGameHud.setSubtitle(null);
+            mc.gui.setTitle(null);
+            mc.gui.setSubtitle(null);
         }
-        mc.inGameHud.setTitleTicks(fadeIn, remain, fadeOut);
+        mc.gui.setTimes(fadeIn, remain, fadeOut);
     }
 
     /**
@@ -306,14 +306,14 @@ public class FChat extends BaseLibrary {
      * @since 1.2.1
      */
     public void actionbar(Object text, boolean tinted) {
-        assert mc.inGameHud != null;
-        Text textt = null;
+        assert mc.gui != null;
+        Component textt = null;
         if (text instanceof TextHelper) {
             textt = ((TextHelper) text).getRaw();
         } else if (text != null) {
-            textt = Text.literal(text.toString());
+            textt = Component.literal(text.toString());
         }
-        mc.inGameHud.setOverlayMessage(textt, tinted);
+        mc.gui.setOverlayMessage(textt, tinted);
     }
 
     /**
@@ -326,11 +326,11 @@ public class FChat extends BaseLibrary {
     public void toast(Object title, Object desc) {
         ToastManager t = mc.getToastManager();
         if (t != null) {
-            Text titlee = (title instanceof TextHelper) ? ((TextHelper) title).getRaw() : title != null ? Text.literal(title.toString()) : null;
-            Text descc = (desc instanceof TextHelper) ? ((TextHelper) desc).getRaw() : desc != null ? Text.literal(desc.toString()) : null;
+            Component titlee = (title instanceof TextHelper) ? ((TextHelper) title).getRaw() : title != null ? Component.literal(title.toString()) : null;
+            Component descc = (desc instanceof TextHelper) ? ((TextHelper) desc).getRaw() : desc != null ? Component.literal(desc.toString()) : null;
             // There doesn't seem to be a difference in the appearance or the functionality except for the UNSECURE_SERVER_WARNING with a longer duration
             if (titlee != null) {
-                t.add(SystemToast.create(mc, SystemToast.Type.PERIODIC_NOTIFICATION, titlee, descc));
+                t.addToast(SystemToast.multiline(mc, SystemToast.SystemToastId.PERIODIC_NOTIFICATION, titlee, descc));
             }
         }
     }
@@ -344,7 +344,7 @@ public class FChat extends BaseLibrary {
      * @since 1.1.3
      */
     public TextHelper createTextHelperFromString(String content) {
-        return TextHelper.wrap(Text.literal(content));
+        return TextHelper.wrap(Component.literal(content));
     }
 
     /**
@@ -352,7 +352,7 @@ public class FChat extends BaseLibrary {
      * @return a new {@link TextHelper TextHelper}
      */
     public TextHelper createTextHelperFromTranslationKey(String key, Object... content) {
-        return TextHelper.wrap(Text.translatable(key, content));
+        return TextHelper.wrap(Component.translatable(key, content));
     }
 
     /**
@@ -384,7 +384,7 @@ public class FChat extends BaseLibrary {
      */
     @Nullable
     public TextHelper createTextHelperFromJSON(String json) {
-        Text s = Text.of(json);
+        Component s = Component.nullToEmpty(json);
         TextHelper t = TextHelper.wrap(s);
         return t;
     }
@@ -442,7 +442,7 @@ public class FChat extends BaseLibrary {
      * @since 1.7.0
      */
     public ChatHistoryManager getHistory() {
-        return new ChatHistoryManager(mc.inGameHud.getChatHud());
+        return new ChatHistoryManager(mc.gui.getChat());
     }
 
     /**
@@ -451,7 +451,7 @@ public class FChat extends BaseLibrary {
      * @since 1.8.4
      */
     public int getTextWidth(@Nullable String text) {
-        return mc.textRenderer.getWidth(text);
+        return mc.font.width(text);
     }
 
     private static final Pattern SECTION_SYMBOL_PATTERN = Pattern.compile("[§&]");

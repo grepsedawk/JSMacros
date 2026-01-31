@@ -1,25 +1,25 @@
 package xyz.wagyourtail.jsmacros.client.mixin.access;
 
-import net.minecraft.util.collection.PaletteStorage;
-import net.minecraft.world.chunk.Palette;
+import net.minecraft.util.BitStorage;
+import net.minecraft.world.level.chunk.Palette;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import xyz.wagyourtail.jsmacros.client.access.IPalettedContainerData;
 
-@Mixin(targets = "net.minecraft.world.chunk.PalettedContainer$Data")
+@Mixin(targets = "net.minecraft.world.level.chunk.PalettedContainer$Data")
 public class MixinPalettedContainerData<T> implements IPalettedContainerData<T> {
 
     @Shadow
     @Final
-    private PaletteStorage storage;
+    private BitStorage storage;
 
     @Shadow
     @Final
     private Palette<T> palette;
 
     @Override
-    public PaletteStorage jsmacros_getStorage() {
+    public BitStorage jsmacros_getStorage() {
         return storage;
     }
 

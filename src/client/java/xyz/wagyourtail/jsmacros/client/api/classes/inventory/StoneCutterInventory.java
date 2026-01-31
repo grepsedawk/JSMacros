@@ -1,8 +1,8 @@
 package xyz.wagyourtail.jsmacros.client.api.classes.inventory;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.ingame.StonecutterScreen;
-import net.minecraft.recipe.display.SlotDisplayContexts;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.inventory.StonecutterScreen;
+import net.minecraft.world.item.crafting.display.SlotDisplayContext;
 import xyz.wagyourtail.jsmacros.client.api.helper.inventory.ItemStackHelper;
 
 import java.util.List;
@@ -24,7 +24,7 @@ public class StoneCutterInventory extends Inventory<StonecutterScreen> {
      * @since 1.8.4
      */
     public int getSelectedRecipeIndex() {
-        return inventory.getScreenHandler().getSelectedRecipe();
+        return inventory.getMenu().getSelectedRecipeIndex();
     }
 
     /**
@@ -41,9 +41,9 @@ public class StoneCutterInventory extends Inventory<StonecutterScreen> {
      * @since 1.8.4
      */
     public StoneCutterInventory selectRecipe(int idx) {
-        if (idx >= 0 && idx < inventory.getScreenHandler().getAvailableRecipeCount()) {
-            inventory.getScreenHandler().onButtonClick(mc.player, idx);
-            MinecraftClient.getInstance().interactionManager.clickButton(getCurrentSyncId(), idx);
+        if (idx >= 0 && idx < inventory.getMenu().getNumberOfVisibleRecipes()) {
+            inventory.getMenu().clickMenuButton(mc.player, idx);
+            Minecraft.getInstance().gameMode.handleInventoryButtonClick(getCurrentSyncId(), idx);
         }
         return this;
     }
@@ -53,7 +53,7 @@ public class StoneCutterInventory extends Inventory<StonecutterScreen> {
      * @since 1.8.4
      */
     public int getAvailableRecipeCount() {
-        return inventory.getScreenHandler().getAvailableRecipeCount();
+        return inventory.getMenu().getNumberOfVisibleRecipes();
     }
 
     /**
@@ -61,9 +61,9 @@ public class StoneCutterInventory extends Inventory<StonecutterScreen> {
      * @since 1.8.4
      */
     public List<ItemStackHelper> getRecipes() {
-        var context = SlotDisplayContexts.createParameters(mc.world);
-        return inventory.getScreenHandler().getAvailableRecipes().entries().stream().map(recipe ->
-                new ItemStackHelper(recipe.recipe().optionDisplay().getFirst(context))
+        var context = SlotDisplayContext.fromLevel(mc.level);
+        return inventory.getMenu().getVisibleRecipes().entries().stream().map(recipe ->
+                new ItemStackHelper(recipe.recipe().optionDisplay().resolveForFirstStack(context))
                 ).collect(Collectors.toList());
     }
 
@@ -72,7 +72,7 @@ public class StoneCutterInventory extends Inventory<StonecutterScreen> {
      * @since 1.8.4
      */
     public boolean canCraft() {
-        return inventory.getScreenHandler().canCraft();
+        return inventory.getMenu().hasInputItem();
     }
 
     @Override

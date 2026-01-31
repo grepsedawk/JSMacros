@@ -1,8 +1,8 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.vehicle;
 
-import net.minecraft.entity.vehicle.AbstractBoatEntity;
-import net.minecraft.entity.vehicle.BoatEntity;
-import net.minecraft.entity.vehicle.ChestBoatEntity;
+import net.minecraft.world.entity.vehicle.AbstractBoat;
+import net.minecraft.world.entity.vehicle.Boat;
+import net.minecraft.world.entity.vehicle.ChestBoat;
 import xyz.wagyourtail.jsmacros.client.api.helper.inventory.ItemStackHelper;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.EntityHelper;
 
@@ -11,9 +11,9 @@ import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.EntityHelper;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class BoatEntityHelper extends EntityHelper<AbstractBoatEntity> {
+public class BoatEntityHelper extends EntityHelper<AbstractBoat> {
 
-    public BoatEntityHelper(AbstractBoatEntity base) {
+    public BoatEntityHelper(AbstractBoat base) {
         super(base);
     }
 
@@ -22,7 +22,7 @@ public class BoatEntityHelper extends EntityHelper<AbstractBoatEntity> {
      * @since 1.8.4
      */
     public boolean isChestBoat() {
-        return base instanceof ChestBoatEntity;
+        return base instanceof ChestBoat;
     }
 
     /**
@@ -30,7 +30,7 @@ public class BoatEntityHelper extends EntityHelper<AbstractBoatEntity> {
      * @since 2.0.0
      */
     public ItemStackHelper getBoatItem() {
-        return new ItemStackHelper(base.getPickBlockStack());
+        return new ItemStackHelper(base.getPickResult());
     }
 
     /**
@@ -38,7 +38,7 @@ public class BoatEntityHelper extends EntityHelper<AbstractBoatEntity> {
      * @since 1.8.4
      */
     public boolean isInWater() {
-        return getLocation() == BoatEntity.Location.IN_WATER;
+        return getLocation() == Boat.Status.IN_WATER;
     }
 
     /**
@@ -46,7 +46,7 @@ public class BoatEntityHelper extends EntityHelper<AbstractBoatEntity> {
      * @since 1.8.4
      */
     public boolean isOnLand() {
-        return getLocation() == BoatEntity.Location.ON_LAND;
+        return getLocation() == Boat.Status.ON_LAND;
     }
 
     /**
@@ -54,7 +54,7 @@ public class BoatEntityHelper extends EntityHelper<AbstractBoatEntity> {
      * @since 1.8.4
      */
     public boolean isUnderwater() {
-        return getLocation() == BoatEntity.Location.UNDER_WATER;
+        return getLocation() == Boat.Status.UNDER_WATER;
     }
 
     /**
@@ -62,11 +62,11 @@ public class BoatEntityHelper extends EntityHelper<AbstractBoatEntity> {
      * @since 1.8.4
      */
     public boolean isInAir() {
-        return getLocation() == BoatEntity.Location.IN_AIR;
+        return getLocation() == Boat.Status.IN_AIR;
     }
 
-    private BoatEntity.Location getLocation() {
-        return base.location;
+    private Boat.Status getLocation() {
+        return base.status;
     }
 
 }

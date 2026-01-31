@@ -1,10 +1,10 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world;
 
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.hit.EntityHitResult;
-import net.minecraft.util.hit.HitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.HitResult;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.jsmacros.api.math.Pos3D;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.EntityHelper;
@@ -33,7 +33,7 @@ public class HitResultHelper<T extends HitResult> extends BaseHelper<T> {
     }
 
     public Pos3D getPos() {
-        return new Pos3D(base.getPos());
+        return new Pos3D(base.getLocation());
     }
 
     @Nullable
@@ -59,7 +59,7 @@ public class HitResultHelper<T extends HitResult> extends BaseHelper<T> {
 
         @Nullable
         public DirectionHelper getSide() {
-            Direction dir = base.getSide();
+            Direction dir = base.getDirection();
             return dir == null ? null : new DirectionHelper(dir);
         }
 
@@ -74,7 +74,7 @@ public class HitResultHelper<T extends HitResult> extends BaseHelper<T> {
         }
 
         public boolean isInsideBlock() {
-            return base.isInsideBlock();
+            return base.isInside();
         }
 
         @Override
@@ -84,7 +84,7 @@ public class HitResultHelper<T extends HitResult> extends BaseHelper<T> {
 
         @Override
         public String toString() {
-            return String.format("HitResultHelper$Block:{\"pos\": %s, \"side\": %s, \"blockPos\": %s, \"missed\": %s, \"insideBlock\": %s}", getPos(), base.getSide(), getBlockPos(), isMissed(), isInsideBlock());
+            return String.format("HitResultHelper$Block:{\"pos\": %s, \"side\": %s, \"blockPos\": %s, \"missed\": %s, \"insideBlock\": %s}", getPos(), base.getDirection(), getBlockPos(), isMissed(), isInsideBlock());
         }
 
     }

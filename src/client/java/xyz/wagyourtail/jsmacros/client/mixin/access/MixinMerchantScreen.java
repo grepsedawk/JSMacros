@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.mixin.access;
 
-import net.minecraft.client.gui.screen.ingame.MerchantScreen;
+import net.minecraft.client.gui.screens.inventory.MerchantScreen;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import xyz.wagyourtail.jsmacros.client.access.IMerchantScreen;
@@ -9,15 +9,15 @@ import xyz.wagyourtail.jsmacros.client.access.IMerchantScreen;
 public abstract class MixinMerchantScreen implements IMerchantScreen {
 
     @Shadow
-    private int selectedIndex;
+    private int shopItem;
 
     @Shadow
-    protected abstract void syncRecipeIndex();
+    protected abstract void postButtonClick();
 
     @Override
     public void jsmacros_selectIndex(int index) {
-        selectedIndex = index;
-        syncRecipeIndex();
+        shopItem = index;
+        postButtonClick();
     }
 
 }

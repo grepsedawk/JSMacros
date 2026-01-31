@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive;
 
-import net.minecraft.entity.passive.FishEntity;
+import net.minecraft.world.entity.animal.AbstractFish;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.MobEntityHelper;
 
 /**
@@ -8,7 +8,7 @@ import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.MobEntityHelper;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class FishEntityHelper<T extends FishEntity> extends MobEntityHelper<T> {
+public class FishEntityHelper<T extends AbstractFish> extends MobEntityHelper<T> {
 
     public FishEntityHelper(T base) {
         super(base);
@@ -19,7 +19,7 @@ public class FishEntityHelper<T extends FishEntity> extends MobEntityHelper<T> {
      * @since 1.8.4
      */
     public boolean isFromBucket() {
-        return base.isFromBucket();
+        return base.fromBucket();
     }
 
 }

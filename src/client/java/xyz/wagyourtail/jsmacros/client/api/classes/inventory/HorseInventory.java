@@ -1,9 +1,9 @@
 package xyz.wagyourtail.jsmacros.client.api.classes.inventory;
 
-import net.minecraft.client.gui.screen.ingame.HorseScreen;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.passive.AbstractDonkeyEntity;
-import net.minecraft.entity.passive.AbstractHorseEntity;
+import net.minecraft.client.gui.screens.inventory.HorseInventoryScreen;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.animal.horse.AbstractChestedHorse;
+import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import xyz.wagyourtail.jsmacros.client.access.IHorseScreen;
 import xyz.wagyourtail.jsmacros.client.api.helper.inventory.ItemStackHelper;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive.AbstractHorseEntityHelper;
@@ -17,13 +17,13 @@ import java.util.stream.IntStream;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class HorseInventory extends Inventory<HorseScreen> {
+public class HorseInventory extends Inventory<HorseInventoryScreen> {
 
-    private final AbstractHorseEntity horse;
+    private final AbstractHorse horse;
 
-    protected HorseInventory(HorseScreen inventory) {
+    protected HorseInventory(HorseInventoryScreen inventory) {
         super(inventory);
-        this.horse = (AbstractHorseEntity) ((IHorseScreen) inventory).jsmacros_getEntity();
+        this.horse = (AbstractHorse) ((IHorseScreen) inventory).jsmacros_getEntity();
     }
 
     /**
@@ -39,7 +39,7 @@ public class HorseInventory extends Inventory<HorseScreen> {
      * @since 1.8.4
      */
     public boolean isSaddled() {
-        return horse.hasSaddleEquipped();
+        return horse.isSaddled();
     }
 
     /**
@@ -71,7 +71,7 @@ public class HorseInventory extends Inventory<HorseScreen> {
      * @since 1.8.4
      */
     public boolean hasChest() {
-        return horse instanceof AbstractDonkeyEntity && ((AbstractDonkeyEntity) horse).hasChest();
+        return horse instanceof AbstractChestedHorse && ((AbstractChestedHorse) horse).hasChest();
     }
 
     /**
@@ -79,7 +79,7 @@ public class HorseInventory extends Inventory<HorseScreen> {
      * @since 1.8.4
      */
     public int getInventorySize() {
-        return horse instanceof AbstractDonkeyEntity ? ((AbstractDonkeyEntity) horse).getInventoryColumns() * 3 : 0;
+        return horse instanceof AbstractChestedHorse ? ((AbstractChestedHorse) horse).getInventoryColumns() * 3 : 0;
     }
 
     /**

@@ -1,7 +1,7 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity;
 
-import net.minecraft.entity.boss.BossBar;
-import net.minecraft.util.Formatting;
+import net.minecraft.ChatFormatting;
+import net.minecraft.world.BossEvent;
 import xyz.wagyourtail.doclet.DocletReplaceReturn;
 import xyz.wagyourtail.jsmacros.client.api.helper.FormattingHelper;
 import xyz.wagyourtail.jsmacros.client.api.helper.TextHelper;
@@ -14,9 +14,9 @@ import java.util.Locale;
  * @since 1.2.1
  */
 @SuppressWarnings("unused")
-public class BossBarHelper extends BaseHelper<BossBar> {
+public class BossBarHelper extends BaseHelper<BossEvent> {
 
-    public BossBarHelper(BossBar b) {
+    public BossBarHelper(BossEvent b) {
         super(b);
     }
 
@@ -25,7 +25,7 @@ public class BossBarHelper extends BaseHelper<BossBar> {
      * @since 1.2.1
      */
     public String getUUID() {
-        return base.getUuid().toString();
+        return base.getId().toString();
     }
 
     /**
@@ -33,7 +33,7 @@ public class BossBarHelper extends BaseHelper<BossBar> {
      * @since 1.2.1
      */
     public float getPercent() {
-        return base.getPercent();
+        return base.getProgress();
     }
 
     /**
@@ -51,7 +51,7 @@ public class BossBarHelper extends BaseHelper<BossBar> {
      */
     @DocletReplaceReturn("BossBarStyle")
     public String getStyle() {
-        return base.getStyle().getName().toUpperCase(Locale.ROOT);
+        return base.getOverlay().getName().toUpperCase(Locale.ROOT);
     }
 
     /**
@@ -59,8 +59,8 @@ public class BossBarHelper extends BaseHelper<BossBar> {
      * @since 1.8.4
      */
     public int getColorValue() {
-        Formatting f = base.getColor().getTextFormat();
-        return f.getColorValue() == null ? -1 : f.getColorValue();
+        ChatFormatting f = base.getColor().getFormatting();
+        return f.getColor() == null ? -1 : f.getColor();
     }
 
     /**
@@ -68,7 +68,7 @@ public class BossBarHelper extends BaseHelper<BossBar> {
      * @since 1.8.4
      */
     public FormattingHelper getColorFormat() {
-        return new FormattingHelper(base.getColor().getTextFormat());
+        return new FormattingHelper(base.getColor().getFormatting());
     }
 
     /**
@@ -81,7 +81,7 @@ public class BossBarHelper extends BaseHelper<BossBar> {
 
     @Override
     public String toString() {
-        return String.format("BossBarHelper:{\"name:\": \"%s\", \"percent\": %f}", base.getName().getString(), base.getPercent());
+        return String.format("BossBarHelper:{\"name:\": \"%s\", \"percent\": %f}", base.getName().getString(), base.getProgress());
     }
 
 }

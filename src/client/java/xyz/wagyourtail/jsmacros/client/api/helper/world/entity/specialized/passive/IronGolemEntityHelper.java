@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive;
 
-import net.minecraft.entity.passive.IronGolemEntity;
+import net.minecraft.world.entity.animal.IronGolem;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.MobEntityHelper;
 
 /**
@@ -8,9 +8,9 @@ import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.MobEntityHelper;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class IronGolemEntityHelper extends MobEntityHelper<IronGolemEntity> {
+public class IronGolemEntityHelper extends MobEntityHelper<IronGolem> {
 
-    public IronGolemEntityHelper(IronGolemEntity base) {
+    public IronGolemEntityHelper(IronGolem base) {
         super(base);
     }
 

@@ -2,25 +2,33 @@ package xyz.wagyourtail.jsmacros.client.api.helper;
 
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.command.argument.NbtPathArgumentType;
-import net.minecraft.nbt.*;
-import net.minecraft.util.Uuids;
+import net.minecraft.commands.arguments.NbtPathArgument;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.nbt.CollectionTag;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
+import net.minecraft.nbt.NumericTag;
+import net.minecraft.nbt.Tag;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.doclet.DocletReplaceReturn;
 import xyz.wagyourtail.jsmacros.core.helpers.BaseHelper;
 
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
  * @since 1.5.1
  */
 @SuppressWarnings("unused")
-public class NBTElementHelper<T extends NbtElement> extends BaseHelper<T> {
-    private static final LinkedHashMap<String, NbtPathArgumentType.NbtPath> nbtPaths = new LinkedHashMap<>(32, 0.75f, true) {
+public class NBTElementHelper<T extends Tag> extends BaseHelper<T> {
+    private static final LinkedHashMap<String, NbtPathArgument.NbtPath> nbtPaths = new LinkedHashMap<>(32, 0.75f, true) {
 
         @Override
-        protected boolean removeEldestEntry(Map.Entry<String, NbtPathArgumentType.NbtPath> eldest) {
+        protected boolean removeEldestEntry(Map.Entry<String, NbtPathArgument.NbtPath> eldest) {
             return size() > 24;
         }
 
@@ -34,7 +42,7 @@ public class NBTElementHelper<T extends NbtElement> extends BaseHelper<T> {
      * @since 1.5.1
      */
     public int getType() {
-        return base.getType();
+        return base.getId();
     }
 
     /**
@@ -45,9 +53,9 @@ public class NBTElementHelper<T extends NbtElement> extends BaseHelper<T> {
      */
     @Nullable
     public List<NBTElementHelper<?>> resolve(String nbtPath) throws CommandSyntaxException {
-        NbtPathArgumentType.NbtPath path = nbtPaths.get(nbtPath);
+        NbtPathArgument.NbtPath path = nbtPaths.get(nbtPath);
         if (path == null) {
-            path = NbtPathArgumentType.nbtPath().parse(new StringReader(nbtPath));
+            path = NbtPathArgument.nbtPath().parse(new StringReader(nbtPath));
             nbtPaths.put(nbtPath, path);
         }
         try {
@@ -60,7 +68,7 @@ public class NBTElementHelper<T extends NbtElement> extends BaseHelper<T> {
      * @since 1.5.1
      */
     public boolean isNull() {
-        return base.getType() == 0;
+        return base.getId() == 0;
     }
 
     /**
@@ -68,14 +76,14 @@ public class NBTElementHelper<T extends NbtElement> extends BaseHelper<T> {
      */
     @DocletReplaceReturn("this is NBTElementHelper$NBTNumberHelper")
     public boolean isNumber() {
-        return base.getType() != 0 && base.getType() < 7;
+        return base.getId() != 0 && base.getId() < 7;
     }
 
     /**
      * @since 1.5.1
      */
     public boolean isString() {
-        return base.getType() == 8;
+        return base.getId() == 8;
     }
 
     /**
@@ -83,7 +91,7 @@ public class NBTElementHelper<T extends NbtElement> extends BaseHelper<T> {
      */
     @DocletReplaceReturn("this is NBTElementHelper$NBTListHelper")
     public boolean isList() {
-        return base.getType() == 7 || base.getType() == 9 || base.getType() == 11 || base.getType() == 12;
+        return base.getId() == 7 || base.getId() == 9 || base.getId() == 11 || base.getId() == 12;
     }
 
     /**
@@ -91,7 +99,7 @@ public class NBTElementHelper<T extends NbtElement> extends BaseHelper<T> {
      */
     @DocletReplaceReturn("this is NBTElementHelper$NBTCompoundHelper")
     public boolean isCompound() {
-        return base.getType() == 10;
+        return base.getId() == 10;
     }
 
     /**
@@ -141,21 +149,21 @@ public class NBTElementHelper<T extends NbtElement> extends BaseHelper<T> {
      * @since 2.0.0
      */
     public TextHelper asText() {
-        return TextHelper.wrap(NbtHelper.toPrettyPrintedText(base));
+        return TextHelper.wrap(NbtUtils.toPrettyComponent(base));
     }
 
     /**
      * @since 1.9.0
      */
     @Nullable
-    public static NBTCompoundHelper wrapCompound(@Nullable NbtCompound compound) {
+    public static NBTCompoundHelper wrapCompound(@Nullable CompoundTag compound) {
         return compound == null ? null : new NBTCompoundHelper(compound);
     }
 
     /**
      * @since 1.9.1
      */
-    public static NBTElementHelper<?> wrap(@Nullable NbtElement element) {
+    public static NBTElementHelper<?> wrap(@Nullable Tag element) {
         return element == null ? null : resolve(element);
     }
 
@@ -163,28 +171,28 @@ public class NBTElementHelper<T extends NbtElement> extends BaseHelper<T> {
      * @since 1.5.1
      */
     @Nullable
-    public static NBTElementHelper<?> resolve(@Nullable NbtElement element) {
+    public static NBTElementHelper<?> resolve(@Nullable Tag element) {
         if (element == null) {
             return null;
         }
-        switch (element.getType()) {
-            case NbtElement.END_TYPE: //0
+        switch (element.getId()) {
+            case Tag.TAG_END: //0
                 return new NBTElementHelper<>(element);
-            case NbtElement.BYTE_TYPE: //1
-            case NbtElement.SHORT_TYPE: //2
-            case NbtElement.INT_TYPE: //3
-            case NbtElement.LONG_TYPE: //4
-            case NbtElement.FLOAT_TYPE: //5
-            case NbtElement.DOUBLE_TYPE: //6
-                return new NBTNumberHelper((AbstractNbtNumber) element);
-            case NbtElement.BYTE_ARRAY_TYPE: //7
-            case NbtElement.LIST_TYPE: //9
-            case NbtElement.INT_ARRAY_TYPE: //11
-            case NbtElement.LONG_ARRAY_TYPE: //12
-                return new NBTListHelper((AbstractNbtList) element);
-            case NbtElement.COMPOUND_TYPE: //10
-                return new NBTCompoundHelper((NbtCompound) element);
-            case NbtElement.STRING_TYPE: //8
+            case Tag.TAG_BYTE: //1
+            case Tag.TAG_SHORT: //2
+            case Tag.TAG_INT: //3
+            case Tag.TAG_LONG: //4
+            case Tag.TAG_FLOAT: //5
+            case Tag.TAG_DOUBLE: //6
+                return new NBTNumberHelper((NumericTag) element);
+            case Tag.TAG_BYTE_ARRAY: //7
+            case Tag.TAG_LIST: //9
+            case Tag.TAG_INT_ARRAY: //11
+            case Tag.TAG_LONG_ARRAY: //12
+                return new NBTListHelper((CollectionTag) element);
+            case Tag.TAG_COMPOUND: //10
+                return new NBTCompoundHelper((CompoundTag) element);
+            case Tag.TAG_STRING: //8
         }
         return new NBTElementHelper<>(element);
     }
@@ -192,9 +200,9 @@ public class NBTElementHelper<T extends NbtElement> extends BaseHelper<T> {
     /**
      * @since 1.5.1
      */
-    public static class NBTNumberHelper extends NBTElementHelper<AbstractNbtNumber> {
+    public static class NBTNumberHelper extends NBTElementHelper<NumericTag> {
 
-        public NBTNumberHelper(AbstractNbtNumber base) {
+        public NBTNumberHelper(NumericTag base) {
             super(base);
         }
 
@@ -244,7 +252,7 @@ public class NBTElementHelper<T extends NbtElement> extends BaseHelper<T> {
          * @since 1.5.1
          */
         public Number asNumber() {
-            return base.numberValue();
+            return base.box();
         }
 
     }
@@ -252,9 +260,9 @@ public class NBTElementHelper<T extends NbtElement> extends BaseHelper<T> {
     /**
      * @since 1.5.1
      */
-    public static class NBTListHelper extends NBTElementHelper<AbstractNbtList> {
+    public static class NBTListHelper extends NBTElementHelper<CollectionTag> {
 
-        public NBTListHelper(AbstractNbtList base) {
+        public NBTListHelper(CollectionTag base) {
             super(base);
         }
 
@@ -263,7 +271,7 @@ public class NBTElementHelper<T extends NbtElement> extends BaseHelper<T> {
          * @since 1.8.3
          */
         public boolean isPossiblyUUID() {
-            return base.getType() == NbtElement.INT_ARRAY_TYPE && base.size() == 4;
+            return base.getId() == Tag.TAG_INT_ARRAY && base.size() == 4;
         }
 
         /**
@@ -275,7 +283,7 @@ public class NBTElementHelper<T extends NbtElement> extends BaseHelper<T> {
             if (!isPossiblyUUID()) {
                 return null;
             }
-            return Uuids.toUuid(base.asIntArray().orElseThrow());
+            return UUIDUtil.uuidFromIntArray(base.asIntArray().orElseThrow());
         }
 
         /**
@@ -298,11 +306,11 @@ public class NBTElementHelper<T extends NbtElement> extends BaseHelper<T> {
          * @since 1.5.1
          */
         public int getHeldType() {
-            return switch (base.getType()) {
-                case NbtElement.BYTE_ARRAY_TYPE -> NbtElement.BYTE_TYPE;
-                case NbtElement.INT_ARRAY_TYPE -> NbtElement.INT_TYPE;
-                case NbtElement.LONG_ARRAY_TYPE -> NbtElement.LONG_TYPE;
-                default -> NbtElement.COMPOUND_TYPE;
+            return switch (base.getId()) {
+                case Tag.TAG_BYTE_ARRAY -> Tag.TAG_BYTE;
+                case Tag.TAG_INT_ARRAY -> Tag.TAG_INT;
+                case Tag.TAG_LONG_ARRAY -> Tag.TAG_LONG;
+                default -> Tag.TAG_COMPOUND;
             };
         }
 
@@ -311,9 +319,9 @@ public class NBTElementHelper<T extends NbtElement> extends BaseHelper<T> {
     /**
      * @since 1.5.1
      */
-    public static class NBTCompoundHelper extends NBTElementHelper<NbtCompound> {
+    public static class NBTCompoundHelper extends NBTElementHelper<CompoundTag> {
 
-        public NBTCompoundHelper(NbtCompound base) {
+        public NBTCompoundHelper(CompoundTag base) {
             super(base);
         }
 
@@ -322,7 +330,7 @@ public class NBTElementHelper<T extends NbtElement> extends BaseHelper<T> {
          * @since 1.6.0
          */
         public Set<String> getKeys() {
-            return base.getKeys();
+            return base.keySet();
         }
 
         /**
@@ -330,7 +338,7 @@ public class NBTElementHelper<T extends NbtElement> extends BaseHelper<T> {
          */
         public int getType(String key) {
             var child = base.get(key);
-            return child == null ? -1 : child.getType();
+            return child == null ? -1 : child.getId();
         }
 
         /**

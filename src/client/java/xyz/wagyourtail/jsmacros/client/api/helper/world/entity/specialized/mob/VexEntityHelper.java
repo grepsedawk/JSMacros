@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.mob;
 
-import net.minecraft.entity.mob.VexEntity;
+import net.minecraft.world.entity.monster.Vex;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.MobEntityHelper;
 
 /**
@@ -8,9 +8,9 @@ import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.MobEntityHelper;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class VexEntityHelper extends MobEntityHelper<VexEntity> {
+public class VexEntityHelper extends MobEntityHelper<Vex> {
 
-    public VexEntityHelper(VexEntity base) {
+    public VexEntityHelper(Vex base) {
         super(base);
     }
 

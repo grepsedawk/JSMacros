@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.listeners;
 
-import net.minecraft.client.util.InputUtil;
+import com.mojang.blaze3d.platform.InputConstants;
 import xyz.wagyourtail.jsmacros.client.api.event.impl.EventKey;
 import xyz.wagyourtail.jsmacros.core.Core;
 import xyz.wagyourtail.jsmacros.core.config.ScriptTrigger;
@@ -31,7 +31,7 @@ public class KeyListener extends BaseListener {
             }
             this.mods = EventKey.getModInt(mods.toString());
         } catch (Throwable e) {
-            key = InputUtil.UNKNOWN_KEY.getTranslationKey();
+            key = InputConstants.UNKNOWN.getName();
         }
     }
 

@@ -1,10 +1,10 @@
 package xyz.wagyourtail.jsmacros.client.api.classes.inventory;
 
-import net.minecraft.client.gui.screen.ingame.EnchantmentScreen;
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.screen.EnchantmentScreenHandler;
+import net.minecraft.client.gui.screens.inventory.EnchantmentScreen;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.world.inventory.EnchantmentMenu;
+import net.minecraft.world.item.enchantment.Enchantment;
 import xyz.wagyourtail.jsmacros.client.api.helper.TextHelper;
 import xyz.wagyourtail.jsmacros.client.api.helper.inventory.EnchantmentHelper;
 import xyz.wagyourtail.jsmacros.client.api.helper.inventory.ItemStackHelper;
@@ -24,7 +24,7 @@ public class EnchantInventory extends Inventory<EnchantmentScreen> {
      * @since 1.3.1
      */
     public int[] getRequiredLevels() {
-        return inventory.getScreenHandler().enchantmentPower;
+        return inventory.getMenu().costs;
     }
 
     /**
@@ -33,11 +33,11 @@ public class EnchantInventory extends Inventory<EnchantmentScreen> {
      */
     public TextHelper[] getEnchantments() {
         TextHelper[] enchants = new TextHelper[3];
-        var enchRegistry = mc.getNetworkHandler().getRegistryManager().getOrThrow(RegistryKeys.ENCHANTMENT);
+        var enchRegistry = mc.getConnection().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
         for (int j = 0; j < 3; ++j) {
-            RegistryEntry<Enchantment> enchantment = enchRegistry.getEntry(inventory.getScreenHandler().enchantmentId[j]).orElseThrow();
+            Holder<Enchantment> enchantment = enchRegistry.get(inventory.getMenu().enchantClue[j]).orElseThrow();
             if ((enchantment) != null) {
-                enchants[j] = TextHelper.wrap(Enchantment.getName(enchantment, inventory.getScreenHandler().enchantmentLevel[j]));
+                enchants[j] = TextHelper.wrap(Enchantment.getFullname(enchantment, inventory.getMenu().levelClue[j]));
             }
         }
         return enchants;
@@ -48,11 +48,11 @@ public class EnchantInventory extends Inventory<EnchantmentScreen> {
      * @since 1.8.4
      */
     public EnchantmentHelper[] getEnchantmentHelpers() {
-        EnchantmentScreenHandler handler = inventory.getScreenHandler();
+        EnchantmentMenu handler = inventory.getMenu();
         EnchantmentHelper[] enchantments = new EnchantmentHelper[3];
-        var enchRegistry = mc.getNetworkHandler().getRegistryManager().getOrThrow(RegistryKeys.ENCHANTMENT);
+        var enchRegistry = mc.getConnection().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
         for (int i = 0; i < 3; i++) {
-            enchantments[i] = new EnchantmentHelper(enchRegistry.getEntry(handler.enchantmentId[i]).orElseThrow(), handler.enchantmentLevel[i]);
+            enchantments[i] = new EnchantmentHelper(enchRegistry.get(handler.enchantClue[i]).orElseThrow(), handler.levelClue[i]);
         }
         return enchantments;
     }
@@ -63,10 +63,10 @@ public class EnchantInventory extends Inventory<EnchantmentScreen> {
      */
     public String[] getEnchantmentIds() {
         String[] enchants = new String[3];
-        var enchRegistry = mc.getNetworkHandler().getRegistryManager().getOrThrow(RegistryKeys.ENCHANTMENT);
+        var enchRegistry = mc.getConnection().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
         for (int j = 0; j < 3; ++j) {
-            RegistryEntry<Enchantment> enchantment = enchRegistry.getEntry(inventory.getScreenHandler().enchantmentId[j]).orElseThrow();
-            enchants[j] = enchantment.getIdAsString();
+            Holder<Enchantment> enchantment = enchRegistry.get(inventory.getMenu().enchantClue[j]).orElseThrow();
+            enchants[j] = enchantment.getRegisteredName();
         }
         return enchants;
     }
@@ -76,7 +76,7 @@ public class EnchantInventory extends Inventory<EnchantmentScreen> {
      * @since 1.3.1
      */
     public int[] getEnchantmentLevels() {
-        return inventory.getScreenHandler().enchantmentLevel;
+        return inventory.getMenu().levelClue;
     }
 
     /**
@@ -87,9 +87,9 @@ public class EnchantInventory extends Inventory<EnchantmentScreen> {
      * @since 1.3.1
      */
     public boolean doEnchant(int index) {
-        assert mc.interactionManager != null;
-        if (inventory.getScreenHandler().onButtonClick(mc.player, index)) {
-            mc.interactionManager.clickButton(syncId, index);
+        assert mc.gameMode != null;
+        if (inventory.getMenu().clickMenuButton(mc.player, index)) {
+            mc.gameMode.handleInventoryButtonClick(syncId, index);
             return true;
         }
         return false;

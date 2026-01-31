@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.vehicle;
 
-import net.minecraft.entity.vehicle.TntMinecartEntity;
+import net.minecraft.world.entity.vehicle.MinecartTNT;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.EntityHelper;
 
 /**
@@ -8,9 +8,9 @@ import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.EntityHelper;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class TntMinecartEntityHelper extends EntityHelper<TntMinecartEntity> {
+public class TntMinecartEntityHelper extends EntityHelper<MinecartTNT> {
 
-    public TntMinecartEntityHelper(TntMinecartEntity base) {
+    public TntMinecartEntityHelper(MinecartTNT base) {
         super(base);
     }
 
@@ -20,7 +20,7 @@ public class TntMinecartEntityHelper extends EntityHelper<TntMinecartEntity> {
      * @since 1.8.4
      */
     public int getRemainingTime() {
-        return base.getFuseTicks();
+        return base.getFuse();
     }
 
     /**

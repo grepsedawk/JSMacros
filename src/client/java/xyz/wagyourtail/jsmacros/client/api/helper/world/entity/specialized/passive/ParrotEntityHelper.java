@@ -1,8 +1,8 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.entity.passive.ParrotEntity;
-import net.minecraft.util.Uuids;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.world.entity.animal.Parrot;
 import xyz.wagyourtail.doclet.DocletReplaceReturn;
 
 import java.util.Objects;
@@ -13,9 +13,9 @@ import java.util.stream.Stream;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class ParrotEntityHelper extends TameableEntityHelper<ParrotEntity> {
+public class ParrotEntityHelper extends TameableEntityHelper<Parrot> {
 
-    public ParrotEntityHelper(ParrotEntity base) {
+    public ParrotEntityHelper(Parrot base) {
         super(base);
     }
 
@@ -25,7 +25,7 @@ public class ParrotEntityHelper extends TameableEntityHelper<ParrotEntity> {
      */
     @DocletReplaceReturn("ParrotVariant")
     public String getVariant() {
-        return base.getVariant().asString();
+        return base.getVariant().getSerializedName();
     }
 
     /**
@@ -41,7 +41,7 @@ public class ParrotEntityHelper extends TameableEntityHelper<ParrotEntity> {
      * @since 1.8.4
      */
     public boolean isFlying() {
-        return base.isInAir();
+        return base.isFlying();
     }
 
     /**
@@ -49,7 +49,7 @@ public class ParrotEntityHelper extends TameableEntityHelper<ParrotEntity> {
      * @since 1.8.4
      */
     public boolean isPartying() {
-        return base.isSongPlaying();
+        return base.isPartyParrot();
     }
 
     /**
@@ -67,12 +67,12 @@ public class ParrotEntityHelper extends TameableEntityHelper<ParrotEntity> {
      */
     public boolean isSittingOnShoulder() {
         if (!isSitting()) return false;
-        return MinecraftClient.getInstance().world.getPlayers().stream()
+        return Minecraft.getInstance().level.players().stream()
             .flatMap(e -> Stream.of(e.getShoulderEntityRight(), e.getShoulderEntityLeft()))
             .filter(Objects::nonNull)
             .flatMap(n -> n.getIntArray("UUID").stream())
-            .map(Uuids::toUuid)
-            .anyMatch(base.getUuid()::equals);
+            .map(UUIDUtil::uuidFromIntArray)
+            .anyMatch(base.getUUID()::equals);
     }
 
 }

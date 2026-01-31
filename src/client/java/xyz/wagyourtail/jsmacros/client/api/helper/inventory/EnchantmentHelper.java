@@ -1,13 +1,13 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.inventory;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.registry.tag.EnchantmentTags;
-import net.minecraft.text.MutableText;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Identifier;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.EnchantmentTags;
+import net.minecraft.world.item.enchantment.Enchantment;
 import xyz.wagyourtail.doclet.DocletReplaceParams;
 import xyz.wagyourtail.doclet.DocletReplaceReturn;
 import xyz.wagyourtail.jsmacros.client.api.helper.TextHelper;
@@ -21,23 +21,23 @@ import java.util.Objects;
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class EnchantmentHelper extends BaseHelper<RegistryEntry<Enchantment>> {
-    private static final MinecraftClient mc = MinecraftClient.getInstance();
+public class EnchantmentHelper extends BaseHelper<Holder<Enchantment>> {
+    private static final Minecraft mc = Minecraft.getInstance();
 
     private final int level;
 
-    public EnchantmentHelper(RegistryEntry<Enchantment> base) {
+    public EnchantmentHelper(Holder<Enchantment> base) {
         this(base, 0);
     }
 
-    public EnchantmentHelper(RegistryEntry<Enchantment> base, int level) {
+    public EnchantmentHelper(Holder<Enchantment> base, int level) {
         super(base);
         this.level = level;
     }
 
     @DocletReplaceParams("enchantment: CanOmitNamespace<EnchantmentId>")
     public EnchantmentHelper(String enchantment) {
-        this(mc.getNetworkHandler().getRegistryManager().getOrThrow(RegistryKeys.ENCHANTMENT).getEntry(Identifier.of(enchantment)).orElseThrow());
+        this(mc.getConnection().registryAccess().lookupOrThrow(Registries.ENCHANTMENT).get(ResourceLocation.parse(enchantment)).orElseThrow());
     }
 
     /**
@@ -70,7 +70,7 @@ public class EnchantmentHelper extends BaseHelper<RegistryEntry<Enchantment>> {
      * @since 1.8.4
      */
     public String getLevelName(int level) {
-        return Enchantment.getName(base, level).getString();
+        return Enchantment.getFullname(base, level).getString();
     }
 
     /**
@@ -93,8 +93,8 @@ public class EnchantmentHelper extends BaseHelper<RegistryEntry<Enchantment>> {
      * @since 1.8.4
      */
     public TextHelper getRomanLevelName(int level) {
-        MutableText mutableText = base.value().description().copy();
-        mutableText.formatted(base.isIn(EnchantmentTags.CURSE) ? Formatting.RED : Formatting.GRAY);
+        MutableComponent mutableText = base.value().description().copy();
+        mutableText.withStyle(base.is(EnchantmentTags.CURSE) ? ChatFormatting.RED : ChatFormatting.GRAY);
         if (level != 1 || this.getMaxLevel() != 1) {
             mutableText.append(" ").append(getRomanNumeral(level));
         }
@@ -131,7 +131,7 @@ public class EnchantmentHelper extends BaseHelper<RegistryEntry<Enchantment>> {
      */
     @DocletReplaceReturn("EnchantmentId")
     public String getId() {
-        return base.getIdAsString();
+        return base.getRegisteredName();
     }
 
     /**
@@ -151,8 +151,8 @@ public class EnchantmentHelper extends BaseHelper<RegistryEntry<Enchantment>> {
      * @since 1.8.4
      */
     public List<EnchantmentHelper> getConflictingEnchantments(boolean ignoreType) {
-        return mc.getNetworkHandler().getRegistryManager().getOrThrow(RegistryKeys.ENCHANTMENT).streamEntries()
-            .filter(e -> !Enchantment.canBeCombined(e, base))
+        return mc.getConnection().registryAccess().lookupOrThrow(Registries.ENCHANTMENT).listElements()
+            .filter(e -> !Enchantment.areCompatible(e, base))
             .map(EnchantmentHelper::new)
             .toList();
     }
@@ -174,8 +174,8 @@ public class EnchantmentHelper extends BaseHelper<RegistryEntry<Enchantment>> {
      * @since 1.8.4
      */
     public List<EnchantmentHelper> getCompatibleEnchantments(boolean ignoreType) {
-        return mc.getNetworkHandler().getRegistryManager().getOrThrow(RegistryKeys.ENCHANTMENT).streamEntries()
-            .filter(e -> Enchantment.canBeCombined(e, base))
+        return mc.getConnection().registryAccess().lookupOrThrow(Registries.ENCHANTMENT).listElements()
+            .filter(e -> Enchantment.areCompatible(e, base))
             .map(EnchantmentHelper::new)
             .toList();
     }
@@ -202,7 +202,7 @@ public class EnchantmentHelper extends BaseHelper<RegistryEntry<Enchantment>> {
      * @since 1.8.4
      */
     public boolean isCursed() {
-        return base.isIn(EnchantmentTags.CURSE);
+        return base.is(EnchantmentTags.CURSE);
     }
 
     /**
@@ -213,7 +213,7 @@ public class EnchantmentHelper extends BaseHelper<RegistryEntry<Enchantment>> {
      * @since 1.8.4
      */
     public boolean isTreasure() {
-        return base.isIn(EnchantmentTags.TREASURE);
+        return base.is(EnchantmentTags.TREASURE);
     }
 
     /**
@@ -223,7 +223,7 @@ public class EnchantmentHelper extends BaseHelper<RegistryEntry<Enchantment>> {
      * @since 1.8.4
      */
     public boolean canBeApplied(ItemHelper item) {
-        return base.value().isAcceptableItem(item.getRaw().getDefaultStack());
+        return base.value().canEnchant(item.getRaw().getDefaultInstance());
     }
 
     /**
@@ -233,7 +233,7 @@ public class EnchantmentHelper extends BaseHelper<RegistryEntry<Enchantment>> {
      * @since 1.8.4
      */
     public boolean canBeApplied(ItemStackHelper item) {
-        return base.value().isAcceptableItem(item.getRaw()) && item.getRaw().getEnchantments().getEnchantments().stream().allMatch(e -> Enchantment.canBeCombined(e, base));
+        return base.value().canEnchant(item.getRaw()) && item.getRaw().getEnchantments().keySet().stream().allMatch(e -> Enchantment.areCompatible(e, base));
     }
 
     /**
@@ -252,8 +252,8 @@ public class EnchantmentHelper extends BaseHelper<RegistryEntry<Enchantment>> {
      */
     @DocletReplaceParams("enchantment: CanOmitNamespace<EnchantmentId>")
     public boolean isCompatible(String enchantment) {
-        return Enchantment.canBeCombined(mc.getNetworkHandler().getRegistryManager().getOrThrow(RegistryKeys.ENCHANTMENT)
-                .getEntry(Identifier.of(enchantment)).orElseThrow(), base);
+        return Enchantment.areCompatible(mc.getConnection().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+                .get(ResourceLocation.parse(enchantment)).orElseThrow(), base);
     }
 
     /**
@@ -263,7 +263,7 @@ public class EnchantmentHelper extends BaseHelper<RegistryEntry<Enchantment>> {
      * @since 1.8.4
      */
     public boolean isCompatible(EnchantmentHelper enchantment) {
-        return Enchantment.canBeCombined(enchantment.getRaw(), base);
+        return Enchantment.areCompatible(enchantment.getRaw(), base);
     }
 
     /**

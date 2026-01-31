@@ -1,9 +1,9 @@
 package xyz.wagyourtail.jsmacros.client.api.classes.render.components3d;
 
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.entity.Entity;
-import net.minecraft.util.math.Vec3d;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.jsmacros.client.api.classes.render.Draw3D;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.EntityHelper;
@@ -54,14 +54,14 @@ public class EntityTraceLine extends TraceLine {
     }
 
     @Override
-    public void render(MatrixStack matrixStack, VertexConsumerProvider consumers, float tickDelta) {
-        if (shouldRemove || entity == null || entity.isRemoved() || entity.getWorld() != mc.world) {
+    public void render(PoseStack matrixStack, MultiBufferSource consumers, float tickDelta) {
+        if (shouldRemove || entity == null || entity.isRemoved() || entity.level() != mc.level) {
             shouldRemove = true;
             dirty = true;
             return;
         }
 
-        Vec3d vec = entity.getLerpedPos(tickDelta);
+        Vec3 vec = entity.getPosition(tickDelta);
         setPos(vec.x, vec.y + yOffset, vec.z);
         super.render(matrixStack, consumers, tickDelta);
     }

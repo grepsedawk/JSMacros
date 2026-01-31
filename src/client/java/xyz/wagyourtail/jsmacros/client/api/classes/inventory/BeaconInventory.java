@@ -1,12 +1,12 @@
 package xyz.wagyourtail.jsmacros.client.api.classes.inventory;
 
-import net.minecraft.block.entity.BeaconBlockEntity;
-import net.minecraft.client.gui.screen.ingame.BeaconScreen;
-import net.minecraft.entity.effect.StatusEffect;
-import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.network.packet.c2s.play.UpdateBeaconC2SPacket;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.client.gui.screens.inventory.BeaconScreen;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.protocol.game.ServerboundSetBeaconPacket;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.level.block.entity.BeaconBlockEntity;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.doclet.DocletReplaceParams;
 import xyz.wagyourtail.doclet.DocletReplaceReturn;
@@ -27,7 +27,7 @@ public class BeaconInventory extends Inventory<BeaconScreen> {
      * @since 1.5.1
      */
     public int getLevel() {
-        return inventory.getScreenHandler().getProperties();
+        return inventory.getMenu().getLevels();
     }
 
     /**
@@ -37,8 +37,8 @@ public class BeaconInventory extends Inventory<BeaconScreen> {
     @DocletReplaceReturn("BeaconStatusEffect | null")
     @Nullable
     public String getFirstEffect() {
-        RegistryEntry<StatusEffect> effect = inventory.primaryEffect;
-        return effect == null ? null : Registries.STATUS_EFFECT.getId(effect.value()).toString();
+        Holder<MobEffect> effect = inventory.primary;
+        return effect == null ? null : BuiltInRegistries.MOB_EFFECT.getKey(effect.value()).toString();
     }
 
     /**
@@ -48,8 +48,8 @@ public class BeaconInventory extends Inventory<BeaconScreen> {
     @DocletReplaceReturn("BeaconStatusEffect | null")
     @Nullable
     public String getSecondEffect() {
-        RegistryEntry<StatusEffect> effect = inventory.secondaryEffect;
-        return effect == null ? null : Registries.STATUS_EFFECT.getId(effect.value()).toString();
+        Holder<MobEffect> effect = inventory.secondary;
+        return effect == null ? null : BuiltInRegistries.MOB_EFFECT.getKey(effect.value()).toString();
     }
 
     /**
@@ -59,11 +59,11 @@ public class BeaconInventory extends Inventory<BeaconScreen> {
      */
     @DocletReplaceParams("id: BeaconStatusEffect")
     public boolean selectFirstEffect(String id) {
-        RegistryEntry<StatusEffect> matchEffect;
+        Holder<MobEffect> matchEffect;
         for (int i = 0; i < Math.min(getLevel(), 2); i++) {
-            matchEffect = BeaconBlockEntity.EFFECTS_BY_LEVEL.get(i).stream().filter(e -> Registries.STATUS_EFFECT.getId(e.value()).toString().equals(id)).findFirst().orElse(null);
+            matchEffect = BeaconBlockEntity.BEACON_EFFECTS.get(i).stream().filter(e -> BuiltInRegistries.MOB_EFFECT.getKey(e.value()).toString().equals(id)).findFirst().orElse(null);
             if (matchEffect != null) {
-                inventory.primaryEffect = matchEffect;
+                inventory.primary = matchEffect;
                 return true;
             }
         }
@@ -78,20 +78,20 @@ public class BeaconInventory extends Inventory<BeaconScreen> {
     @DocletReplaceParams("id: BeaconStatusEffect")
     public boolean selectSecondEffect(String id) {
         if (getLevel() >= 3) {
-            RegistryEntry<StatusEffect> primaryEffect = inventory.primaryEffect;
-            if (primaryEffect != null && Registries.STATUS_EFFECT.getId(primaryEffect.value()).toString().equals(id)) {
-                inventory.secondaryEffect = primaryEffect;
+            Holder<MobEffect> primaryEffect = inventory.primary;
+            if (primaryEffect != null && BuiltInRegistries.MOB_EFFECT.getKey(primaryEffect.value()).toString().equals(id)) {
+                inventory.secondary = primaryEffect;
                 return true;
             }
-            RegistryEntry<StatusEffect> matchEffect;
+            Holder<MobEffect> matchEffect;
             for (int i = 0; i < getLevel(); i++) {
-                matchEffect = BeaconBlockEntity.EFFECTS_BY_LEVEL.get(i).stream().filter(e -> Registries.STATUS_EFFECT.getId(e.value()).toString().equals(id)).findFirst().orElse(null);
+                matchEffect = BeaconBlockEntity.BEACON_EFFECTS.get(i).stream().filter(e -> BuiltInRegistries.MOB_EFFECT.getKey(e.value()).toString().equals(id)).findFirst().orElse(null);
                 if (matchEffect != null) {
-                    if (primaryEffect != null && matchEffect.equals(StatusEffects.REGENERATION)) {
-                        inventory.primaryEffect = matchEffect;
+                    if (primaryEffect != null && matchEffect.equals(MobEffects.REGENERATION)) {
+                        inventory.primary = matchEffect;
                     } else {
-                        inventory.primaryEffect = matchEffect;
-                        inventory.secondaryEffect = matchEffect;
+                        inventory.primary = matchEffect;
+                        inventory.secondary = matchEffect;
                         return true;
                     }
                 }
@@ -105,12 +105,12 @@ public class BeaconInventory extends Inventory<BeaconScreen> {
      * @since 1.5.1
      */
     public boolean applyEffects() {
-        if (inventory.getScreenHandler().hasPayment()) {
-            mc.getNetworkHandler().sendPacket(new UpdateBeaconC2SPacket(
-                Optional.ofNullable(inventory.primaryEffect),
-                Optional.ofNullable(inventory.secondaryEffect)
+        if (inventory.getMenu().hasPayment()) {
+            mc.getConnection().send(new ServerboundSetBeaconPacket(
+                Optional.ofNullable(inventory.primary),
+                Optional.ofNullable(inventory.secondary)
             ));
-            player.closeHandledScreen();
+            player.closeContainer();
             return true;
         }
         return false;

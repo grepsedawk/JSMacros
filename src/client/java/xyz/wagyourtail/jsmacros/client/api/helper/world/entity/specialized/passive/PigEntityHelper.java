@@ -1,15 +1,15 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive;
 
-import net.minecraft.entity.passive.PigEntity;
+import net.minecraft.world.entity.animal.Pig;
 
 /**
  * @author Etheradon
  * @since 1.8.4
  */
 @SuppressWarnings("unused")
-public class PigEntityHelper extends AnimalEntityHelper<PigEntity> {
+public class PigEntityHelper extends AnimalEntityHelper<Pig> {
 
-    public PigEntityHelper(PigEntity base) {
+    public PigEntityHelper(Pig base) {
         super(base);
     }
 
@@ -18,7 +18,7 @@ public class PigEntityHelper extends AnimalEntityHelper<PigEntity> {
      * @since 1.8.4
      */
     public boolean isSaddled() {
-        return base.hasSaddleEquipped();
+        return base.isSaddled();
     }
 
 }

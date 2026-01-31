@@ -1,9 +1,9 @@
 package xyz.wagyourtail.jsmacros.client.api.helper;
 
-import net.minecraft.entity.effect.StatusEffect;
-import net.minecraft.entity.effect.StatusEffectCategory;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.registry.Registries;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectCategory;
+import net.minecraft.world.effect.MobEffectInstance;
 import xyz.wagyourtail.doclet.DocletReplaceReturn;
 import xyz.wagyourtail.jsmacros.core.helpers.BaseHelper;
 
@@ -12,24 +12,24 @@ import xyz.wagyourtail.jsmacros.core.helpers.BaseHelper;
  * @since 1.2.4
  */
 @SuppressWarnings("unused")
-public class StatusEffectHelper extends BaseHelper<StatusEffectInstance> {
+public class StatusEffectHelper extends BaseHelper<MobEffectInstance> {
 
-    public StatusEffectHelper(StatusEffectInstance s) {
+    public StatusEffectHelper(MobEffectInstance s) {
         super(s);
     }
 
     /**
      * @since 1.8.4
      */
-    public StatusEffectHelper(StatusEffect s) {
+    public StatusEffectHelper(MobEffect s) {
         this(s, 0);
     }
 
     /**
      * @since 1.8.4
      */
-    public StatusEffectHelper(StatusEffect s, int t) {
-        super(new StatusEffectInstance(Registries.STATUS_EFFECT.getEntry(s), t));
+    public StatusEffectHelper(MobEffect s, int t) {
+        super(new MobEffectInstance(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(s), t));
     }
 
     /**
@@ -38,7 +38,7 @@ public class StatusEffectHelper extends BaseHelper<StatusEffectInstance> {
      */
     @DocletReplaceReturn("StatusEffectId")
     public String getId() {
-        return Registries.STATUS_EFFECT.getId(base.getEffectType().value()).toString();
+        return BuiltInRegistries.MOB_EFFECT.getKey(base.getEffect().value()).toString();
     }
 
     /**
@@ -55,7 +55,7 @@ public class StatusEffectHelper extends BaseHelper<StatusEffectInstance> {
      */
     @DocletReplaceReturn("StatusEffectCategory")
     public String getCategory() {
-        return base.getEffectType().value().getCategory().name();
+        return base.getEffect().value().getCategory().name();
     }
 
     /**
@@ -90,7 +90,7 @@ public class StatusEffectHelper extends BaseHelper<StatusEffectInstance> {
      * @since 1.8.4
      */
     public boolean hasIcon() {
-        return base.shouldShowIcon();
+        return base.showIcon();
     }
 
     /**
@@ -99,7 +99,7 @@ public class StatusEffectHelper extends BaseHelper<StatusEffectInstance> {
      * @since 1.8.4
      */
     public boolean isVisible() {
-        return base.shouldShowParticles();
+        return base.isVisible();
     }
 
     /**
@@ -110,7 +110,7 @@ public class StatusEffectHelper extends BaseHelper<StatusEffectInstance> {
      * @since 1.8.4
      */
     public boolean isInstant() {
-        return base.getEffectType().value().isInstant();
+        return base.getEffect().value().isInstantenous();
     }
 
     /**
@@ -118,7 +118,7 @@ public class StatusEffectHelper extends BaseHelper<StatusEffectInstance> {
      * @since 1.8.4
      */
     public boolean isBeneficial() {
-        return base.getEffectType().value().getCategory() == StatusEffectCategory.BENEFICIAL;
+        return base.getEffect().value().getCategory() == MobEffectCategory.BENEFICIAL;
     }
 
     /**
@@ -126,7 +126,7 @@ public class StatusEffectHelper extends BaseHelper<StatusEffectInstance> {
      * @since 1.8.4
      */
     public boolean isNeutral() {
-        return base.getEffectType().value().getCategory() == StatusEffectCategory.NEUTRAL;
+        return base.getEffect().value().getCategory() == MobEffectCategory.NEUTRAL;
     }
 
     /**
@@ -134,7 +134,7 @@ public class StatusEffectHelper extends BaseHelper<StatusEffectInstance> {
      * @since 1.8.4
      */
     public boolean isHarmful() {
-        return base.getEffectType().value().getCategory() == StatusEffectCategory.HARMFUL;
+        return base.getEffect().value().getCategory() == MobEffectCategory.HARMFUL;
     }
 
     @Override

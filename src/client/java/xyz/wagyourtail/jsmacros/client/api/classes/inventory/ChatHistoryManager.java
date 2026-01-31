@@ -1,7 +1,7 @@
 package xyz.wagyourtail.jsmacros.client.api.classes.inventory;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.hud.ChatHud;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.ChatComponent;
 import xyz.wagyourtail.jsmacros.client.JsMacrosClient;
 import xyz.wagyourtail.jsmacros.client.access.IChatHud;
 import xyz.wagyourtail.jsmacros.client.api.helper.TextHelper;
@@ -17,10 +17,10 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @since 1.6.0
  */
 public class ChatHistoryManager {
-    private static final MinecraftClient mc = MinecraftClient.getInstance();
-    private final ChatHud hud;
+    private static final Minecraft mc = Minecraft.getInstance();
+    private final ChatComponent hud;
 
-    public ChatHistoryManager(ChatHud hud) {
+    public ChatHistoryManager(ChatComponent hud) {
         this.hud = hud;
     }
 
@@ -31,12 +31,12 @@ public class ChatHistoryManager {
      */
     public ChatHudLineHelper getRecvLine(int index) throws InterruptedException {
         if (JsMacrosClient.clientCore.profile.checkJoinedThreadStack()) {
-            return new ChatHudLineHelper(hud.messages.get(index), hud);
+            return new ChatHudLineHelper(hud.allMessages.get(index), hud);
         }
         ChatHudLineHelper[] helper = {null};
         final Semaphore semaphore = new Semaphore(0);
         mc.execute(() -> {
-            helper[0] = new ChatHudLineHelper(hud.messages.get(index), hud);
+            helper[0] = new ChatHudLineHelper(hud.allMessages.get(index), hud);
             semaphore.release();
         });
         semaphore.acquire();
@@ -52,7 +52,7 @@ public class ChatHistoryManager {
         final Semaphore semaphore = new Semaphore(0);
         AtomicInteger count = new AtomicInteger(0);
         mc.execute(() -> {
-            count.set(hud.messages.size());
+            count.set(hud.allMessages.size());
             semaphore.release();
         });
         semaphore.acquire();
@@ -68,7 +68,7 @@ public class ChatHistoryManager {
         List<ChatHudLineHelper> recvLines = new ArrayList<>();
         final Semaphore semaphore = new Semaphore(0);
         mc.execute(() -> {
-            hud.messages.stream().map(textChatHudLine -> new ChatHudLineHelper(textChatHudLine, hud)).forEach(recvLines::add);
+            hud.allMessages.stream().map(textChatHudLine -> new ChatHudLineHelper(textChatHudLine, hud)).forEach(recvLines::add);
             semaphore.release();
         });
         semaphore.acquire();
@@ -133,12 +133,12 @@ public class ChatHistoryManager {
      */
     public void removeRecvText(int index, boolean await) throws InterruptedException {
         if (JsMacrosClient.clientCore.profile.checkJoinedThreadStack()) {
-            hud.messages.remove(index);
+            hud.allMessages.remove(index);
             return;
         }
         final Semaphore semaphore = new Semaphore(await ? 0 : 1);
         mc.execute(() -> {
-            hud.messages.remove(index);
+            hud.allMessages.remove(index);
             semaphore.release();
         });
         semaphore.acquire();
@@ -160,12 +160,12 @@ public class ChatHistoryManager {
      */
     public void removeRecvTextMatching(TextHelper text, boolean await) throws InterruptedException {
         if (JsMacrosClient.clientCore.profile.checkJoinedThreadStack()) {
-            hud.messages.removeIf(c -> c.content().equals(text.getRaw()));
+            hud.allMessages.removeIf(c -> c.content().equals(text.getRaw()));
             return;
         }
         final Semaphore semaphore = new Semaphore(await ? 0 : 1);
         mc.execute(() -> {
-            hud.messages.removeIf(c -> c.content().equals(text.getRaw()));
+            hud.allMessages.removeIf(c -> c.content().equals(text.getRaw()));
             semaphore.release();
         });
         semaphore.acquire();
@@ -187,14 +187,14 @@ public class ChatHistoryManager {
      */
     public void removeRecvTextMatchingFilter(MethodWrapper<ChatHudLineHelper, Object, Boolean, ?> filter, boolean await) throws InterruptedException {
         if (JsMacrosClient.clientCore.profile.checkJoinedThreadStack()) {
-            hud.messages.removeIf((c) -> filter.test(new ChatHudLineHelper(c, hud)));
+            hud.allMessages.removeIf((c) -> filter.test(new ChatHudLineHelper(c, hud)));
             return;
         }
         final Semaphore semaphore = new Semaphore(await ? 0 : 1);
         Throwable[] ex = new Throwable[]{null};
         mc.execute(() -> {
             try {
-                hud.messages.removeIf((c) -> filter.test(new ChatHudLineHelper(c, hud)));
+                hud.allMessages.removeIf((c) -> filter.test(new ChatHudLineHelper(c, hud)));
             } catch (Throwable e) {
                 ex[0] = e;
                 if (!await && !(e.getCause() instanceof InterruptedException)) {
@@ -225,12 +225,12 @@ public class ChatHistoryManager {
      */
     public void refreshVisible(boolean await) throws InterruptedException {
         if (JsMacrosClient.clientCore.profile.checkJoinedThreadStack()) {
-            hud.reset();
+            hud.rescaleChat();
             return;
         }
         final Semaphore semaphore = new Semaphore(await ? 0 : 1);
         mc.execute(() -> {
-            hud.reset();
+            hud.rescaleChat();
             semaphore.release();
         });
         semaphore.acquire();
@@ -251,12 +251,12 @@ public class ChatHistoryManager {
      */
     public void clearRecv(boolean await) throws InterruptedException {
         if (JsMacrosClient.clientCore.profile.checkJoinedThreadStack()) {
-            hud.clear(false);
+            hud.clearMessages(false);
             return;
         }
         final Semaphore semaphore = new Semaphore(await ? 0 : 1);
         mc.execute(() -> {
-            hud.clear(false);
+            hud.clearMessages(false);
             semaphore.release();
         });
         semaphore.acquire();
@@ -267,7 +267,7 @@ public class ChatHistoryManager {
      * @since 1.6.0
      */
     public List<String> getSent() {
-        return hud.getMessageHistory();
+        return hud.getRecentChat();
     }
 
     /**
@@ -284,12 +284,12 @@ public class ChatHistoryManager {
      */
     public void clearSent(boolean await) throws InterruptedException {
         if (JsMacrosClient.clientCore.profile.checkJoinedThreadStack()) {
-            hud.getMessageHistory().clear();
+            hud.getRecentChat().clear();
             return;
         }
         final Semaphore semaphore = new Semaphore(await ? 0 : 1);
         mc.execute(() -> {
-            hud.getMessageHistory().clear();
+            hud.getRecentChat().clear();
             semaphore.release();
         });
         semaphore.acquire();

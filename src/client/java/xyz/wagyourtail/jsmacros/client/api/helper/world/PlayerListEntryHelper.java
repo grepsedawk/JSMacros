@@ -1,9 +1,9 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world;
 
 import com.mojang.authlib.GameProfile;
-import net.minecraft.client.network.PlayerListEntry;
-import net.minecraft.client.util.SkinTextures;
-import net.minecraft.world.GameMode;
+import net.minecraft.client.multiplayer.PlayerInfo;
+import net.minecraft.client.resources.PlayerSkin;
+import net.minecraft.world.level.GameType;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.doclet.DocletReplaceReturn;
 import xyz.wagyourtail.jsmacros.client.api.helper.TextHelper;
@@ -14,9 +14,9 @@ import xyz.wagyourtail.jsmacros.core.helpers.BaseHelper;
  * @since 1.0.2
  */
 @SuppressWarnings("unused")
-public class PlayerListEntryHelper extends BaseHelper<PlayerListEntry> {
+public class PlayerListEntryHelper extends BaseHelper<PlayerInfo> {
 
-    public PlayerListEntryHelper(PlayerListEntry p) {
+    public PlayerListEntryHelper(PlayerInfo p) {
         super(p);
     }
 
@@ -55,8 +55,8 @@ public class PlayerListEntryHelper extends BaseHelper<PlayerListEntry> {
     @DocletReplaceReturn("Gamemode")
     @Nullable
     public String getGamemode() {
-        GameMode gm = base.getGameMode();
-        return gm == null ? null : gm.getId();
+        GameType gm = base.getGameMode();
+        return gm == null ? null : gm.getName();
     }
 
     /**
@@ -64,7 +64,7 @@ public class PlayerListEntryHelper extends BaseHelper<PlayerListEntry> {
      * @since 1.1.9
      */
     public TextHelper getDisplayText() {
-        return TextHelper.wrap(base.getDisplayName());
+        return TextHelper.wrap(base.getTabListDisplayName());
     }
 
     /**
@@ -72,7 +72,7 @@ public class PlayerListEntryHelper extends BaseHelper<PlayerListEntry> {
      * @since 1.8.2
      */
     public byte[] getPublicKey() {
-        return base.getSession().publicKeyData().data().key().getEncoded();
+        return base.getChatSession().profilePublicKey().data().key().getEncoded();
     }
 
     /**
@@ -80,7 +80,7 @@ public class PlayerListEntryHelper extends BaseHelper<PlayerListEntry> {
      * @since 1.8.4
      */
     public boolean hasCape() {
-        return base.getSkinTextures().capeTexture() != null;
+        return base.getSkin().capeTexture() != null;
     }
 
     /**
@@ -90,7 +90,7 @@ public class PlayerListEntryHelper extends BaseHelper<PlayerListEntry> {
      * @since 1.8.4
      */
     public boolean hasSlimModel() {
-        return base.getSkinTextures().model().equals(SkinTextures.Model.SLIM);
+        return base.getSkin().model().equals(PlayerSkin.Model.SLIM);
     }
 
     /**
@@ -98,7 +98,7 @@ public class PlayerListEntryHelper extends BaseHelper<PlayerListEntry> {
      * @since 1.8.4
      */
     public String getSkinTexture() {
-        return base.getSkinTextures().texture().toString();
+        return base.getSkin().texture().toString();
     }
 
     /**
@@ -106,7 +106,7 @@ public class PlayerListEntryHelper extends BaseHelper<PlayerListEntry> {
      */
     @Nullable
     public String getSkinUrl() {
-        return base.getSkinTextures().textureUrl();
+        return base.getSkin().textureUrl();
     }
 
     /**
@@ -115,7 +115,7 @@ public class PlayerListEntryHelper extends BaseHelper<PlayerListEntry> {
      */
     @Nullable
     public String getCapeTexture() {
-        return base.getSkinTextures().capeTexture() == null ? null : base.getSkinTextures().capeTexture().toString();
+        return base.getSkin().capeTexture() == null ? null : base.getSkin().capeTexture().toString();
     }
 
     /**
@@ -124,7 +124,7 @@ public class PlayerListEntryHelper extends BaseHelper<PlayerListEntry> {
      */
     @Nullable
     public String getElytraTexture() {
-        return base.getSkinTextures().elytraTexture() == null ? null : base.getSkinTextures().elytraTexture().toString();
+        return base.getSkin().elytraTexture() == null ? null : base.getSkin().elytraTexture().toString();
     }
 
     /**
@@ -133,7 +133,7 @@ public class PlayerListEntryHelper extends BaseHelper<PlayerListEntry> {
      */
     @Nullable
     public TeamHelper getTeam() {
-        return base.getScoreboardTeam() == null ? null : new TeamHelper(base.getScoreboardTeam());
+        return base.getTeam() == null ? null : new TeamHelper(base.getTeam());
     }
 
     @Override
