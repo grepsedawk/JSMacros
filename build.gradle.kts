@@ -17,8 +17,8 @@ version = mod_version
 group = maven_group
 
 java {
-    sourceCompatibility = JavaVersion.values()[libs.versions.java.get().toInt() - 1]
-    targetCompatibility = JavaVersion.values()[libs.versions.java.get().toInt() - 1]
+    sourceCompatibility = JavaVersion.toVersion(libs.versions.java.get().toInt())
+    targetCompatibility = JavaVersion.toVersion(libs.versions.java.get().toInt())
 
     toolchain {
         languageVersion = JavaLanguageVersion.of(libs.versions.java.get().toInt())
