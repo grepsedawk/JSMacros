@@ -581,7 +581,7 @@ public class PacketByteBufferHelper extends BaseHelper<FriendlyByteBuf> {
      * @since 1.8.4
      */
     public PacketByteBufferHelper writeChunkSectionPos(int chunkX, int y, int chunkZ) {
-        base.writeSectionPos(SectionPos.of(chunkX, y, chunkZ));
+        SectionPos.STREAM_CODEC.encode(base, SectionPos.of(chunkX, y, chunkZ));
         return this;
     }
 
@@ -592,7 +592,7 @@ public class PacketByteBufferHelper extends BaseHelper<FriendlyByteBuf> {
      * @since 1.8.4
      */
     public PacketByteBufferHelper writeChunkSectionPos(ChunkHelper chunk, int y) {
-        base.writeSectionPos(SectionPos.of(chunk.getRaw().getPos(), y));
+        SectionPos.STREAM_CODEC.encode(base, SectionPos.of(chunk.getRaw().getPos(), y));
         return this;
     }
 
@@ -601,7 +601,7 @@ public class PacketByteBufferHelper extends BaseHelper<FriendlyByteBuf> {
      * @since 1.8.4
      */
     public BlockPosHelper readChunkSectionPos() {
-        SectionPos pos = base.readSectionPos();
+        SectionPos pos = SectionPos.STREAM_CODEC.decode(base);
         return new BlockPosHelper(pos.x(), pos.y(), pos.z());
     }
 
@@ -1753,7 +1753,6 @@ public class PacketByteBufferHelper extends BaseHelper<FriendlyByteBuf> {
         PACKETS.put("CookieRequestS2CPacket", net.minecraft.network.protocol.cookie.ClientboundCookieRequestPacket.class);
         PACKETS.put("ResetChatS2CPacket", net.minecraft.network.protocol.configuration.ClientboundResetChatPacket.class);
         PACKETS.put("ScoreboardScoreUpdateS2CPacket", net.minecraft.network.protocol.game.ClientboundSetScorePacket.class);
-        PACKETS.put("DebugSampleSubscriptionC2SPacket", net.minecraft.network.protocol.game.ServerboundDebugSampleSubscriptionPacket.class);
         PACKETS.put("ServerLinksS2CPacket", net.minecraft.network.protocol.common.ClientboundServerLinksPacket.class);
         PACKETS.put("CookieResponseC2SPacket", net.minecraft.network.protocol.cookie.ServerboundCookieResponsePacket.class);
         PACKETS.put("UpdateTickRateS2CPacket", net.minecraft.network.protocol.game.ClientboundTickingStatePacket.class);

@@ -247,7 +247,7 @@ public class FChat extends BaseLibrary {
             String finalMessage = message;
             final Semaphore semaphore = new Semaphore(await ? 0 : 1);
             mc.execute(() -> {
-                mc.setScreen(new ChatScreen(finalMessage));
+                mc.setScreen(new ChatScreen(finalMessage, true));
                 semaphore.release();
             });
             semaphore.acquire();

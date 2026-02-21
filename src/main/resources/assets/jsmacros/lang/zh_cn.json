@@ -3,6 +3,7 @@
   "jsmacros.saveconfigfail": "配置保存失败",
   "jsmacros.profilesloaded": "已被加载的文件：",
   "jsmacros.title": "JS Macros",
+  "key.category.jsmacros.title": "JS Macros",
   "jsmacros.menu": "JS Macros GUI",
   "jsmacros.keys": "按键",
   "jsmacros.default": "默认",

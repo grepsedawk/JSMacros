@@ -1,12 +1,7 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity.specialized.passive;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.core.UUIDUtil;
 import net.minecraft.world.entity.animal.Parrot;
 import xyz.wagyourtail.doclet.DocletReplaceReturn;
-
-import java.util.Objects;
-import java.util.stream.Stream;
 
 /**
  * @author Etheradon
@@ -61,18 +56,18 @@ public class ParrotEntityHelper extends TameableEntityHelper<Parrot> {
     }
 
     /**
-     * @return {@code true} if this parrot is sitting on any player's shoulder, {@code false}
+     * @return always {@code false}, as parrot entities stop existing once on any player's shoulder
      * otherwise.
      * @since 1.8.4
      */
     public boolean isSittingOnShoulder() {
-        if (!isSitting()) return false;
-        return Minecraft.getInstance().level.players().stream()
-            .flatMap(e -> Stream.of(e.getShoulderEntityRight(), e.getShoulderEntityLeft()))
-            .filter(Objects::nonNull)
-            .flatMap(n -> n.getIntArray("UUID").stream())
-            .map(UUIDUtil::uuidFromIntArray)
-            .anyMatch(base.getUUID()::equals);
+        /* Sad fact:
+         *  In newer versions parrots get murdered (discarded) when they sit on a shoulder.
+         *  Their NBT lives on the shoulder entity data for the player, and is used to create a new entity.
+         *
+         * The only way this would ever be true is if you memory leak a removed parrot's entity, which is bad.
+         */
+        return false;
     }
 
 }

@@ -4,6 +4,8 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.input.InputWithModifiers;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
 import xyz.wagyourtail.jsmacros.client.util.ColorUtil;
@@ -104,18 +106,18 @@ public class Button extends AbstractButton {
     }
 
     @Override
-    public void onClick(double mouseX, double mouseY) {
+    public void onClick(MouseButtonEvent event, boolean doubleClick) {
         //super.onClick(mouseX, mouseY);
     }
 
     @Override
-    public void onRelease(double mouseX, double mouseY) {
+    public void onRelease(MouseButtonEvent event) {
         if (this.active)
-            super.onClick(mouseX, mouseY);
+            super.onClick(event, false);
     }
 
     @Override
-    public void onPress() {
+    public void onPress(InputWithModifiers event) {
         if (onPress != null) {
             onPress.accept(this);
         }

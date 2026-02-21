@@ -1,5 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.classes.render;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.jsmacros.api.math.Pos2D;
@@ -442,7 +443,7 @@ public interface IScreen extends IDraw2D<IScreen> {
      * @since 1.8.4
      */
     default boolean isShiftDown() {
-        return Screen.hasShiftDown();
+        return Minecraft.getInstance().hasShiftDown();
     }
 
     /**
@@ -450,7 +451,7 @@ public interface IScreen extends IDraw2D<IScreen> {
      * @since 1.8.4
      */
     default boolean isCtrlDown() {
-        return Screen.hasControlDown();
+        return Minecraft.getInstance().hasControlDown();
     }
 
     /**
@@ -458,7 +459,7 @@ public interface IScreen extends IDraw2D<IScreen> {
      * @since 1.8.4
      */
     default boolean isAltDown() {
-        return Screen.hasAltDown();
+        return Minecraft.getInstance().hasAltDown();
     }
 
     @Nullable

@@ -5,7 +5,6 @@ import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
 import net.minecraft.client.gui.screens.Overlay;
-import net.minecraft.client.gui.screens.ReceivingLevelScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
@@ -75,18 +74,16 @@ class MixinMinecraft {
 
     @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/Screen;removed()V"), method = "setScreen")
     public void onCloseScreen(Screen screen, CallbackInfo ci) {
-        Consumer<IScreen> onClose = ((IScreen) screen).getOnClose();
+        Consumer<IScreen> onClose = ((IScreen) this.screen).getOnClose();
         try {
-            if (onClose != null) {
-                onClose.accept((IScreen) screen);
-            }
+            if (onClose != null) onClose.accept((IScreen) screen);
         } catch (Throwable e) {
             JsMacrosClient.clientCore.profile.logError(e);
         }
     }
 
     @Inject(at = @At("HEAD"), method = "setLevel")
-    public void onJoinWorld(ClientLevel world, ReceivingLevelScreen.Reason worldEntryReason, CallbackInfo ci) {
+    public void onJoinWorld(ClientLevel world, CallbackInfo ci) {
         InteractionProxy.reset();
     }
 

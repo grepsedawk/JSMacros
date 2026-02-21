@@ -130,7 +130,7 @@ public abstract class MixinClientPacketListener extends ClientCommonPacketListen
         packet.dispatch(new BossBarConsumer());
     }
 
-    @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/ClientLevel;playSoundClient(DDDLnet/minecraft/sounds/SoundEvent;Lnet/minecraft/sounds/SoundSource;FFZ)V"), method = "handleTakeItemEntity")
+    @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/ClientLevel;playLocalSound(DDDLnet/minecraft/sounds/SoundEvent;Lnet/minecraft/sounds/SoundSource;FFZ)V"), method = "handleTakeItemEntity")
     public void onItemPickupAnimation(ClientboundTakeItemEntityPacket packet, CallbackInfo info) {
         assert minecraft.level != null;
         final Entity e = minecraft.level.getEntity(packet.getItemId());
@@ -176,7 +176,7 @@ public abstract class MixinClientPacketListener extends ClientCommonPacketListen
         new EventChunkUnload(packet.pos().x, packet.pos().z).trigger();
     }
 
-    @Inject(method = "handleUpdateMobEffect", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/protocol/PacketUtils;ensureRunningOnSameThread(Lnet/minecraft/network/protocol/Packet;Lnet/minecraft/network/PacketListener;Lnet/minecraft/util/thread/BlockableEventLoop;)V", shift = At.Shift.AFTER))
+    @Inject(method = "handleUpdateMobEffect", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/protocol/PacketUtils;ensureRunningOnSameThread(Lnet/minecraft/network/protocol/Packet;Lnet/minecraft/network/PacketListener;Lnet/minecraft/network/PacketProcessor;)V", shift = At.Shift.AFTER))
     public void onEntityStatusEffect(ClientboundUpdateMobEffectPacket packet, CallbackInfo info) {
         assert minecraft.player != null;
         if (packet.getEntityId() == minecraft.player.getId()) {
@@ -186,7 +186,7 @@ public abstract class MixinClientPacketListener extends ClientCommonPacketListen
         }
     }
 
-    @Inject(method = "handleRemoveMobEffect", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/protocol/PacketUtils;ensureRunningOnSameThread(Lnet/minecraft/network/protocol/Packet;Lnet/minecraft/network/PacketListener;Lnet/minecraft/util/thread/BlockableEventLoop;)V", shift = At.Shift.AFTER))
+    @Inject(method = "handleRemoveMobEffect", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/protocol/PacketUtils;ensureRunningOnSameThread(Lnet/minecraft/network/protocol/Packet;Lnet/minecraft/network/PacketListener;Lnet/minecraft/network/PacketProcessor;)V", shift = At.Shift.AFTER))
     public void onEntityStatusEffect(ClientboundRemoveMobEffectPacket packet, CallbackInfo info) {
         if (packet.getEntity(minecraft.level) == minecraft.player) {
             assert minecraft.player != null;
@@ -205,13 +205,13 @@ public abstract class MixinClientPacketListener extends ClientCommonPacketListen
         new EventSlotUpdate(screen, "HELD", -999, this.minecraft.player.containerMenu.getCarried(), packet.contents()).trigger();
     }
 
-    @Inject(method = "handleSetPlayerInventory", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Inventory;setStack(ILnet/minecraft/world/item/ItemStack;)V"))
+    @Inject(method = "handleSetPlayerInventory", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Inventory;setItem(ILnet/minecraft/world/item/ItemStack;)V"))
     public void onInventorySlotUpdate(ClientboundSetPlayerInventoryPacket packet, CallbackInfo ci) {
         assert minecraft.player != null;
         new EventSlotUpdate(new InventoryScreen(minecraft.player), "INVENTORY", packet.slot(), this.minecraft.player.inventoryMenu.getSlot(packet.slot()).getItem(), packet.contents()).trigger();
     }
 
-    @Inject(method = "handleContainerSetSlot", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/inventory/InventoryMenu;setStackInSlot(IILnet/minecraft/world/item/ItemStack;)V"))
+    @Inject(method = "handleContainerSetSlot", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/inventory/InventoryMenu;setItem(IILnet/minecraft/world/item/ItemStack;)V"))
     public void onScreenSlotUpdate(ClientboundContainerSetSlotPacket packet, CallbackInfo ci) {
         assert minecraft.player != null;
         new EventSlotUpdate(new InventoryScreen(minecraft.player), "INVENTORY", packet.getSlot(), this.minecraft.player.inventoryMenu.getSlot(packet.getSlot()).getItem(), packet.getItem()).trigger();

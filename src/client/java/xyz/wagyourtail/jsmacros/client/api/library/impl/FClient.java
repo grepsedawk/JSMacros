@@ -181,7 +181,7 @@ public class FClient extends PerExecLibrary {
      * @since 1.2.0 (was in the {@code jsmacros} library until 1.2.9)
      */
     public String getFPS() {
-        return mc.fpsString;
+        return Integer.toString(mc.getFps());
     }
 
     /**

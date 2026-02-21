@@ -3,6 +3,7 @@
   "jsmacros.saveconfigfail": "save config failed",
   "jsmacros.profilesloaded": "Profiles Loaded:",
   "jsmacros.title": "JS Macros",
+  "key.category.jsmacros.title": "JS Macros",
   "jsmacros.menu": "JS Macros GUI",
   "jsmacros.keys": "Keys",
   "jsmacros.default": "Default",

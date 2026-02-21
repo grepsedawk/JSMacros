@@ -3,6 +3,7 @@
   "jsmacros.saveconfigfail": "Konfiguracja nie może zostać zapisana",
   "jsmacros.profilesloaded": "Wczytane profile:",
   "jsmacros.title": "JS Macros",
+  "key.category.jsmacros.title": "JS Macros",
   "jsmacros.menu": "JS Macros Menü",
   "jsmacros.keys": "Klawisze",
   "jsmacros.default": "Domyślne",

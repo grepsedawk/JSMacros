@@ -2,6 +2,7 @@ package xyz.wagyourtail.wagyourgui.overlays;
 
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import org.lwjgl.glfw.GLFW;
@@ -66,8 +67,8 @@ public class SelectorDropdownOverlay extends OverlayContainer {
     }
 
     @Override
-    public void onClick(double mouseX, double mouseY, int button) {
-        if (mouseX < x || mouseX > x + width || mouseY < y || mouseY > y + height) {
+    public void onClick(MouseButtonEvent event, boolean doubleClick) {
+        if (event.x() < x || event.x() > x + width || event.y() < y || event.y() > y + height) {
             close();
         }
     }

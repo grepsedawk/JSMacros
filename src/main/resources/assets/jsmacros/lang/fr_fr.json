@@ -3,6 +3,7 @@
   "jsmacros.saveconfigfail": "L'enregistrement de la configuration a échoué",
   "jsmacros.profilesloaded": "Profils chargés:",
   "jsmacros.title": "JS Macros",
+  "key.category.jsmacros.title": "JS Macros",
   "jsmacros.menu": "JS Macros GUI",
   "jsmacros.keys": "Touches",
   "jsmacros.default": "Par défaut",

@@ -344,7 +344,7 @@ public class OptionsHelper extends BaseHelper<Options> {
      */
     public OptionsHelper setWidth(int w) {
         Window win = mc.getWindow();
-        GLFW.glfwSetWindowSize(win.getWindow(), w, win.getScreenHeight());
+        GLFW.glfwSetWindowSize(win.handle(), w, win.getScreenHeight());
         return this;
     }
 
@@ -354,7 +354,7 @@ public class OptionsHelper extends BaseHelper<Options> {
      */
     public OptionsHelper setHeight(int h) {
         Window win = mc.getWindow();
-        GLFW.glfwSetWindowSize(win.getWindow(), win.getScreenWidth(), h);
+        GLFW.glfwSetWindowSize(win.handle(), win.getScreenWidth(), h);
         return this;
     }
 
@@ -365,7 +365,7 @@ public class OptionsHelper extends BaseHelper<Options> {
      */
     public OptionsHelper setSize(int w, int h) {
         Window win = mc.getWindow();
-        GLFW.glfwSetWindowSize(win.getWindow(), w, h);
+        GLFW.glfwSetWindowSize(win.handle(), w, h);
         return this;
     }
 
@@ -1367,7 +1367,7 @@ public class OptionsHelper extends BaseHelper<Options> {
          * @since 1.8.4
          */
         public boolean isMouseInverted() {
-            return base.invertYMouse().get();
+            return base.invertMouseY().get();
         }
 
         /**
@@ -1376,7 +1376,7 @@ public class OptionsHelper extends BaseHelper<Options> {
          * @since 1.8.4
          */
         public ControlOptionsHelper invertMouse(boolean val) {
-            base.invertYMouse().set(val);
+            base.invertMouseY().set(val);
             return this;
         }
 
@@ -1531,6 +1531,7 @@ public class OptionsHelper extends BaseHelper<Options> {
             return Arrays.stream(base.keyMappings)
                     .map(KeyMapping::getCategory)
                     .distinct()
+                    .map(c -> c.id().toLanguageKey())
                     .collect(Collectors.toList());
         }
 
@@ -1576,15 +1577,9 @@ public class OptionsHelper extends BaseHelper<Options> {
             Map<String, Map<String, String>> entries = new HashMap<>(Minecraft.getInstance().options.keyMappings.length);
 
             for (KeyMapping key : Minecraft.getInstance().options.keyMappings) {
-                Map<String, String> categoryMap;
-                String category = key.getCategory();
-                if (!entries.containsKey(category)) {
-                    categoryMap = new HashMap<>();
-                    entries.put(category, categoryMap);
-                } else {
-                    categoryMap = entries.get(category);
-                }
-                categoryMap.put(Component.translatable(key.getName()).getString(), key.getTranslatedKeyMessage().getString());
+                var category = key.getCategory().id().toLanguageKey();
+                entries.computeIfAbsent(category, k -> new HashMap<>())
+                        .put(Component.translatable(key.getName()).getString(), key.getTranslatedKeyMessage().getString());
             }
             return entries;
         }

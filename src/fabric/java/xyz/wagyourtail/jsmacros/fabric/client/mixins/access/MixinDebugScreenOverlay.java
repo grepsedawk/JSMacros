@@ -1,20 +1,15 @@
 package xyz.wagyourtail.jsmacros.fabric.client.mixins.access;
 
-import com.google.common.collect.ImmutableSet;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.DebugScreenOverlay;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import xyz.wagyourtail.jsmacros.client.api.classes.render.IDraw2D;
-import xyz.wagyourtail.jsmacros.client.api.library.impl.FHud;
 
-import java.util.Comparator;
-
+/**
+ * Rendering overlays as part of f3 seems useless, they already get rendered elsewhere.
+ * @see {@link xyz.wagyourtail.jsmacros.client.mixin.access.MixinGui}
+ */
 @Mixin(DebugScreenOverlay.class)
 class MixinDebugScreenOverlay {
-    @Inject(
+    /*@Inject(
             method = "drawGameInformation(Lnet/minecraft/client/gui/GuiGraphics;)V",
             at = @At("TAIL")
     )
@@ -25,5 +20,5 @@ class MixinDebugScreenOverlay {
         ImmutableSet.copyOf(FHud.overlays).stream()
                 .sorted(Comparator.comparingInt(IDraw2D::getZIndex))
                 .forEachOrdered(hud -> hud.render(context));
-    }
+    }*/
 }

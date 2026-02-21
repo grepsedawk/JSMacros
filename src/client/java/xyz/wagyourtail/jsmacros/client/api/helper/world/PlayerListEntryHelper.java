@@ -2,7 +2,9 @@ package xyz.wagyourtail.jsmacros.client.api.helper.world;
 
 import com.mojang.authlib.GameProfile;
 import net.minecraft.client.multiplayer.PlayerInfo;
-import net.minecraft.client.resources.PlayerSkin;
+import net.minecraft.client.resources.DefaultPlayerSkin;
+import net.minecraft.core.ClientAsset;
+import net.minecraft.world.entity.player.PlayerModelType;
 import net.minecraft.world.level.GameType;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.doclet.DocletReplaceReturn;
@@ -26,8 +28,7 @@ public class PlayerListEntryHelper extends BaseHelper<PlayerInfo> {
      */
     @Nullable
     public String getUUID() {
-        GameProfile prof = base.getProfile();
-        return prof == null ? null : prof.getId().toString();
+        return base.getProfile().id().toString();
     }
 
     /**
@@ -36,8 +37,7 @@ public class PlayerListEntryHelper extends BaseHelper<PlayerInfo> {
      */
     @Nullable
     public String getName() {
-        GameProfile prof = base.getProfile();
-        return prof == null ? null : prof.getName();
+        return base.getProfile().name();
     }
 
     /**
@@ -55,8 +55,7 @@ public class PlayerListEntryHelper extends BaseHelper<PlayerInfo> {
     @DocletReplaceReturn("Gamemode")
     @Nullable
     public String getGamemode() {
-        GameType gm = base.getGameMode();
-        return gm == null ? null : gm.getName();
+        return base.getGameMode().getName();
     }
 
     /**
@@ -72,7 +71,8 @@ public class PlayerListEntryHelper extends BaseHelper<PlayerInfo> {
      * @since 1.8.2
      */
     public byte[] getPublicKey() {
-        return base.getChatSession().profilePublicKey().data().key().getEncoded();
+        var session = base.getChatSession();
+        return session == null ? null : session.profilePublicKey().data().key().getEncoded();
     }
 
     /**
@@ -80,7 +80,7 @@ public class PlayerListEntryHelper extends BaseHelper<PlayerInfo> {
      * @since 1.8.4
      */
     public boolean hasCape() {
-        return base.getSkin().capeTexture() != null;
+        return base.getSkin().cape() != null;
     }
 
     /**
@@ -90,7 +90,7 @@ public class PlayerListEntryHelper extends BaseHelper<PlayerInfo> {
      * @since 1.8.4
      */
     public boolean hasSlimModel() {
-        return base.getSkin().model().equals(PlayerSkin.Model.SLIM);
+        return base.getSkin().model().equals(PlayerModelType.SLIM);
     }
 
     /**
@@ -98,7 +98,7 @@ public class PlayerListEntryHelper extends BaseHelper<PlayerInfo> {
      * @since 1.8.4
      */
     public String getSkinTexture() {
-        return base.getSkin().texture().toString();
+        return base.getSkin().body().toString();
     }
 
     /**
@@ -106,7 +106,7 @@ public class PlayerListEntryHelper extends BaseHelper<PlayerInfo> {
      */
     @Nullable
     public String getSkinUrl() {
-        return base.getSkin().textureUrl();
+        return base.getSkin().body() instanceof ClientAsset.DownloadedTexture d ? d.url() : null;
     }
 
     /**
@@ -115,7 +115,7 @@ public class PlayerListEntryHelper extends BaseHelper<PlayerInfo> {
      */
     @Nullable
     public String getCapeTexture() {
-        return base.getSkin().capeTexture() == null ? null : base.getSkin().capeTexture().toString();
+        return base.getSkin().cape() == null ? null : base.getSkin().cape().toString();
     }
 
     /**
@@ -124,7 +124,7 @@ public class PlayerListEntryHelper extends BaseHelper<PlayerInfo> {
      */
     @Nullable
     public String getElytraTexture() {
-        return base.getSkin().elytraTexture() == null ? null : base.getSkin().elytraTexture().toString();
+        return base.getSkin().elytra() == null ? null : base.getSkin().elytra().toString();
     }
 
     /**

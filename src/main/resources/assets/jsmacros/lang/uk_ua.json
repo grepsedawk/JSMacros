@@ -3,6 +3,7 @@
 	"jsmacros.saveconfigfail": "збереження конфігурації провалено",
 	"jsmacros.profilesloaded": "Профілі завантажено:",
 	"jsmacros.title": "JS Macros",
+	"key.category.jsmacros.title": "JS Macros",
 	"jsmacros.menu": "JS Macros GUI",
 	"jsmacros.keys": "Клавіші",
 	"jsmacros.default": "Default",

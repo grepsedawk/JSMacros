@@ -4,6 +4,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.client.input.MouseButtonEvent;
 import xyz.wagyourtail.wagyourgui.containers.MultiElementContainer;
 import xyz.wagyourtail.wagyourgui.elements.Scrollbar;
 
@@ -81,9 +82,9 @@ public abstract class OverlayContainer extends MultiElementContainer<IOverlayPar
         parent.setFocused(focused);
     }
 
-    public void onClick(double mouseX, double mouseY, int button) {
+    public void onClick(MouseButtonEvent event, boolean doubleClick) {
         if (overlay != null) {
-            overlay.onClick(mouseX, mouseY, button);
+            overlay.onClick(event, doubleClick);
         }
     }
 

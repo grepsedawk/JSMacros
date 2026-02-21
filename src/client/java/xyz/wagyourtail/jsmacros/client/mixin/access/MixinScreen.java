@@ -111,19 +111,19 @@ public abstract class MixinScreen extends AbstractContainerEventHandler implemen
     @Final
     protected Component title;
     @Shadow
-    public Minecraft minecraft;
+    protected Minecraft minecraft;
     @Shadow
-    public Font font;
+    protected Font font;
 
     @Inject(method = "handleComponentClicked", at = @At("HEAD"), cancellable = true)
     private void onHandleTextClick(Style style, CallbackInfoReturnable<Boolean> cir) {
         handleCustomClickEvent(style, cir);
     }
 
-    @Shadow(aliases = {"method_37063", "m_142416_"})
+    @Shadow
     protected abstract <T extends GuiEventListener & Renderable & NarratableEntry> T addRenderableWidget(T drawableElement);
 
-    @Shadow(aliases = {"close", "method_25419", "m_7379_"})
+    @Shadow
     public abstract void onClose();
 
     @Shadow
@@ -738,7 +738,7 @@ public abstract class MixinScreen extends AbstractContainerEventHandler implemen
         CycleButton<String> cyclingButton;
         CycleButton.Builder<String> builder = CycleButton.builder(net.minecraft.network.chat.Component::literal);
         if (alternatives != null) {
-            BooleanSupplier supplier = alternateToggle == null ? Screen::hasAltDown : alternateToggle::get;
+            BooleanSupplier supplier = alternateToggle == null ? minecraft::hasAltDown : alternateToggle::get;
             builder.withValues(supplier, Arrays.asList(values), Arrays.asList(alternatives));
         } else {
             builder.withValues(values);
@@ -932,8 +932,7 @@ public abstract class MixinScreen extends AbstractContainerEventHandler implemen
             while (iter.hasNext()) {
                 RenderElement e = iter.next();
                 e.render(drawContext, mouseX, mouseY, delta);
-                if (e instanceof xyz.wagyourtail.jsmacros.client.api.classes.render.components.Text) {
-                    xyz.wagyourtail.jsmacros.client.api.classes.render.components.Text t = (xyz.wagyourtail.jsmacros.client.api.classes.render.components.Text) e;
+                if (e instanceof xyz.wagyourtail.jsmacros.client.api.classes.render.components.Text t) {
                     if (mouseX > t.x && mouseX < t.x + t.width && mouseY > t.y && mouseY < t.y + font.lineHeight) {
                         hoverText = t;
                     }
@@ -959,8 +958,7 @@ public abstract class MixinScreen extends AbstractContainerEventHandler implemen
 
         synchronized (elements) {
             for (RenderElement e : elements) {
-                if (e instanceof xyz.wagyourtail.jsmacros.client.api.classes.render.components.Text) {
-                    xyz.wagyourtail.jsmacros.client.api.classes.render.components.Text t = (xyz.wagyourtail.jsmacros.client.api.classes.render.components.Text) e;
+                if (e instanceof xyz.wagyourtail.jsmacros.client.api.classes.render.components.Text t) {
                     if (mouseX > t.x && mouseX < t.x + t.width && mouseY > t.y && mouseY < t.y + font.lineHeight) {
                         hoverText = t;
                     }
@@ -1052,6 +1050,7 @@ public abstract class MixinScreen extends AbstractContainerEventHandler implemen
     }
 
     //TODO: switch to enum extension with mixin 9.0 or whenever Mumfrey gets around to it
+    @Unique
     public void handleCustomClickEvent(Style style, CallbackInfoReturnable<Boolean> cir) {
         ClickEvent clickEvent = style.getClickEvent();
         if (clickEvent instanceof CustomClickEvent) {
