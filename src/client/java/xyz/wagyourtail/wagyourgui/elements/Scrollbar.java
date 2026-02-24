@@ -62,7 +62,7 @@ public class Scrollbar extends AbstractWidget {
     @Override
     public void onClick(MouseButtonEvent event, boolean doubleClick) {
         if (this.active) {
-            double mpos = event.x() - getY() - 1;
+            double mpos = event.y() - getY() - 1;
             if (mpos < scrollAmount) {
                 scrollAmount = Math.max(mpos - (scrollbarHeight / 2), 0);
                 onChange();
