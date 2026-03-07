@@ -832,7 +832,7 @@ public class EditorScreen extends BaseScreen {
 
     @Override
     public boolean mouseDragged(MouseButtonEvent event, double deltaX, double deltaY) {
-        if (!(getFocused() instanceof Scrollbar) && event.isLeft() && overlay == null) {
+        if (!(getFocused() instanceof Scrollbar) && event.button() == GLFW.GLFW_MOUSE_BUTTON_LEFT && overlay == null) {
             int index = getIndexPosition(event.x() - 30, event.y() - 12);
             if (index == cursor.dragStartIndex) {
                 cursor.updateStartIndex(index, history.current);
