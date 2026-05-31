@@ -1,2 +1,0 @@
-Manifest-Version: 1.0
-MixinConnector: com.jsmacrosce.jsmacros.forge.client.JsMacrosEarlyRiser
