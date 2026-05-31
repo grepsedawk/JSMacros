@@ -4,12 +4,9 @@ import net.fabricmc.loom.api.LoomGradleExtensionAPI
 plugins {
     kotlin("jvm") version "2.2.10"
     id("com.google.devtools.ksp") version "2.2.10-2.0.2"
-    // `apply false` puts loom on the classpath without applying it; the actual
-    // plugin (obfuscated vs deobfuscated) is picked per-version below. Typed DSL
-    // accessors are not generated under `apply false`, so loom-specific config in
-    // this file uses the string-based DSL (`"minecraft"(...)`, `configure<LoomGradleExtensionAPI>`).
-    id("fabric-loom") apply false
-    id("net.fabricmc.fabric-loom") apply false
+    // 26.1+ ships deobfuscated; the non-obfuscated Loom plugin
+    // (LoomNoRemapGradlePlugin) skips the mappings layer and the remap step.
+    id("net.fabricmc.fabric-loom")
     id("multiloader-loader")
     id("dev.kikugie.fletching-table.fabric") version "0.1.0-alpha.22"
 }
@@ -17,15 +14,6 @@ plugins {
 val mod_id = commonMod.prop("mod_id")
 val minecraft_version = commonMod.prop("minecraft_version")
 var mod_version = project.version.toString()
-
-// MC 26.1 ships deobfuscated, so Loom 1.15+ skips the mappings layer and the
-// remap step. The non-obfuscated plugin `net.fabricmc.fabric-loom` routes to
-// `LoomNoRemapGradlePlugin`; the legacy `fabric-loom` alias still targets the
-// obfuscated-MC plugin used for 1.21.x. Both IDs come from the same JAR and
-// cannot be conditionalised inside the `plugins { }` block, so we apply the
-// correct one here.
-val isDeobfuscatedMc = minecraft_version.startsWith("26.")
-apply(plugin = if (isDeobfuscatedMc) "net.fabricmc.fabric-loom" else "fabric-loom")
 
 val loom = extensions.getByType(LoomGradleExtensionAPI::class.java)
 
@@ -48,30 +36,20 @@ fun DependencyHandlerScope.implInclude(notation: Any) {
 dependencies {
     "minecraft"("com.mojang:minecraft:$minecraft_version")
 
-    if (!isDeobfuscatedMc) {
-        "mappings"(loom.layered(Action {
-            val parchment_minecraft = commonMod.prop("parchment_minecraft")
-            val parchment_version = commonMod.prop("parchment_version")
-
-            officialMojangMappings()
-            // Parchment does not yet ship mappings for 26.1.x; skip the layer when
-            // either property is blank. TODO(26.1): re-enable once parchment publishes.
-            if (parchment_minecraft.isNotBlank() && parchment_version.isNotBlank()) {
-                parchment(
-                    "org.parchmentmc.data:parchment-$parchment_minecraft:$parchment_version@zip"
-                )
-            }
-        }))
-    }
-
     val fabric_loader_version = commonMod.prop("fabric_loader_version")
     val fabric_version = commonMod.prop("fabric_version")
     val mod_menu_version = commonMod.prop("mod_menu_version")
 
-    val modOrPlain = if (isDeobfuscatedMc) "implementation" else "modImplementation"
-    add(modOrPlain, "net.fabricmc:fabric-loader:$fabric_loader_version")
-    add(modOrPlain, "net.fabricmc.fabric-api:fabric-api:$fabric_version")
-    add(modOrPlain, "com.terraformersmc:modmenu:$mod_menu_version")
+    implementation("net.fabricmc:fabric-loader:$fabric_loader_version")
+    implementation("net.fabricmc.fabric-api:fabric-api:$fabric_version")
+    implementation("com.terraformersmc:modmenu:$mod_menu_version")
+
+    // Mixin processing for the merged-in common mixins (Loom provides mixin at
+    // runtime, but the annotation processor and asm-tree are needed at compile).
+    compileOnly("org.spongepowered:mixin:0.8.5")
+    compileOnly("io.github.llamalad7:mixinextras-common:0.3.5")
+    annotationProcessor("io.github.llamalad7:mixinextras-common:0.3.5")
+    compileOnly("org.ow2.asm:asm-tree:9.6")
 
     // Common library dependencies - include for bundling in jar
     implInclude("io.noties:prism4j:2.0.0")
@@ -113,10 +91,8 @@ tasks.named<ProcessResources>("processResources") {
     }
 }
 
-// Copy the version-specific access widener and rename it for the jar
 loom.apply {
-    // Use the version-specific access widener
-    accessWidenerPath.set(project(":common").file("src/main/resources/accesswideners/$minecraft_version-$mod_id.accesswidener"))
+    accessWidenerPath.set(file("src/main/resources/accesswideners/$mod_id.accesswidener"))
 
     mixin(Action {
         defaultRefmapName.set("$mod_id.refmap.json")
@@ -142,24 +118,5 @@ fletchingTable {
             "jsmacrosce-common.mixins.json5",
             "jsmacrosce-fabric.mixins.json5"
         )
-    }
-}
-
-stonecutter {
-    replacements.string(current.parsed >= "1.21.11") {
-        replace("ResourceLocation", "Identifier")
-
-        // Conflicts
-        replace("parseIdentifier", "parseIdentifier")
-        replace("getAdvancementsForIdentifiers", "getAdvancementsForIdentifiers")
-        replace("suggestIdentifier", "suggestIdentifier")
-        replace("mapIdentifiers", "mapIdentifiers")
-        replace("getIdentifier", "getIdentifier")
-        replace("writeIdentifier", "writeIdentifier")
-        replace("readIdentifier", "readIdentifier")
-        replace("getWorldIdentifier", "getWorldIdentifier")
-        replace("base.readResourceLocation", "base.readIdentifier")
-        replace("base.writeResourceLocation", "base.writeIdentifier")
-        replace("@return the raw minecraft Identifier.", "@return the raw minecraft Identifier.")
     }
 }

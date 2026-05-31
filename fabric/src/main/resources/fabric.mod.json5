@@ -30,7 +30,7 @@
     "jsmacrosce-common.mixins.json",
     "jsmacrosce-fabric.mixins.json"
   ],
-  "accessWidener": "accesswideners/${minecraft_version}-${mod_id}.accesswidener",
+  "accessWidener": "accesswideners/jsmacrosce.accesswidener",
   "depends": {
     "fabricloader": ">=0.15.0",
     "fabric-api": "*",

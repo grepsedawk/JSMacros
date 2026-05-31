@@ -1,4 +1,7 @@
 import org.gradle.api.tasks.bundling.Jar
+import org.gradle.api.tasks.javadoc.Javadoc
+import org.gradle.external.javadoc.CoreJavadocOptions
+import org.gradle.external.javadoc.StandardJavadocDocletOptions
 import org.gradle.language.jvm.tasks.ProcessResources
 import org.gradle.api.publish.maven.MavenPublication
 
@@ -7,8 +10,20 @@ plugins {
     id("idea")
 }
 
-// Use Stonecutter-aware property access
-// Properties are resolved from the versioned project's gradle.properties (via commonMod)
+// The default javadoc tool (not the custom doclets) does not know the project's
+// custom block tags, and JDK 25 javadoc fails the build on unknown tags / strict
+// doclint. The javadoc jar is informational, so register the known tags and
+// disable doclint failures here.
+tasks.withType(Javadoc::class.java).configureEach {
+    isFailOnError = false
+    (options as CoreJavadocOptions).addBooleanOption("Xdoclint:none", true)
+    (options as StandardJavadocDocletOptions).tags(
+        "apiNote:a:API Note:",
+        "implNote:a:Implementation Note:",
+        "implSpec:a:Implementation Requirements:"
+    )
+}
+
 val mod_id = commonMod.prop("mod_id")
 val minecraft_version = commonMod.mc
 val java_version = commonMod.prop("java_version")
@@ -21,9 +36,6 @@ val mod_name = commonMod.prop("mod_name")
 val mod_author = commonMod.prop("mod_author")
 val license = commonMod.prop("license")
 val credits = commonMod.propOrNull("credits") ?: ""
-
-val neoforge_version = commonMod.propOrNull("neoforge_version") ?: ""
-val neoforge_loader_version_range = commonMod.propOrNull("neoforge_loader_version_range") ?: "[4,)"
 
 base {
     archivesName.set("$mod_id-${project.name}-$minecraft_version")
@@ -55,22 +67,6 @@ repositories {
     }
 
     exclusiveContent {
-        forRepositories(
-            maven {
-                name = "ParchmentMC"
-                url = uri("https://maven.parchmentmc.org/")
-            },
-            maven {
-                name = "NeoForge"
-                url = uri("https://maven.neoforged.net/releases")
-            }
-        )
-        filter {
-            includeGroup("org.parchmentmc.data")
-        }
-    }
-
-    exclusiveContent {
         forRepository {
             maven {
                 name = "TerraformersMC"
@@ -85,10 +81,6 @@ repositories {
     maven {
         name = "BlameJared"
         url = uri("https://maven.blamejared.com")
-    }
-    maven {
-        name = "NeoForge"
-        url = uri("https://maven.neoforged.net/releases")
     }
     maven {
         name = "Fabric"
@@ -131,8 +123,6 @@ tasks {
             "mod_id" to mod_id,
             "license" to license,
             "description" to project.description,
-            "neoforge_version" to neoforge_version,
-            "neoforge_loader_version_range" to neoforge_loader_version_range,
             "credits" to credits,
             "java_version" to java_version
 		)
@@ -142,20 +132,12 @@ tasks {
                 if (value is String) value.replace("\n", "\\\\n") else value
             }
 
-        filesMatching(listOf("META-INF/mods.toml", "META-INF/neoforge.mods.toml")) {
-            expand(expandProps)
-        }
-
         filesMatching(listOf("pack.mcmeta", "fabric.mod.json5", "*.mixins.json5")) {
             expand(jsonExpandProps)
         }
 
 		inputs.properties(expandProps)
 	}
-}
-
-tasks.named("processResources") {
-	dependsOn(":common:${minecraft_version}:stonecutterGenerate")
 }
 
 tasks.named<Jar>("sourcesJar") {

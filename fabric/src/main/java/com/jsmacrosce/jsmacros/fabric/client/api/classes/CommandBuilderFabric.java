@@ -6,15 +6,9 @@ import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
-//? if >=26.1 {
-/*import net.fabricmc.fabric.api.client.command.v2.ClientCommands;
+import net.fabricmc.fabric.api.client.command.v2.ClientCommands;
 import static net.fabricmc.fabric.api.client.command.v2.ClientCommands.getActiveDispatcher;
 import static net.fabricmc.fabric.api.client.command.v2.ClientCommands.literal;
-*///?} else {
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
-import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.getActiveDispatcher;
-import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal;
-//?}
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.client.Minecraft;
@@ -46,20 +40,12 @@ public class CommandBuilderFabric extends CommandBuilder {
 
     @Override
     protected void argument(String name, Supplier<ArgumentType<?>> type) {
-        //? if >=26.1 {
-        /*pointer.push(new Pair<>(true, (e) -> ClientCommands.argument(name, type.get())));
-        *///?} else {
-        pointer.push(new Pair<>(true, (e) -> ClientCommandManager.argument(name, type.get())));
-        //?}
+        pointer.push(new Pair<>(true, (e) -> ClientCommands.argument(name, type.get())));
     }
 
     @Override
     protected void argument(String name, Function<CommandBuildContext, ArgumentType<?>> type) {
-        //? if >=26.1 {
-        /*pointer.push(new Pair<>(true, (e) -> ClientCommands.argument(name, type.apply(e))));
-        *///?} else {
-        pointer.push(new Pair<>(true, (e) -> ClientCommandManager.argument(name, type.apply(e))));
-        //?}
+        pointer.push(new Pair<>(true, (e) -> ClientCommands.argument(name, type.apply(e))));
     }
 
     @Override

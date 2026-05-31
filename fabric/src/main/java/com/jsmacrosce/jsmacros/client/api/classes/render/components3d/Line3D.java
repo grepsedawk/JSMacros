@@ -1,0 +1,424 @@
+package com.jsmacrosce.jsmacros.client.api.classes.render.components3d;
+
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.RenderPipelines;
+import com.jsmacrosce.doclet.DocletIgnore;
+import com.jsmacrosce.jsmacros.api.math.Pos3D;
+import com.jsmacrosce.jsmacros.api.math.Vec3D;
+import com.jsmacrosce.jsmacros.client.api.classes.render.Draw3D;
+import com.jsmacrosce.jsmacros.client.api.helper.world.BlockPosHelper;
+import com.jsmacrosce.jsmacros.client.util.ColorUtil;
+
+import java.lang.reflect.Field;
+import java.util.Objects;
+
+import net.minecraft.gizmos.GizmoProperties;
+import net.minecraft.gizmos.GizmoStyle;
+import net.minecraft.gizmos.Gizmos;
+import net.minecraft.gizmos.LineGizmo;
+
+/**
+ * @author Wagyourtail
+ */
+@SuppressWarnings("unused")
+public class Line3D implements RenderElement3D<Line3D> {
+    public Vec3D pos;
+    public int color;
+    // TODO: deprecate in favor of "alwaysOnTop" (alwaysOnTop is technically the reverse of this)
+    public boolean cull;
+
+    public Line3D(double x1, double y1, double z1, double x2, double y2, double z2, int color, boolean cull) {
+        setPos(x1, y1, z1, x2, y2, z2);
+        setColor(color);
+        this.cull = cull;
+    }
+
+    public Line3D(double x1, double y1, double z1, double x2, double y2, double z2, int color, int alpha, boolean cull) {
+        setPos(x1, y1, z1, x2, y2, z2);
+        setColor(color, alpha);
+        this.cull = cull;
+    }
+
+    /**
+     * @param x1
+     * @param y1
+     * @param z1
+     * @param x2
+     * @param y2
+     * @param z2
+     * @since 1.0.6
+     */
+    public void setPos(double x1, double y1, double z1, double x2, double y2, double z2) {
+        pos = new Vec3D(x1, y1, z1, x2, y2, z2);
+    }
+
+    /**
+     * @return a new {@link Vec3D} containing the positions of the line
+     * @since 2.0.0
+     */
+    public Vec3D getPos() {
+        return new Vec3D(pos);
+    }
+
+    /**
+     * @return the first position of the line as a new {@link Pos3D}
+     * @since 2.0.0
+     */
+    public Pos3D getPos1() {
+        return new Pos3D(pos.x1, pos.y1, pos.z1);
+    }
+
+    /**
+     * @return the second position of the line as a new {@link Pos3D}
+     * @since 2.0.0
+     */
+    public Pos3D getPos2() {
+        return new Pos3D(pos.x2, pos.y2, pos.z2);
+    }
+
+    /**
+     * @param color
+     * @since 1.0.6
+     */
+    public void setColor(int color) {
+        this.color = ColorUtil.fixAlpha(color);
+    }
+
+    /**
+     * @param color
+     * @param alpha
+     * @since 1.1.8
+     */
+    public void setColor(int color, int alpha) {
+        this.color = (alpha << 24) | (color & 0xFFFFFF);
+    }
+
+    /**
+     * @return the color of the line
+     * @since 2.0.0
+     */
+    public int getColor() {
+        return color & 0xFFFFFF;
+    }
+
+    /**
+     * @param alpha
+     * @since 1.1.8
+     */
+    public void setAlpha(int alpha) {
+        this.color = (alpha << 24) | (color & 0xFFFFFF);
+    }
+
+    /**
+     * @return the alpha value of the line's color
+     * @since 2.0.0
+     */
+    public int getAlpha() {
+        return (color >> 24) & 0xFF;
+    }
+
+    /**
+     * @param alwaysOnTop whether the line should be rendered on top of everything else or not
+     * @since 2.0.0
+     */
+    public void setAlwaysOnTop(boolean alwaysOnTop) {
+        this.cull = !alwaysOnTop;
+    }
+
+    /**
+     * @return whether the line is rendered on top of everything else
+     * @since 2.0.0
+     */
+    public boolean isAlwaysOnTop() {
+        return !cull;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Line3D line3D = (Line3D) o;
+        return Objects.equals(pos, line3D.pos);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(pos);
+    }
+
+    @Override
+    public int compareToSame(Line3D o) {
+        return pos.compareTo(o.pos);
+    }
+
+
+    @Override
+    @DocletIgnore
+    public void render(PoseStack matrixStack, MultiBufferSource consumers, SubmitNodeCollector collector, float tickDelta) {
+        boolean alwaysOnTop = !this.cull;
+        GizmoProperties gizmo = Gizmos.addGizmo(new LineGizmo(
+                pos.getStart().toMojangDoubleVector(),
+                pos.getEnd().toMojangDoubleVector(),
+                color,
+                /* GizmoStyle.DEFAULT_WIDTH */ 2.5F));
+        if (alwaysOnTop) {
+            gizmo.setAlwaysOnTop();
+        }
+    }
+
+    /**
+     * @author Etheradon
+     * @since 1.8.4
+     */
+    public static class Builder {
+        private final Draw3D parent;
+
+        private Pos3D pos1 = new Pos3D(0, 0, 0);
+        private Pos3D pos2 = new Pos3D(0, 0, 0);
+        private int color = 0xFFFFFF;
+        private int alpha = 255;
+        private boolean cull = false;
+
+        public Builder(Draw3D parent) {
+            this.parent = parent;
+        }
+
+        /**
+         * @param pos1 the first position of the line
+         * @return self for chaining.
+         * @since 1.8.4
+         */
+        public Builder pos1(Pos3D pos1) {
+            this.pos1 = pos1;
+            return this;
+        }
+
+        /**
+         * @param pos1 the first position of the line
+         * @return self for chaining.
+         * @since 1.8.4
+         */
+        public Builder pos1(BlockPosHelper pos1) {
+            this.pos1 = pos1.toPos3D();
+            return this;
+        }
+
+        /**
+         * @param x1 the x coordinate of the first position of the line
+         * @param y1 the y coordinate of the first position of the line
+         * @param z1 the z coordinate of the first position of the line
+         * @return self for chaining.
+         * @since 1.8.4
+         */
+        public Builder pos1(double x1, double y1, double z1) {
+            this.pos1 = new Pos3D(x1, y1, z1);
+            return this;
+        }
+
+        /**
+         * @return a new {@link Pos3D} representing the first position of the line.
+         * @since 1.8.4
+         */
+        public Pos3D getPos1() {
+            return new Pos3D(pos1);
+        }
+
+        /**
+         * @param pos2 the second position of the line
+         * @return self for chaining.
+         * @since 1.8.4
+         */
+        public Builder pos2(Pos3D pos2) {
+            this.pos2 = pos2;
+            return this;
+        }
+
+        /**
+         * @param pos2 the second position of the line
+         * @return self for chaining.
+         * @since 1.8.4
+         */
+        public Builder pos2(BlockPosHelper pos2) {
+            this.pos2 = pos2.toPos3D();
+            return this;
+        }
+
+        /**
+         * @param x2 the x coordinate of the second position of the line
+         * @param y2 the y coordinate of the second position of the line
+         * @param z2 the z coordinate of the second position of the line
+         * @return self for chaining.
+         * @since 1.8.4
+         */
+        public Builder pos2(int x2, int y2, int z2) {
+            this.pos2 = new Pos3D(x2, y2, z2);
+            return this;
+        }
+
+        /**
+         * @return a new {@link Pos3D} representing the second position of the line.
+         * @since 1.8.4
+         */
+        public Pos3D getPos2() {
+            return new Pos3D(pos2);
+        }
+
+        /**
+         * @param x1 the x coordinate of the first position of the line
+         * @param y1 the y coordinate of the first position of the line
+         * @param z1 the z coordinate of the first position of the line
+         * @param x2 the x coordinate of the second position of the line
+         * @param y2 the x coordinate of the second position of the line
+         * @param z2 the z coordinate of the second position of the line
+         * @return self for chaining.
+         * @since 1.8.4
+         */
+        public Builder pos(int x1, int y1, int z1, int x2, int y2, int z2) {
+            this.pos1 = new Pos3D(x1, y1, z1);
+            this.pos2 = new Pos3D(x2, y2, z2);
+            return this;
+        }
+
+        /**
+         * @param pos1 the first position of the line
+         * @param pos2 the second position of the line
+         * @return self for chaining.
+         * @since 1.8.4
+         */
+        public Builder pos(BlockPosHelper pos1, BlockPosHelper pos2) {
+            this.pos1 = pos1.toPos3D();
+            this.pos2 = pos2.toPos3D();
+            return this;
+        }
+
+        /**
+         * @param pos1 the first position of the line
+         * @param pos2 the second position of the line
+         * @return self for chaining.
+         * @since 1.8.4
+         */
+        public Builder pos(Pos3D pos1, Pos3D pos2) {
+            this.pos1 = pos1;
+            this.pos2 = pos2;
+            return this;
+        }
+
+        /**
+         * @param color the color of the line
+         * @return self for chaining.
+         * @since 1.8.4
+         */
+        public Builder color(int color) {
+            this.color = color;
+            return this;
+        }
+
+        /**
+         * @param color the color of the line
+         * @param alpha the alpha value of the line's color
+         * @return self for chaining.
+         * @since 1.8.4
+         */
+        public Builder color(int color, int alpha) {
+            this.color = color;
+            this.alpha = alpha;
+            return this;
+        }
+
+        /**
+         * @param r the red component of the color
+         * @param g the green component of the color
+         * @param b the blue component of the color
+         * @return self for chaining.
+         * @since 1.8.4
+         */
+        public Builder color(int r, int g, int b) {
+            this.color = (r << 16) | (g << 8) | b;
+            return this;
+        }
+
+        /**
+         * @param r the red component of the color
+         * @param g the green component of the color
+         * @param b the blue component of the color
+         * @param a the alpha value of the color
+         * @return self for chaining.
+         * @since 1.8.4
+         */
+        public Builder color(int r, int g, int b, int a) {
+            this.color = (r << 16) | (g << 8) | b;
+            this.alpha = a;
+            return this;
+        }
+
+        /**
+         * @return the color of the line.
+         * @since 1.8.4
+         */
+        public int getColor() {
+            return color;
+        }
+
+        /**
+         * @param alpha the alpha value for the line's color
+         * @return self for chaining.
+         * @since 1.8.4
+         */
+        public Builder alpha(int alpha) {
+            this.alpha = alpha;
+            return this;
+        }
+
+        /**
+         * @return the alpha value of the line's color.
+         * @since 1.8.4
+         */
+        public int getAlpha() {
+            return alpha;
+        }
+
+        /**
+         * @param cull whether to cull the line or not
+         * @return self for chaining.
+         * @since 1.8.4
+         */
+        public Builder cull(boolean cull) {
+            this.cull = cull;
+            return this;
+        }
+
+        /**
+         * @return {@code true} if the line should be culled, {@code false} otherwise.
+         * @since 1.8.4
+         */
+        public boolean isCulled() {
+            return cull;
+        }
+
+        /**
+         * Creates the line for the given values and adds it to the draw3D.
+         *
+         * @return the build line.
+         * @since 1.8.4
+         */
+        public Line3D buildAndAdd() {
+            Line3D line = build();
+            parent.addLine(line);
+            return line;
+        }
+
+        /**
+         * Builds the line from the given values.
+         *
+         * @return the build line.
+         */
+        public Line3D build() {
+            return new Line3D(pos1.x, pos1.y, pos1.z, pos2.x, pos2.y, pos2.z, color, alpha, cull);
+        }
+
+    }
+
+}

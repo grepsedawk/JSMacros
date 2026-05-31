@@ -2,11 +2,7 @@ package com.jsmacrosce.jsmacros.fabric.client.api.classes;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.tree.CommandNode;
-//? if >=26.1 {
-/*import static net.fabricmc.fabric.api.client.command.v2.ClientCommands.getActiveDispatcher;
-*///?} else {
-import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.getActiveDispatcher;
-//?}
+import static net.fabricmc.fabric.api.client.command.v2.ClientCommands.getActiveDispatcher;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import com.jsmacrosce.jsmacros.client.access.CommandNodeAccessor;

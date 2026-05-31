@@ -5,8 +5,6 @@ plugins {
 }
 
 repositories {
-    maven("https://maven.neoforged.net/releases")
-    maven("https://maven.kikugie.dev/snapshots")
     mavenCentral()
     gradlePluginPortal()
 }
@@ -18,9 +16,17 @@ java {
 
 dependencies {
     implementation(gradleApi())
-    implementation("com.google.code.gson:gson:2.9.0")
+    // buildSrc output sits in the parent classloader scope of every project build
+    // script, so its gson shadows Loom's. Loom 1.15.4 deserializes the MC version
+    // manifest into a Java record, which needs record-aware gson (2.10+); 2.9.0
+    // throws IllegalAccessException on the record's final fields.
+    implementation("com.google.code.gson:gson:2.13.2")
     implementation("commons-io:commons-io:2.7")
-    implementation("dev.kikugie:stonecutter:0.8.3")
+    // fletching-table's J52J converter needs JsonBuilder.allowComments (kotlinx-
+    // serialization-json 1.7.0+), but Loom drags an older 1.6.3 onto the shared
+    // plugin classpath. buildSrc output sits in the parent classloader scope of
+    // every project build script, so declaring a newer version here makes it win.
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
 }
 
 tasks.withType<JavaCompile>().configureEach {

@@ -19,11 +19,6 @@ repositories {
     mavenCentral()
 }
 
-// Get minecraft version from stonecutter.active file
-val minecraftVersion = rootProject.file("stonecutter.active").takeIf { it.exists() }
-    ?.readText()?.trim()?.ifEmpty { null }
-    ?: throw GradleException("stonecutter.active is empty; set an active version first")
-
 // Configuration for runtime dependencies to embed in the extension jar
 val embedDeps by configurations.creating {
     isCanBeResolved = true
@@ -35,7 +30,7 @@ dependencies {
     implementation(project(":extension"))
 
     // Compile against shared common code
-    compileOnly(project(":common:${minecraftVersion}"))
+    compileOnly(project(":fabric"))
     compileOnly("org.jetbrains:annotations:20.1.0")
 
     // JRuby runtime - embedded into the extension jar so users don't need it on the classpath
@@ -49,7 +44,7 @@ dependencies {
 
     // Test dependencies
     testImplementation(project(":extension"))
-    testImplementation(project(":common:${minecraftVersion}"))
+    testImplementation(project(":fabric"))
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
     testImplementation("org.jetbrains:annotations:20.1.0")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")
