@@ -8,20 +8,14 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-permissions:
-  contents: write
-
 env:
   JAVA_VERSION: '25'
-  MODRINTH_PROJECT: 2m9WfquA
-  MOD_ID: jsmacrosce
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Set up JDK
         uses: actions/setup-java@v4
@@ -35,24 +29,7 @@ jobs:
         with:
           cache-overwrite-existing: true
 
-      - name: Compute versions
-        id: versions
-        shell: bash
+      - name: Build (sanity check, no publish, no artifact)
         run: |
           SHORT_SHA=${GITHUB_SHA::7}
-          MOD_VERSION=$(./gradlew -q printVersion -Pchannel=dev -Pbuild_sha=${SHORT_SHA} | tail -1 | tr -d '\n\r')
-          echo "mod_version=${MOD_VERSION}" >> "$GITHUB_OUTPUT"
-          echo "short_sha=${SHORT_SHA}" >> "$GITHUB_OUTPUT"
-
-      - name: Publish to GitHub
-        run: |
-          SHORT_SHA=${GITHUB_SHA::7}
-          ./gradlew publishMods -Pchannel=dev -Pbuild_sha=${SHORT_SHA}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload dist
-        uses: actions/upload-artifact@v4
-        with:
-          name: dev-dist-${{ steps.versions.outputs.mod_version }}
-          path: dist/**/*
+          ./gradlew createDist -Pchannel=dev -Pbuild_sha=${SHORT_SHA}

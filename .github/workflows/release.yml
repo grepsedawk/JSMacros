@@ -1,31 +1,23 @@
-name: Release Build
+name: Release
 
 on:
-  workflow_dispatch:
-    inputs:
-      mod_version:
-        description: 'Override base MODVER (optional)'
-        required: false
-
-env:
-  JAVA_VERSION: '25'
-  MODRINTH_PROJECT: 2m9WfquA
-  MOD_ID: jsmacrosce
+  release:
+    types: [published]
 
 permissions:
   contents: write
 
+env:
+  JAVA_VERSION: '25'
+
 jobs:
-  build:
+  publish:
     runs-on: ubuntu-latest
-    outputs:
-      mod_version: ${{ steps.versions.outputs.mod_version }}
-      mc_versions: ${{ steps.versions.outputs.mc_versions }}
-      mc_versions_list: ${{ steps.versions.outputs.mc_versions_list }}
-      gradle_args: ${{ steps.versions.outputs.gradle_args }}
+    env:
+      MODRINTH_PROJECT: jsmacros-reloaded
+      MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}   # job-level so the skip-guard below works
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4          # lands on the tag's commit — builds exactly what was tagged
 
       - name: Set up JDK
         uses: actions/setup-java@v4
@@ -39,39 +31,46 @@ jobs:
         with:
           cache-overwrite-existing: true
 
-      - name: Compute versions
-        id: versions
+      - name: Resolve channel + version from tag
+        id: ver
         shell: bash
         run: |
-          ARGS="-Pchannel=release"
-          if [ -n "${{ inputs.mod_version }}" ]; then
-            ARGS="$ARGS -Pmod_version=${{ inputs.mod_version }}"
-          fi
-          MOD_VERSION=$(./gradlew -q printVersion $ARGS | tail -1 | tr -d '\n\r')
-          MC_VERSIONS=$(./gradlew -q printMinecraftVersion $ARGS | tail -1 | tr -d '\n\r')
-          MC_VERSIONS_LIST=$(printf '%s' "${MC_VERSIONS}" | tr ',' '\n')
-          DELIM="EOF_MC_VERSIONS"
+          TAG="${{ github.event.release.tag_name }}"
+          VER="${TAG#v}"                 # full version, used verbatim
+          case "$VER" in
+            *-alpha*) CHANNEL=alpha ;;   # alpha type on Modrinth
+            *-*)      CHANNEL=beta ;;    # any other pre-release suffix -> beta
+            *)        CHANNEL=release ;; # stable
+          esac
+          ARGS="-Pchannel=$CHANNEL -Pmod_version=$VER"
+          MODVER=$(./gradlew -q printVersion $ARGS | tail -1 | tr -d '\n\r')
           {
-            echo "gradle_args=$ARGS"
-            echo "mod_version=${MOD_VERSION}"
-            echo "mc_versions=${MC_VERSIONS}"
-            echo "mc_versions_list<<${DELIM}"
-            echo "${MC_VERSIONS_LIST}"
-            echo "${DELIM}"
+            echo "tag=$TAG"
+            echo "args=$ARGS"
+            echo "mod_version=$MODVER"
           } >> "$GITHUB_OUTPUT"
 
       - name: Build distribution
-        run: ./gradlew createDist ${{ steps.versions.outputs.gradle_args }}
+        run: ./gradlew createDist ${{ steps.ver.outputs.args }}
 
-      - name: Publish to Modrinth and GitHub
-        if: env.MODRINTH_TOKEN != ''
-        run: ./gradlew publishMods ${{ steps.versions.outputs.gradle_args }}
+      - name: Upload jars to the GitHub release
         env:
-          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          V="${{ steps.ver.outputs.mod_version }}"
+          shopt -s nullglob
+          FILES=(
+            dist/jsmacrosce-*-fabric-"$V".jar
+            dist/jsmacrosce-devkit-*-"$V".zip
+            dist/jsmacrosce-extensions-*-"$V".zip
+            dist/extensions/jsmacrosce-ext-*-"$V".jar
+          )
+          if [ ${#FILES[@]} -eq 0 ]; then
+            echo "::error::No dist artifacts matched version $V"; exit 1
+          fi
+          gh release upload "${{ steps.ver.outputs.tag }}" "${FILES[@]}" --clobber
 
-      - name: Upload dist
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-dist-${{ steps.versions.outputs.mod_version }}
-          path: dist/**/*
+      - name: Publish to Modrinth
+        if: env.MODRINTH_TOKEN != ''
+        run: ./gradlew publishMods ${{ steps.ver.outputs.args }}

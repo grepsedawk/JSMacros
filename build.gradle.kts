@@ -8,13 +8,8 @@ import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.external.javadoc.CoreJavadocOptions
 import org.gradle.external.javadoc.StandardJavadocDocletOptions
-import org.gradle.internal.extensions.stdlib.capitalized
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import java.io.File
-import java.time.ZoneId
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 plugins {
     // java-base is needed at the root so the aggregate javadoc tasks can
@@ -72,18 +67,7 @@ val docletJarFile = layout.projectDirectory.file("buildSrc/build/libs/buildSrc.j
 val modIdProvider = providers.gradleProperty("mod_id")
 val channelProvider = providers.gradleProperty("channel").orElse("release")
 val modVersionBaseProvider = providers.gradleProperty("mod_version").orElse(providers.gradleProperty("version"))
-val betaNumberProvider = providers.gradleProperty("beta_number")
-val alphaDateProvider = providers.gradleProperty("alpha_date")
 val buildShaProvider = providers.gradleProperty("build_sha")
-
-val dateFormatter = DateTimeFormatter.ofPattern("yyyyMMdd")
-val computedAlphaDateProvider = providers.provider {
-    alphaDateProvider.orElse(
-        providers.provider {
-            ZonedDateTime.now(ZoneId.of("America/New_York")).format(dateFormatter)
-        }
-    ).get()
-}
 
 val computedBuildShaProvider = providers.provider {
     val sha = buildShaProvider.orElse(
@@ -95,13 +79,8 @@ val computedBuildShaProvider = providers.provider {
 val computedVersionProvider = providers.provider {
     val base = modVersionBaseProvider.get()
     when (channelProvider.get()) {
-        "release" -> base
-        "beta" -> {
-            val betaNum = betaNumberProvider.orElse("1").get()
-            "$base-beta.$betaNum"
-        }
-        "alpha" -> "$base-alpha.${computedAlphaDateProvider.get()}"
-        else -> "$base-dev-${computedBuildShaProvider.get()}"
+        "dev" -> "$base-dev-${computedBuildShaProvider.get()}"
+        else -> base   // release/beta/alpha: the full version is supplied by the release tag
     }
 }
 
@@ -395,22 +374,9 @@ gradle.projectsEvaluated {
         .orElse(providers.environmentVariable("MODRINTH_PROJECT"))
     val modrinthToken = providers.gradleProperty("modrinth_token")
         .orElse(providers.environmentVariable("MODRINTH_TOKEN"))
-    val githubRepo = providers.gradleProperty("github_repository")
-        .orElse(providers.environmentVariable("GITHUB_REPOSITORY"))
-        .orElse("JsMacrosCE/JsMacros")
-    val githubToken = providers.environmentVariable("GITHUB_TOKEN")
-    val githubCommitish = providers.environmentVariable("GITHUB_SHA").orElse("main")
-    val githubTagName = providers.provider { "v${project.version}" }
-
     fun modrinthChangelog(): String = """
-        JsMacrosCE ${project.version} for fabric on Minecraft $mcVersion.
-        Source: https://github.com/JsMacrosCE/JsMacros
-    """.trimIndent()
-
-    fun githubChangelog(): String = """
-        ${releaseType.toString().lowercase(Locale.getDefault()).capitalized()} Release for JsMacrosCE ${project.version}.
-        Built game version: $mcVersion
-        Alpha, beta, and release builds are available on Modrinth: https://modrinth.com/mod/jsmacrosce/versions
+        JsMacros Reloaded ${project.version} for fabric on Minecraft $mcVersion.
+        Source: https://github.com/grepsedawk/JsMacros
     """.trimIndent()
 
     publishMods {
@@ -424,7 +390,7 @@ gradle.projectsEvaluated {
                 modLoaders.set(listOf("fabric"))
 
                 version.set("${project.version}+$mcVersion-fabric")
-                displayName.set("JsMacrosCE ${project.version} (fabric $mcVersion)")
+                displayName.set("JsMacros Reloaded ${project.version} (fabric $mcVersion)")
                 changelog.set(modrinthChangelog())
                 type.set(releaseType)
                 file.set(
@@ -432,27 +398,6 @@ gradle.projectsEvaluated {
                         .flatMap { it.archiveFile }
                 )
             }
-        }
-
-        github("githubRelease") {
-            accessToken.set(githubToken)
-            repository.set(githubRepo)
-            commitish.set(githubCommitish)
-            tagName.set(githubTagName)
-            displayName.set("JsMacrosCE ${project.version}")
-            changelog.set(githubChangelog())
-            type.set(releaseType)
-            allowEmptyFiles.set(true)
-            additionalFiles.from(
-                providers.provider {
-                    distDir.asFileTree.matching {
-                        include("jsmacrosce-*-fabric-${project.version}.jar")
-                        include("jsmacrosce-devkit-*-${project.version}.zip")
-                        include("jsmacrosce-extensions-*-${project.version}.zip")
-                        include("extensions/jsmacrosce-ext-*-${project.version}.jar")
-                    }
-                }
-            )
         }
     }
 
