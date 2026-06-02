@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       MODRINTH_PROJECT: XcnNwheM                      # jsmacros-reloaded (mpp needs the ID, not the slug)
+      MODRINTH_RUBY_PROJECT: EQoulhLS                 # jsmacros-ruby (mpp needs the ID, not the slug)
       MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}   # job-level so the skip-guard below works
     steps:
       - uses: actions/checkout@v4          # lands on the tag's commit — builds exactly what was tagged

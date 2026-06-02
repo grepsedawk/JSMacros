@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "jsmacrosce-ruby",
+  "version": "${version}",
+  "name": "JsMacros Ruby",
+  "description": "JRuby scripting language support for JsMacros.",
+  "license": "MIT",
+  "environment": "*",
+  "entrypoints": {
+    "jsmacros": [
+      "com.jsmacrosce.jsmacros.jruby.client.JRubyExtension"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.15.0",
+    "jsmacrosce": ">=2.0.0 <2.1.0",
+    "minecraft": ["${minecraft_version}"]
+  }
+}

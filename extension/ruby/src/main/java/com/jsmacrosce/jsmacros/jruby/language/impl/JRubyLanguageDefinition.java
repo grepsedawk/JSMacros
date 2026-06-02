@@ -24,6 +24,7 @@ public class JRubyLanguageDefinition extends BaseLanguage<ScriptingContainer, JR
 
     private void runInstance(EventContainer<JRubyScriptContext> ctx, BaseEvent event, ScriptletRunner scriptlet, @Nullable Path cwd) throws Exception {
         ScriptingContainer instance = new ScriptingContainer(LocalContextScope.SINGLETHREAD);
+        instance.setClassLoader(JRubyExtension.class.getClassLoader());
         ctx.getCtx().setContext(instance);
 
         if (cwd != null) {
