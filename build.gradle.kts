@@ -142,6 +142,48 @@ tasks.register("printMinecraftVersion") {
     }
 }
 
+// Create the doc-classpath export configuration eagerly, in each docs project's own
+// afterEvaluate (registered here, before the project is configured, so it runs before
+// Loom's afterEvaluate). Loom resolves the configurations of projects a Loom subproject
+// depends on (e.g. :extension:ruby -> :fabric, :extension) during their afterEvaluate; a
+// docClasspathExport added afterward (in projectsEvaluated) is then invisible to the
+// cross-project consumer below, which breaks createDist's docs aggregation. Creating it
+// first keeps it resolvable.
+fun Project.isDocsProject() =
+    (path.startsWith(":fabric") || path.startsWith(":extension")) &&
+        extensions.findByType(SourceSetContainer::class.java) != null
+
+allprojects {
+    if (path.startsWith(":fabric") || path.startsWith(":extension")) {
+        afterEvaluate {
+            if (!isDocsProject()) return@afterEvaluate
+            val export = configurations.maybeCreate("docClasspathExport").apply {
+                isCanBeConsumed = true
+                isCanBeResolved = false
+            }
+            if (export.artifacts.isEmpty()) {
+                // Publish the RESOLVED compile-classpath files (not coordinates): the
+                // deobfuscated Minecraft jar is a Loom-internal alias that only resolves
+                // inside this project, so we expose the actual files via a lenient view.
+                export.outgoing.artifacts(
+                    provider {
+                        configurations.getByName("compileClasspath")
+                            .incoming.artifactView { lenient(true) }.files.files
+                    }
+                ) {
+                    // The exported files include sibling docs projects' compiled output, so
+                    // the consuming javadoc tasks must run after every docs project is
+                    // compiled. Resolved lazily — siblings may be unevaluated right now.
+                    builtBy(rootProject.provider {
+                        rootProject.allprojects.filter { it.isDocsProject() }
+                            .map { it.tasks.named("classes") }
+                    })
+                }
+            }
+        }
+    }
+}
+
 gradle.projectsEvaluated {
     val docsProjects = allprojects
         .filter { it.path.startsWith(":fabric") || it.path.startsWith(":extension") }
@@ -158,30 +200,10 @@ gradle.projectsEvaluated {
     // Aggregate each docs project's compile classpath across project boundaries. Gradle
     // forbids the root resolving a subproject's compileClasspath directly, and the
     // deobfuscated Minecraft jar (net.minecraft:minecraft-merged-*) only resolves inside
-    // the Loom-applied subproject anyway. So each docs project re-exports its compile
-    // classpath as a consumable "docClasspathExport" configuration, and we consume those
-    // via project dependencies — resolution then happens in each producer's context.
-    docsProjects.forEach { docsProject ->
-        val export = docsProject.configurations.maybeCreate("docClasspathExport").apply {
-            isCanBeConsumed = true
-            isCanBeResolved = false
-        }
-        if (export.artifacts.isEmpty()) {
-            // Publish the RESOLVED compile-classpath files (not coordinates): the
-            // deobfuscated Minecraft jar is a Loom-internal alias that only resolves
-            // inside this project, so we expose the actual files via a lenient view.
-            export.outgoing.artifacts(
-                docsProject.provider {
-                    docsProject.configurations.getByName("compileClasspath")
-                        .incoming.artifactView { lenient(true) }.files.files
-                }
-            ) {
-                // The exported files include sibling docs projects' compiled output, so the
-                // consuming javadoc tasks must run after every docs project is compiled.
-                builtBy(docsProjects.map { it.tasks.named("classes") })
-            }
-        }
-    }
+    // the Loom-applied subproject anyway. Each docs project re-exports its compile classpath
+    // as a consumable "docClasspathExport" configuration (created eagerly above), which we
+    // consume here via project dependencies — resolution then happens in each producer's
+    // context.
     val documentationClasspath = configurations.maybeCreate("documentationClasspath").apply {
         isCanBeResolved = true
         isCanBeConsumed = false
