@@ -17,6 +17,11 @@ plugins {
     // 26.1's class file version 69).
     `java-base`
     id("me.modmuss50.mod-publish-plugin") version "1.1.0"
+    // Loom is applied only in subprojects, but it must be loaded on the root
+    // build-script classloader so every Loom subproject shares one set of Loom
+    // classes. Otherwise Loom's cross-project mod scan (FabricModJsonHelpers)
+    // casts a LoomGradleExtension from another classloader and throws.
+    id("net.fabricmc.fabric-loom") apply false
 }
 
 repositories {
