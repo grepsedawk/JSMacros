@@ -17,6 +17,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
+
 public class ExtensionLoader {
     private final Set<Extension> extensions = new HashSet<>();
     private final Set<LanguageExtension> languageExtensions = new HashSet<>();
@@ -156,16 +159,26 @@ public class ExtensionLoader {
             }
         }
 
-        // load extensions
-        extensions.addAll(ServiceLoader.load(Extension.class, classLoader)
+        // classpath extensions: bundled-internal (graal) + drop-in jars in the Extensions folder
+        Set<Extension> classpathExtensions = ServiceLoader.load(Extension.class, classLoader)
             .stream()
             .map(ServiceLoader.Provider::get)
-            .collect(Collectors.toSet()));
+            .collect(Collectors.toSet());
+
+        // companion-mod extensions contributed via the "jsmacros" Fabric entrypoint
+        List<Extension> entrypointExtensions = loadEntrypointExtensions();
+
+        // entrypoint extensions win over a same-named drop-in jar
+        List<Extension> combined = new ArrayList<>(entrypointExtensions);
+        combined.addAll(classpathExtensions);
+        extensions.addAll(dedupeByName(combined));
 
         System.out.println("Loaded " + extensions.size() + " extensions");
 
-        // load extension deps
-        for (Extension extension : extensions) {
+        // load extension deps — entrypoint extensions ship their runtime via Fabric jar-in-jar,
+        // so only classpath extensions that survived dedup need extraction here
+        for (Extension extension : classpathExtensions) {
+            if (!extensions.contains(extension)) continue;
             try {
                 Set<URL> deps = extension.getDependencies();
                 if (deps.isEmpty()) {
@@ -211,6 +224,31 @@ public class ExtensionLoader {
             loadExtensions();
         }
         return languageExtensions.stream().anyMatch(e -> e.isGuestObject(obj));
+    }
+
+    static List<Extension> dedupeByName(Collection<Extension> discovered) {
+        Map<String, Extension> byName = new LinkedHashMap<>();
+        for (Extension ext : discovered) {
+            if (byName.putIfAbsent(ext.getExtensionName(), ext) != null) {
+                System.out.println("Skipping duplicate extension: " + ext.getExtensionName());
+            }
+        }
+        return new ArrayList<>(byName.values());
+    }
+
+    private List<Extension> loadEntrypointExtensions() {
+        List<Extension> result = new ArrayList<>();
+        for (EntrypointContainer<Extension> container :
+                FabricLoader.getInstance().getEntrypointContainers("jsmacros", Extension.class)) {
+            try {
+                result.add(container.getEntrypoint());
+            } catch (Throwable t) {
+                System.err.println("Failed to load jsmacros extension entrypoint from "
+                        + container.getProvider().getMetadata().getId());
+                t.printStackTrace();
+            }
+        }
+        return result;
     }
 
 }
