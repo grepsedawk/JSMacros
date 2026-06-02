@@ -33,6 +33,7 @@ public class JRubyExtension implements LanguageExtension, LibraryExtension {
     public void init(Core<?, ?> runner) {
         Thread t = new Thread(() -> {
             ScriptingContainer instance = new ScriptingContainer();
+            instance.setClassLoader(JRubyExtension.class.getClassLoader());
             instance.runScriptlet("p \"Ruby Pre-Loaded\"");
             instance.terminate();
         }, "JRuby-Preload");
