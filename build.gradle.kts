@@ -363,6 +363,8 @@ gradle.projectsEvaluated {
         into("config/jsMacros/extensions") {
             from(File(distDirFile, "extensions")) {
                 include("*-${project.version}.jar")
+                // Ruby is a mods/ companion mod, not a config/jsMacros/extensions drop-in
+                exclude("*-jruby-*")
             }
         }
     }
@@ -399,11 +401,17 @@ gradle.projectsEvaluated {
 
     val modrinthProjectId = providers.gradleProperty("modrinth_id")
         .orElse(providers.environmentVariable("MODRINTH_PROJECT"))
+    val rubyModrinthProjectId = providers.gradleProperty("modrinth_ruby_id")
+        .orElse(providers.environmentVariable("MODRINTH_RUBY_PROJECT"))
     val modrinthToken = providers.gradleProperty("modrinth_token")
         .orElse(providers.environmentVariable("MODRINTH_TOKEN"))
     fun modrinthChangelog(): String = """
         JsMacros Reloaded ${project.version} for fabric on Minecraft $mcVersion.
         Source: https://github.com/grepsedawk/JsMacros
+    """.trimIndent()
+    fun rubyChangelog(): String = """
+        JsMacros Ruby ${project.version} for fabric on Minecraft $mcVersion.
+        Requires JsMacros Reloaded. Source: https://github.com/grepsedawk/JsMacros
     """.trimIndent()
 
     publishMods {
@@ -424,6 +432,26 @@ gradle.projectsEvaluated {
                     fabricProject.tasks.named("jar", AbstractArchiveTask::class.java)
                         .flatMap { it.archiveFile }
                 )
+            }
+        }
+
+        val publishRubyModrinth = modrinthToken.isPresent && rubyModrinthProjectId.isPresent && channel != "dev"
+        if (publishRubyModrinth) {
+            modrinth("modrinthRuby") {
+                projectId.set(rubyModrinthProjectId)
+                accessToken.set(modrinthToken)
+                minecraftVersions.add(mcVersion)
+                modLoaders.set(listOf("fabric"))
+
+                version.set("${project.version}+$mcVersion-fabric")
+                displayName.set("JsMacros Ruby ${project.version} (fabric $mcVersion)")
+                changelog.set(rubyChangelog())
+                type.set(releaseType)
+                file.set(
+                    project(":extension:ruby").tasks.named("jar", AbstractArchiveTask::class.java)
+                        .flatMap { it.archiveFile }
+                )
+                requires { slug.set("jsmacros-reloaded") }
             }
         }
     }
