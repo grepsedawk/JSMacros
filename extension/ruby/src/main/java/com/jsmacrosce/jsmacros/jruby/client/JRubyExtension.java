@@ -29,6 +29,18 @@ public class JRubyExtension implements LanguageExtension, LibraryExtension {
         return "jruby";
     }
 
+    // Discovery relies on the base mod reading the "jsmacros" Fabric entrypoint, added in
+    // core 2.1.0. Earlier cores (e.g. the released 2.0.0) cannot load this mod at all.
+    @Override
+    public String minCoreVersion() {
+        return "2.1.0";
+    }
+
+    @Override
+    public String maxCoreVersion() {
+        return "2.2.0";
+    }
+
     @Override
     public void init(Core<?, ?> runner) {
         Thread t = new Thread(() -> {
