@@ -63,6 +63,7 @@ jobs:
           shopt -s nullglob
           FILES=(
             dist/jsmacrosce-*-fabric-"$V".jar
+            dist/jsmacrosce-ruby-*-"$V".jar
             dist/jsmacrosce-devkit-*-"$V".zip
             dist/jsmacrosce-extensions-*-"$V".zip
             dist/extensions/jsmacrosce-ext-*-"$V".jar
