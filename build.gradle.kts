@@ -97,8 +97,8 @@ val mcVersion = providers.gradleProperty("minecraft_version").get()
 
 data class ExtensionSpec(val path: String, val extId: String)
 val jsmExtensions: List<ExtensionSpec> = listOf(
-    ExtensionSpec(path = ":extension:graal:python", extId = "graalpy"),
-    ExtensionSpec(path = ":extension:ruby", extId = "jruby")
+    // Ruby ships as a standalone companion mod (see packageRubyMod), not an extension.
+    ExtensionSpec(path = ":extension:graal:python", extId = "graalpy")
 )
 
 val artifactBaseName = providers.provider { "$modId-$mcVersion-$channel-$version" }
@@ -318,6 +318,21 @@ gradle.projectsEvaluated {
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     }
 
+    // Ruby is a full companion mod: packaged into dist root with a mod-style name,
+    // alongside the base mod — not under extensions/ and not named "ext".
+    val packageRubyMod = tasks.register("packageRubyMod", Copy::class.java) {
+        group = "distribution"
+        description = "Packages the Ruby companion mod jar into dist"
+        val rubyJar = project(":extension:ruby").tasks.named("jar").flatMap {
+            (it as AbstractArchiveTask).archiveFile
+        }
+        dependsOn("prepareDist", rubyJar)
+        from(rubyJar)
+        rename { "$modId-ruby-$mcVersion-${project.version}.jar" }
+        into(distDirFile)
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    }
+
     val extensionJarTasks = jsmExtensions.map { ext: ExtensionSpec ->
         tasks.register("package${ext.extId.replaceFirstChar { ch -> ch.uppercase() }}Extension", Copy::class.java) {
             group = "distribution"
@@ -356,23 +371,22 @@ gradle.projectsEvaluated {
             extensionJarTasks,
             "createDistExtensions",
             "createDistDocs",
-            packageFabricModJar
+            packageFabricModJar,
+            packageRubyMod
         )
         destinationDirectory.set(distDir)
         archiveFileName.set("$modId-extensions-$mcVersion-${project.version}.zip")
         into("config/jsMacros/extensions") {
             from(File(distDirFile, "extensions")) {
                 include("*-${project.version}.jar")
-                // Ruby is a mods/ companion mod, not a config/jsMacros/extensions drop-in
-                exclude("*-jruby-*")
             }
         }
     }
 
     tasks.register("createDistMods") {
         group = "distribution"
-        description = "Packages the loader jar into the dist directory"
-        dependsOn(packageFabricModJar)
+        description = "Packages the loader and Ruby companion mod jars into the dist directory"
+        dependsOn(packageFabricModJar, packageRubyMod)
     }
 
     tasks.register("createDistExtensions") {
