@@ -76,3 +76,27 @@ jobs:
       - name: Publish to Modrinth
         if: env.MODRINTH_TOKEN != ''
         run: ./gradlew publishMods ${{ steps.ver.outputs.args }}
+
+      # mod-publish-plugin can't set the per-version environment, so patch it after upload.
+      - name: Mark Modrinth versions as client-side
+        if: env.MODRINTH_TOKEN != ''
+        shell: bash
+        env:
+          V: ${{ steps.ver.outputs.mod_version }}
+        run: |
+          set -euo pipefail
+          for PID in "$MODRINTH_PROJECT" "$MODRINTH_RUBY_PROJECT"; do
+            [ -z "$PID" ] && continue
+            VID=$(curl -fsS -H "Authorization: $MODRINTH_TOKEN" \
+                  "https://api.modrinth.com/v3/project/$PID/version" \
+              | python3 -c "import sys,json,os; vs=json.load(sys.stdin); pfx=os.environ['V']+'+'; print(next((v['id'] for v in vs if v['version_number'].startswith(pfx)), ''))")
+            if [ -z "$VID" ]; then
+              echo "::warning::No Modrinth version matching $V for project $PID"; continue
+            fi
+            curl -fsS -X PATCH \
+              -H "Authorization: $MODRINTH_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d '{"environment":"client_only"}' \
+              "https://api.modrinth.com/v3/version/$VID"
+            echo "Set $PID version $VID ($V) to client_only"
+          done
