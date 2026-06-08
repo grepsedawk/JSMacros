@@ -9,7 +9,7 @@ import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import xyz.wagyourtail.doclet.DocletReplaceParams;
 import xyz.wagyourtail.jsmacros.access.CustomClickEvent;
@@ -205,7 +205,7 @@ public class TextBuilder {
     @DocletReplaceParams("action: TextClickAction, value: string")
     public TextBuilder withClickEvent(String action, String value) {
         ClickEvent.Action clickAction = ClickEvent.Action.valueOf(action.toUpperCase(Locale.ROOT));
-        ResourceLocation id = ResourceLocation.parse(value);
+        Identifier id = Identifier.parse(value);
         var lookup = Objects
                 .requireNonNull(Minecraft.getInstance().getConnection())
                 .registryAccess();
@@ -216,13 +216,13 @@ public class TextBuilder {
             case SUGGEST_COMMAND -> new ClickEvent.SuggestCommand(value);
             case SHOW_DIALOG -> {
                 var registryWrapper = lookup.lookupOrThrow(Registries.DIALOG);
-                var dialogKey = ResourceKey.create(Registries.DIALOG, ResourceLocation.parse(value));
+                var dialogKey = ResourceKey.create(Registries.DIALOG, Identifier.parse(value));
                 var entry = registryWrapper.get(dialogKey).orElseThrow(() -> new IllegalArgumentException("Unknown dialog type: " + value));
                 yield new ClickEvent.ShowDialog(entry);
             }
             case CHANGE_PAGE -> new ClickEvent.ChangePage(Integer.parseInt(value));
             case COPY_TO_CLIPBOARD -> new ClickEvent.CopyToClipboard(value);
-            case CUSTOM -> new ClickEvent.Custom(ResourceLocation.parse(value),null);
+            case CUSTOM -> new ClickEvent.Custom(Identifier.parse(value),null);
         }));
         return this;
     }

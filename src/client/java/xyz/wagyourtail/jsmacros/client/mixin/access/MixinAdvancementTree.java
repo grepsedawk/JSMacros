@@ -2,7 +2,7 @@ package xyz.wagyourtail.jsmacros.client.mixin.access;
 
 import net.minecraft.advancements.AdvancementNode;
 import net.minecraft.advancements.AdvancementTree;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
@@ -17,7 +17,7 @@ import java.util.Set;
 public interface MixinAdvancementTree {
 
     @Accessor
-    Map<ResourceLocation, AdvancementNode> getNodes();
+    Map<Identifier, AdvancementNode> getNodes();
 
     @Accessor
     Set<AdvancementNode> getTasks();

@@ -10,10 +10,10 @@ import org.spongepowered.asm.mixin.Mixin;
 @Mixin(DebugScreenOverlay.class)
 class MixinDebugScreenOverlay {
     /*@Inject(
-            method = "drawGameInformation(Lnet/minecraft/client/gui/GuiGraphics;)V",
+            method = "drawGameInformation(Lnet/minecraft/client/gui/GuiGraphicsExtractor;)V",
             at = @At("TAIL")
     )
-    private void afterDrawLeftText(GuiGraphics context, CallbackInfo ci) {
+    private void afterDrawLeftText(GuiGraphicsExtractor context, CallbackInfo ci) {
         DebugScreenOverlay self = (DebugScreenOverlay) (Object) this;
         if (!self.showDebugScreen()) return;
 

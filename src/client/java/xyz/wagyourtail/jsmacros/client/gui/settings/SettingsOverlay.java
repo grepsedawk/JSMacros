@@ -2,7 +2,7 @@ package xyz.wagyourtail.jsmacros.client.gui.settings;
 
 import com.google.common.collect.Lists;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import xyz.wagyourtail.jsmacros.client.JsMacrosClient;
 import xyz.wagyourtail.jsmacros.client.gui.settings.settingcontainer.AbstractSettingContainer;
@@ -139,7 +139,7 @@ public class SettingsOverlay extends OverlayContainer implements ICategoryTreePa
     }
 
     @Override
-    public void render(GuiGraphics drawContext, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
         renderBackground(drawContext);
         int w = width - 4;
 

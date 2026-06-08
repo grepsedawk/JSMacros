@@ -19,7 +19,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.game.ClientboundLevelParticlesPacket;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
@@ -630,7 +630,7 @@ public class FWorld extends BaseLibrary {
         ClientLevel world = mc.level;
         LocalPlayer player = mc.player;
         if (world == null || player == null) return null;
-        ResourceLocation id = world.registryAccess().lookupOrThrow(Registries.BIOME).getKey(world.getBiome(player.blockPosition()).value());
+        Identifier id = world.registryAccess().lookupOrThrow(Registries.BIOME).getKey(world.getBiome(player.blockPosition()).value());
         return id == null ? null : id.toString();
     }
 
@@ -837,7 +837,7 @@ public class FWorld extends BaseLibrary {
      */
     @DocletReplaceParams("id: CanOmitNamespace<SoundId>, volume: double, pitch: double")
     public void playSound(String id, double volume, double pitch) {
-        SoundEvent sound = SoundEvent.createVariableRangeEvent(ResourceLocation.parse(id));
+        SoundEvent sound = SoundEvent.createVariableRangeEvent(Identifier.parse(id));
         assert sound != null;
         mc.execute(() -> mc.getSoundManager().play(SimpleSoundInstance.forUI(sound, (float) pitch, (float) volume)));
     }
@@ -857,7 +857,7 @@ public class FWorld extends BaseLibrary {
     public void playSound(String id, double volume, double pitch, double x, double y, double z) {
         ClientLevel world = mc.level;
         if (world == null) return;
-        SoundEvent sound = SoundEvent.createVariableRangeEvent(ResourceLocation.parse(id));
+        SoundEvent sound = SoundEvent.createVariableRangeEvent(Identifier.parse(id));
         assert sound != null;
         mc.execute(() -> world.playLocalSound(x, y, z, sound, SoundSource.MASTER, (float) volume, (float) pitch, true));
     }
@@ -918,7 +918,7 @@ public class FWorld extends BaseLibrary {
     public String getBiomeAt(int x, int z) {
         ClientLevel world = mc.level;
         if (world == null) return null;
-        ResourceLocation id = world.registryAccess().lookupOrThrow(Registries.BIOME).getKey(world.getBiome(new BlockPos(x, 10, z)).value());
+        Identifier id = world.registryAccess().lookupOrThrow(Registries.BIOME).getKey(world.getBiome(new BlockPos(x, 10, z)).value());
         return id == null ? null : id.toString();
     }
 
@@ -934,7 +934,7 @@ public class FWorld extends BaseLibrary {
     public String getBiomeAt(int x, int y, int z) {
         ClientLevel world = mc.level;
         if (world == null) return null;
-        ResourceLocation id = world.registryAccess().lookupOrThrow(Registries.BIOME).getKey(world.getBiome(new BlockPos(x, y, z)).value());
+        Identifier id = world.registryAccess().lookupOrThrow(Registries.BIOME).getKey(world.getBiome(new BlockPos(x, y, z)).value());
         return id == null ? null : id.toString();
     }
 

@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.helper;
 
-import net.minecraft.advancements.critereon.BlockPredicate;
+import net.minecraft.advancements.criterion.BlockPredicate;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.Holder;
 import net.minecraft.world.level.block.state.pattern.BlockInWorld;

@@ -6,7 +6,7 @@ import net.minecraft.advancements.AdvancementNode;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.doclet.DocletReplaceReturn;
 import xyz.wagyourtail.jsmacros.client.mixin.access.MixinClientAdvancements;
@@ -93,7 +93,7 @@ public class AdvancementHelper extends BaseHelper<AdvancementNode> {
      */
     @DocletReplaceReturn("JavaArray<RecipeId>")
     public String[] getRecipes() {
-        return (String[]) base.advancement().rewards().recipes().stream().map(ResourceKey::location).map(ResourceLocation::toString).toArray();
+        return (String[]) base.advancement().rewards().recipes().stream().map(ResourceKey::location).map(Identifier::toString).toArray();
     }
 
     /**

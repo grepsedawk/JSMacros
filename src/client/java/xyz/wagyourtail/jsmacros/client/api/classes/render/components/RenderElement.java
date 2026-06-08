@@ -1,7 +1,7 @@
 package xyz.wagyourtail.jsmacros.client.api.classes.render.components;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Renderable;
 import org.joml.Matrix3x2fStack;
 import xyz.wagyourtail.doclet.DocletIgnore;
@@ -16,7 +16,7 @@ public interface RenderElement extends Renderable {
     int getZIndex();
 
     @DocletIgnore
-    default void render3D(GuiGraphics drawContext, int mouseX, int mouseY, float delta) {
+    default void render3D(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
         render(drawContext, mouseX, mouseY, delta);
     }
 

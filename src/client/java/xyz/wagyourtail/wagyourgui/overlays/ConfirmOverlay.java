@@ -1,7 +1,7 @@
 package xyz.wagyourtail.wagyourgui.overlays;
 
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
 import xyz.wagyourtail.wagyourgui.elements.Button;
@@ -50,7 +50,7 @@ public class ConfirmOverlay extends OverlayContainer {
 
     }
 
-    protected void renderMessage(GuiGraphics drawContext) {
+    protected void renderMessage(GuiGraphicsExtractor drawContext) {
         for (int i = 0; i < lines; ++i) {
             int w = textRenderer.width(text.get(i));
             int centeredX = (int) (hcenter ? x + width / 2F - w / 2F : x + 3);
@@ -59,7 +59,7 @@ public class ConfirmOverlay extends OverlayContainer {
     }
 
     @Override
-    public void render(GuiGraphics drawContext, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
         this.renderBackground(drawContext);
         drawContext.fill(x + 1, y + height - 13, x + width - 1, y + height - 12, 0xFFFFFFFF);
         this.renderMessage(drawContext);

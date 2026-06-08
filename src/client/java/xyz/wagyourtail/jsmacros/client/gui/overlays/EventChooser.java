@@ -2,7 +2,7 @@ package xyz.wagyourtail.jsmacros.client.gui.overlays;
 
 import com.google.common.collect.ImmutableList;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.network.chat.Component;
 import xyz.wagyourtail.jsmacros.client.JsMacrosClient;
@@ -99,7 +99,7 @@ public class EventChooser extends OverlayContainer {
     }
 
     @Override
-    public void render(GuiGraphics drawContext, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
         renderBackground(drawContext);
 
         drawContext.drawWordWrap(textRenderer, eventText, x + 3, y + 3, width - 14, 0xFFFFFFFF, false);

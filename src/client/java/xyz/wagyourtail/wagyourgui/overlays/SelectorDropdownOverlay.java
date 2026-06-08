@@ -1,7 +1,7 @@
 package xyz.wagyourtail.wagyourgui.overlays;
 
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
@@ -108,7 +108,7 @@ public class SelectorDropdownOverlay extends OverlayContainer {
     }
 
     @Override
-    public void render(GuiGraphics drawContext, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
         renderBackground(drawContext);
         super.render(drawContext, mouseX, mouseY, delta);
     }

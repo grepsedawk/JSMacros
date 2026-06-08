@@ -2,7 +2,7 @@ package xyz.wagyourtail.jsmacros.client.api.classes.render.components;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
@@ -250,18 +250,18 @@ public class Item implements RenderElement, Alignable<Item> {
     }
 
     @Override
-    public void render(GuiGraphics drawContext, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
         render(drawContext, mouseX, mouseY, delta, false);
     }
 
     @Override
     @DocletIgnore
-    public void render3D(GuiGraphics drawContext, int mouseX, int mouseY, float delta) {
+    public void render3D(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
         render(drawContext, mouseX, mouseY, delta, true);
     }
 
     @DocletIgnore
-    public void render(GuiGraphics drawContext, int mouseX, int mouseY, float delta, boolean is3dRender) {
+    public void render(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta, boolean is3dRender) {
         if (item == null) {
             return;
         }

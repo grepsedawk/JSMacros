@@ -1,7 +1,7 @@
 package xyz.wagyourtail.jsmacros.client.api.classes.render;
 
 import com.google.common.collect.ImmutableList;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.network.chat.Component;
@@ -33,7 +33,7 @@ public class ScriptScreen extends BaseScreen {
     public boolean shouldPause = true;
     private final int bgStyle;
     @Nullable
-    private MethodWrapper<Pos3D, GuiGraphics, Object, ?> onRender;
+    private MethodWrapper<Pos3D, GuiGraphicsExtractor, Object, ?> onRender;
 
     public ScriptScreen(String title, boolean dirt) {
         super(Component.literal(title), null);
@@ -62,12 +62,12 @@ public class ScriptScreen extends BaseScreen {
      * @param onRender pos3d elements are mousex, mousey, tickDelta
      * @since 1.4.0
      */
-    public void setOnRender(@Nullable MethodWrapper<Pos3D, GuiGraphics, Object, ?> onRender) {
+    public void setOnRender(@Nullable MethodWrapper<Pos3D, GuiGraphicsExtractor, Object, ?> onRender) {
         this.onRender = onRender;
     }
 
     @Override
-    public void render(GuiGraphics drawContext, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
         if (drawContext == null) {
             return;
         }

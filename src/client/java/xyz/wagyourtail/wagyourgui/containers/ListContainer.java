@@ -2,7 +2,7 @@ package xyz.wagyourtail.wagyourgui.containers;
 
 import com.google.common.collect.ImmutableList;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.network.chat.Component;
 import xyz.wagyourtail.wagyourgui.elements.Button;
@@ -64,7 +64,7 @@ public class ListContainer extends MultiElementContainer<IContainerParent> {
     }
 
     @Override
-    public void render(GuiGraphics drawContext, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
 
         for (AbstractWidget b : ImmutableList.copyOf(this.buttons)) {
             if (b instanceof Button && ((Button) b).hovering && ((Button) b).cantRenderAllText()) {

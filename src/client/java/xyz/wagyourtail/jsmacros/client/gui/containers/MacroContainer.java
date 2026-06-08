@@ -3,11 +3,11 @@ package xyz.wagyourtail.jsmacros.client.gui.containers;
 import com.mojang.blaze3d.opengl.GlStateManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.FormattedCharSequence;
 import xyz.wagyourtail.jsmacros.client.JsMacros;
 import xyz.wagyourtail.jsmacros.client.JsMacrosClient;
@@ -22,13 +22,13 @@ import java.io.File;
 import java.util.List;
 
 public class MacroContainer extends MultiElementContainer<MacroScreen> {
-    private static final ResourceLocation key_down_tex = ResourceLocation.fromNamespaceAndPath(JsMacros.MOD_ID, "resources/key_down.png");
-    private static final ResourceLocation key_up_tex = ResourceLocation.fromNamespaceAndPath(JsMacros.MOD_ID, "resources/key_up.png");
-    private static final ResourceLocation key_both_tex = ResourceLocation.fromNamespaceAndPath(JsMacros.MOD_ID, "resources/key_both.png");
+    private static final Identifier key_down_tex = Identifier.fromNamespaceAndPath(JsMacros.MOD_ID, "resources/key_down.png");
+    private static final Identifier key_up_tex = Identifier.fromNamespaceAndPath(JsMacros.MOD_ID, "resources/key_up.png");
+    private static final Identifier key_both_tex = Identifier.fromNamespaceAndPath(JsMacros.MOD_ID, "resources/key_both.png");
     @SuppressWarnings("unused")
-    private static final ResourceLocation event_tex = ResourceLocation.fromNamespaceAndPath(JsMacros.MOD_ID, "resources/event.png");
-    private static final ResourceLocation script_fork_tex = ResourceLocation.fromNamespaceAndPath(JsMacros.MOD_ID, "resources/script_fork.png");
-    private static final ResourceLocation script_join_tex = ResourceLocation.fromNamespaceAndPath(JsMacros.MOD_ID, "resources/script_join.png");
+    private static final Identifier event_tex = Identifier.fromNamespaceAndPath(JsMacros.MOD_ID, "resources/event.png");
+    private static final Identifier script_fork_tex = Identifier.fromNamespaceAndPath(JsMacros.MOD_ID, "resources/script_fork.png");
+    private static final Identifier script_join_tex = Identifier.fromNamespaceAndPath(JsMacros.MOD_ID, "resources/script_join.png");
     private final Minecraft mc;
     private final ScriptTrigger macro;
     private Button enableBtn;
@@ -183,7 +183,7 @@ public class MacroContainer extends MultiElementContainer<MacroScreen> {
     }
 
     @Override
-    public void render(GuiGraphics drawContext, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
         BaseEventRegistry reg = JsMacrosClient.clientCore.eventRegistry;
         if (macro.triggerType == ScriptTrigger.TriggerType.EVENT && reg.events.contains(macro.event)) {
             joinedBtn.active = reg.joinableEvents.contains(macro.event);
@@ -205,7 +205,7 @@ public class MacroContainer extends MultiElementContainer<MacroScreen> {
             drawContext.fill(x + width - 14, y + 1, x + width - 13, y + height - 1, 0xFFFFFFFF);
             //RenderSystem.setShader(VertexFormats.POSITION_TEXTURE);
             // icon for keystate
-            ResourceLocation tex;
+            Identifier tex;
             if (macro.triggerType != ScriptTrigger.TriggerType.EVENT) {
                 if (macro.joined) {
                     tex = script_join_tex;

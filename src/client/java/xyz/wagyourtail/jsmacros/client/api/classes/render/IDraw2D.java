@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.classes.render;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import xyz.wagyourtail.doclet.DocletIgnore;
 import xyz.wagyourtail.doclet.DocletReplaceParams;
 import xyz.wagyourtail.jsmacros.client.api.classes.render.components.Draw2DElement;
@@ -774,7 +774,7 @@ public interface IDraw2D<T> {
      * @param drawContext
      */
     @DocletIgnore
-    void render(GuiGraphics drawContext);
+    void render(GuiGraphicsExtractor drawContext);
 
     /**
      * @param zIndex

@@ -1,7 +1,7 @@
 package xyz.wagyourtail.wagyourgui.elements;
 
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.InputWithModifiers;
 import net.minecraft.network.chat.Component;
 
@@ -32,7 +32,7 @@ public class AnnotatedCheckBox extends Button {
     }
 
     @Override
-    protected void renderMessage(GuiGraphics drawContext) {
+    protected void renderMessage(GuiGraphicsExtractor drawContext) {
         int width = this.width - height;
         for (int i = 0; i < visibleLines; ++i) {
             int w = textRenderer.width(textLines.get(i));
@@ -41,7 +41,7 @@ public class AnnotatedCheckBox extends Button {
     }
 
     @Override
-    public void renderWidget(GuiGraphics drawContext, int mouseX, int mouseY, float delta) {
+    public void renderWidget(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
         if (this.visible) {
             this.renderMessage(drawContext);
 

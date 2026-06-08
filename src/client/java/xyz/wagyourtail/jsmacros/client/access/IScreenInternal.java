@@ -1,11 +1,11 @@
 package xyz.wagyourtail.jsmacros.client.access;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import xyz.wagyourtail.doclet.DocletIgnore;
 
 @DocletIgnore
 public interface IScreenInternal {
-    void jsmacros_render(GuiGraphics drawContext, int mouseX, int mouseY, float delta);
+    void jsmacros_render(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta);
 
     void jsmacros_mouseClicked(double mouseX, double mouseY, int button);
 

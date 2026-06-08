@@ -1,7 +1,7 @@
 package xyz.wagyourtail.wagyourgui;
 
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.events.GuiEventListener;
@@ -154,7 +154,7 @@ public abstract class BaseScreen extends Screen implements IOverlayParent {
     }
 
     @Override
-    public void render(GuiGraphics drawContext, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
         if (overlay != null) {
             overlay.render(drawContext, mouseX, mouseY, delta);
         }

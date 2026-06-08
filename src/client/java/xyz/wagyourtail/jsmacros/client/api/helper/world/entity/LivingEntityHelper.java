@@ -2,7 +2,7 @@ package xyz.wagyourtail.jsmacros.client.api.helper.world.entity;
 
 import com.google.common.collect.ImmutableList;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.effect.MobEffect;
@@ -83,7 +83,7 @@ public class LivingEntityHelper<T extends LivingEntity> extends EntityHelper<T> 
      */
     @DocletReplaceParams("item: ItemId")
     public boolean isHolding(String item) {
-        ResourceLocation id = ResourceLocation.parse(item);
+        Identifier id = Identifier.parse(item);
         if (id.equals(BuiltInRegistries.ITEM.getDefaultKey())) return base.isHolding(Items.AIR);
         Item it = BuiltInRegistries.ITEM.getValue(id);
         return it != Items.AIR && base.isHolding(it);
@@ -184,7 +184,7 @@ public class LivingEntityHelper<T extends LivingEntity> extends EntityHelper<T> 
      */
     @DocletReplaceReturn("JavaList<MobTag>")
     public List<String> getMobTags() {
-        return base.getType().builtInRegistryHolder().tags().map(TagKey::location).map(ResourceLocation::toString).toList();
+        return base.getType().builtInRegistryHolder().tags().map(TagKey::location).map(Identifier::toString).toList();
     }
 
     /**

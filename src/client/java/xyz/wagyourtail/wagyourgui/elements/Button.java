@@ -1,7 +1,7 @@
 package xyz.wagyourtail.wagyourgui.elements;
 
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.input.InputWithModifiers;
@@ -78,7 +78,7 @@ public class Button extends AbstractButton {
         this.textColor = ColorUtil.fixAlpha(color);
     }
 
-    protected void renderMessage(GuiGraphics drawContext) {
+    protected void renderMessage(GuiGraphicsExtractor drawContext) {
         for (int i = 0; i < visibleLines; ++i) {
             int w = textRenderer.width(textLines.get(i));
             drawContext.drawString(textRenderer, textLines.get(i), (int) (horizCenter ? getX() + width / 2F - w / 2F : getX() + 1), getY() + 2 + verticalCenter + (i * textRenderer.lineHeight), textColor, false);
@@ -86,7 +86,7 @@ public class Button extends AbstractButton {
     }
 
     @Override
-    public void renderWidget(GuiGraphics drawContext, int mouseX, int mouseY, float delta) {
+    public void renderWidget(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
         if (this.visible) {
             // fill
             if (mouseX - getX() >= 0 && mouseX - getX() - width <= 0 && mouseY - getY() >= 0 && mouseY - getY() - height <= 0 && this.active || forceHover) {

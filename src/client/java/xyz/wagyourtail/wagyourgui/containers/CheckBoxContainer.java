@@ -1,7 +1,7 @@
 package xyz.wagyourtail.wagyourgui.containers;
 
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import xyz.wagyourtail.wagyourgui.elements.Button;
 
@@ -40,7 +40,7 @@ public class CheckBoxContainer extends MultiElementContainer<IContainerParent> {
     }
 
     @Override
-    public void render(GuiGraphics drawContext, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
         if (this.visible) {
             drawContext.drawWordWrap(textRenderer, message, x + height, y + 2, width - height - 2, 0xFFFFFFFF, false);
         }

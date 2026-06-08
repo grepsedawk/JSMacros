@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.classes.render.components;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix3x2fStack;
 import xyz.wagyourtail.jsmacros.client.api.classes.render.Draw2D;
@@ -220,7 +220,7 @@ public class Draw2DElement implements RenderElement, Alignable<Draw2DElement> {
     }
 
     @Override
-    public void render(GuiGraphics drawContext, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
         Matrix3x2fStack matrices = drawContext.pose();
         matrices.pushMatrix();
         matrices.translate(x, y);

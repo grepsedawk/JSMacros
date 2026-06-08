@@ -1,7 +1,7 @@
 package xyz.wagyourtail.jsmacros.client.gui.containers;
 
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import xyz.wagyourtail.jsmacros.client.JsMacrosClient;
 import xyz.wagyourtail.jsmacros.client.config.ClientConfigV2;
@@ -61,7 +61,7 @@ public class MacroListTopbar extends MultiElementContainer<MacroScreen> {
     }
 
     @Override
-    public void render(GuiGraphics drawContext, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
         drawContext.fill(x, y, x + width, y + 1, 0xFFFFFFFF);
         drawContext.fill(x, y + height - 2, x + width, y + height - 1, 0xFFFFFFFF);
         drawContext.fill(x, y + height - 1, x + width, y + height, 0xFF7F7F7F);

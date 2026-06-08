@@ -1,7 +1,7 @@
 package xyz.wagyourtail.wagyourgui.containers;
 
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.events.GuiEventListener;
@@ -86,6 +86,6 @@ public abstract class MultiElementContainer<T extends IContainerParent> implemen
         return parent.getFirstOverlayParent();
     }
 
-    public abstract void render(GuiGraphics drawContext, int mouseX, int mouseY, float delta);
+    public abstract void render(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta);
 
 }

@@ -2,7 +2,7 @@ package xyz.wagyourtail.jsmacros.client.mixin.access;
 
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.gui.Gui;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -14,7 +14,7 @@ import xyz.wagyourtail.jsmacros.client.api.library.impl.FHud;
 @Mixin(Gui.class)
 public class MixinGui {
     @Inject(method = "render", at = @At("TAIL"))
-    private void onRenderHud(GuiGraphics context, DeltaTracker tickCounter, CallbackInfo ci) {
+    private void onRenderHud(GuiGraphicsExtractor context, DeltaTracker tickCounter, CallbackInfo ci) {
         if (!FHud.overlays.isEmpty()) {
             for (IDraw2D<Draw2D> overlay : FHud.overlays) {
                 overlay.render(context);

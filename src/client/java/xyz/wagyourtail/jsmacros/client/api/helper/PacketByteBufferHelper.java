@@ -25,7 +25,7 @@ import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
 import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.ChunkAccess;
@@ -614,7 +614,7 @@ public class PacketByteBufferHelper extends BaseHelper<FriendlyByteBuf> {
      */
     @DocletReplaceParams("dimension: CanOmitNamespace<Dimension>, pos: BlockPosHelper")
     public PacketByteBufferHelper writeGlobalPos(String dimension, BlockPosHelper pos) {
-        ResourceKey<Level> key = ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse(dimension));
+        ResourceKey<Level> key = ResourceKey.create(Registries.DIMENSION, Identifier.parse(dimension));
         base.writeGlobalPos(GlobalPos.of(key, pos.getRaw()));
         return this;
     }
@@ -630,7 +630,7 @@ public class PacketByteBufferHelper extends BaseHelper<FriendlyByteBuf> {
      */
     @DocletReplaceParams("dimension: CanOmitNamespace<Dimension>, x: int, y: int, z: int")
     public PacketByteBufferHelper writeGlobalPos(String dimension, int x, int y, int z) {
-        ResourceKey<Level> key = ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse(dimension));
+        ResourceKey<Level> key = ResourceKey.create(Registries.DIMENSION, Identifier.parse(dimension));
         base.writeGlobalPos(GlobalPos.of(key, new BlockPos(x, y, z)));
         return this;
     }
@@ -774,7 +774,7 @@ public class PacketByteBufferHelper extends BaseHelper<FriendlyByteBuf> {
      * @since 1.8.4
      */
     public PacketByteBufferHelper writeIdentifier(String id) {
-        base.writeResourceLocation(RegistryHelper.parseIdentifier(id));
+        base.writeIdentifier(RegistryHelper.parseIdentifier(id));
         return this;
     }
 
@@ -783,7 +783,7 @@ public class PacketByteBufferHelper extends BaseHelper<FriendlyByteBuf> {
      * @since 1.8.4
      */
     public String readIdentifier() {
-        return base.readResourceLocation().toString();
+        return base.readIdentifier().toString();
     }
 
     /**

@@ -11,7 +11,7 @@ import net.minecraft.client.renderer.LevelTargetBundle;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderBuffers;
 import net.minecraft.client.renderer.culling.Frustum;
-import net.minecraft.client.renderer.state.LevelRenderState;
+import net.minecraft.client.renderer.state.GameRenderState;
 import net.minecraft.util.profiling.ProfilerFiller;
 import org.joml.Matrix4f;
 import org.spongepowered.asm.mixin.Final;
@@ -39,7 +39,7 @@ public class MixinLevelRenderer {
                               Matrix4f positionMatrix,
                               GpuBufferSlice fog,
                               boolean renderBlockOutline,
-                              LevelRenderState levelRenderState,
+                              GameRenderState levelRenderState,
                               DeltaTracker renderTickCounter,
                               ProfilerFiller profiler,
                               CallbackInfo ci) {

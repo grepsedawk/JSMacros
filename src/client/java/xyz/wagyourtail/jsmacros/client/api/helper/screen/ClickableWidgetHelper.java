@@ -1,7 +1,7 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.screen;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -259,7 +259,7 @@ public class ClickableWidgetHelper<B extends ClickableWidgetHelper<B, T>, T exte
     }
 
     @Override
-    public void render(GuiGraphics drawContext, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
         base.render(drawContext, mouseX, mouseY, delta);
         if (base.isMouseOver(mouseX, mouseY) && tooltips.size() > 0) {
             drawContext.setComponentTooltipForNextFrame(mc.font, tooltips, mouseX, mouseY);

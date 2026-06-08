@@ -1,7 +1,7 @@
 package xyz.wagyourtail.jsmacros.client.mixin.access;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
@@ -55,7 +55,7 @@ public class MixinAbstractContainerScreen<T extends AbstractContainerMenu> exten
     }
 
     @Inject(method = "renderSlot", at = @At("TAIL"))
-    private void onDrawSlot(GuiGraphics context, Slot slot, CallbackInfo ci) {
+    private void onDrawSlot(GuiGraphicsExtractor context, Slot slot, CallbackInfo ci) {
         if (!JsMacrosClient.clientCore.config.getOptions(ClientConfigV2.class).showSlotIndexes) return;
 
         if (!slot.isActive()) return;

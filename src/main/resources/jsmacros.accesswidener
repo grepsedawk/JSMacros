@@ -27,6 +27,6 @@ accessible field net/minecraft/world/level/block/entity/FuelValues values Lit/un
 
 accessible field net/minecraft/world/entity/vehicle/AbstractBoat status Lnet/minecraft/world/entity/vehicle/AbstractBoat$Status;
 
-accessible field net/minecraft/world/entity/animal/Dolphin treasurePos Lnet/minecraft/core/BlockPos;
-accessible method net/minecraft/world/entity/animal/TropicalFish getPackedVariant ()I
+accessible field net/minecraft/world/entity/animal/dolphin/Dolphin treasurePos Lnet/minecraft/core/BlockPos;
+accessible method net/minecraft/world/entity/animal/fish/TropicalFish getPackedVariant ()I
 accessible field net/minecraft/world/entity/animal/wolf/Wolf isWet Z

@@ -1,7 +1,7 @@
 package xyz.wagyourtail.wagyourgui.overlays;
 
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -105,7 +105,7 @@ public abstract class OverlayContainer extends MultiElementContainer<IOverlayPar
     public void onClose() {
     }
 
-    public void renderBackground(GuiGraphics drawContext) {
+    public void renderBackground(GuiGraphicsExtractor drawContext) {
         // black bg
         drawContext.fill(x, y, x + width, y + height, 0xFF000000);
         // 2 layer border
@@ -122,7 +122,7 @@ public abstract class OverlayContainer extends MultiElementContainer<IOverlayPar
     }
 
     @Override
-    public void render(GuiGraphics drawContext, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
         for (AbstractWidget btn : buttons) {
             btn.render(drawContext, mouseX, mouseY, delta);
         }

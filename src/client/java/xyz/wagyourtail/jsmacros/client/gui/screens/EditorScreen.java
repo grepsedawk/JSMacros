@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
@@ -18,7 +18,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FontDescription;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
@@ -66,7 +66,7 @@ public class EditorScreen extends BaseScreen {
             "none"
     );
     public static Style defaultStyle = Style.EMPTY.withFont(
-            new FontDescription.Resource(ResourceLocation.fromNamespaceAndPath("jsmacros", "ubuntumono")));
+            new FontDescription.Resource(Identifier.fromNamespaceAndPath("jsmacros", "ubuntumono")));
     protected final File file;
     protected final FileHandler handler;
     public final History history;
@@ -106,7 +106,7 @@ public class EditorScreen extends BaseScreen {
 
         this.handler = handler;
         var options = JsMacrosClient.clientCore.config.getOptions(ClientConfigV2.class);
-        defaultStyle = Style.EMPTY.withFont(new FontDescription.Resource(ResourceLocation.parse(options.editorFont)));
+        defaultStyle = Style.EMPTY.withFont(new FontDescription.Resource(Identifier.parse(options.editorFont)));
 
         cursor = new SelectCursor(defaultStyle);
 
@@ -675,7 +675,7 @@ public class EditorScreen extends BaseScreen {
     }
 
     @Override
-    public void render(GuiGraphics drawContext, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
         assert minecraft != null;
 
         drawContext.drawString(font, fileName, 2, 2, 0xFFFFFFFF);
@@ -855,7 +855,7 @@ public class EditorScreen extends BaseScreen {
     @Override
     public void updateSettings() {
         var options = JsMacrosClient.clientCore.config.getOptions(ClientConfigV2.class);
-        defaultStyle = Style.EMPTY.withFont(new FontDescription.Resource(ResourceLocation.parse(options.editorFont)));
+        defaultStyle = Style.EMPTY.withFont(new FontDescription.Resource(Identifier.parse(options.editorFont)));
         cursor.defaultStyle = defaultStyle;
         cursor.updateStartIndex(cursor.startIndex, history.current);
         cursor.updateEndIndex(cursor.endIndex, history.current);

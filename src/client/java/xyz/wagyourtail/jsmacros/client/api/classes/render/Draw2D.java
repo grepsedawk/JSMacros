@@ -2,7 +2,7 @@ package xyz.wagyourtail.jsmacros.client.api.classes.render;
 
 import com.google.common.collect.ImmutableList;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Renderable;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.doclet.DocletIgnore;
@@ -604,7 +604,7 @@ public class Draw2D implements IDraw2D<Draw2D>, Registrable<Draw2D> {
 
     @Override
     @DocletIgnore
-    public void render(GuiGraphics drawContext) {
+    public void render(GuiGraphicsExtractor drawContext) {
         if (drawContext == null || !visible) {
             return;
         }

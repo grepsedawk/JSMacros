@@ -1,7 +1,7 @@
 package xyz.wagyourtail.jsmacros.client.gui.containers;
 
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import xyz.wagyourtail.jsmacros.client.JsMacros;
@@ -42,7 +42,7 @@ public class RunningContextContainer extends MultiElementContainer<CancelScreen>
     }
 
     @Override
-    public void render(GuiGraphics drawContext, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
         try {
             if (t != null) {
                 if (t.isContextClosed()) {

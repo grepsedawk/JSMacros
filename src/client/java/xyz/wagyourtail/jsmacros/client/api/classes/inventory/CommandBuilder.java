@@ -21,7 +21,7 @@ import net.minecraft.commands.arguments.DimensionArgument;
 import net.minecraft.commands.arguments.NbtTagArgument;
 import net.minecraft.commands.arguments.ParticleArgument;
 import net.minecraft.commands.arguments.RangeArgument;
-import net.minecraft.commands.arguments.ResourceLocationArgument;
+import net.minecraft.commands.arguments.IdentifierArgument;
 import net.minecraft.commands.arguments.SlotArgument;
 import net.minecraft.commands.arguments.TimeArgument;
 import net.minecraft.commands.arguments.UuidArgument;
@@ -33,7 +33,7 @@ import net.minecraft.commands.arguments.coordinates.Vec3Argument;
 import net.minecraft.commands.arguments.item.ItemArgument;
 import net.minecraft.commands.arguments.item.ItemPredicateArgument;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import xyz.wagyourtail.jsmacros.client.JsMacrosClient;
 import xyz.wagyourtail.jsmacros.client.api.helper.CommandContextHelper;
 import xyz.wagyourtail.jsmacros.client.api.helper.SuggestionsBuilderHelper;
@@ -162,7 +162,7 @@ public abstract class CommandBuilder implements Registrable<CommandBuilder> {
     }
 
     public CommandBuilder identifierArg(String name) {
-        argument(name, ResourceLocationArgument::id);
+        argument(name, IdentifierArgument::id);
         return this;
     }
 
@@ -320,7 +320,7 @@ public abstract class CommandBuilder implements Registrable<CommandBuilder> {
      * @since 1.8.4
      */
     public CommandBuilder suggestIdentifier(Collection<String> suggestions) {
-        suggests((ctx, builder) -> SharedSuggestionProvider.suggestResource(suggestions.stream().map(ResourceLocation::parse), builder));
+        suggests((ctx, builder) -> SharedSuggestionProvider.suggestResource(suggestions.stream().map(Identifier::parse), builder));
         return this;
     }
 

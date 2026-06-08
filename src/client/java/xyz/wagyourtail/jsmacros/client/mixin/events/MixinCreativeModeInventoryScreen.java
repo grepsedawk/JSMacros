@@ -2,7 +2,7 @@ package xyz.wagyourtail.jsmacros.client.mixin.events;
 
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.Slot;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -68,7 +68,7 @@ public abstract class MixinCreativeModeInventoryScreen {
     }
 
     @Inject(method = "slotClicked", at = @At("HEAD"), cancellable = true)
-    public void beforeMouseClick(Slot slot, int slotId, int button, ClickType actionType, CallbackInfo ci) {
+    public void beforeMouseClick(Slot slot, int slotId, int button, ContainerInput actionType, CallbackInfo ci) {
         if (slot != null) {
             slotId = jsmacros$getSlotFromCreativeSlot(slot).index;
         }
@@ -78,7 +78,7 @@ public abstract class MixinCreativeModeInventoryScreen {
             ci.cancel();
             return;
         }
-        if (actionType == ClickType.THROW || slotId == -999) {
+        if (actionType == ContainerInput.THROW || slotId == -999) {
             EventDropSlot eventDrop = new EventDropSlot((AbstractContainerScreen<?>) (Object) this, slotId, button == 1);
             eventDrop.trigger();
             if (eventDrop.isCanceled()) {

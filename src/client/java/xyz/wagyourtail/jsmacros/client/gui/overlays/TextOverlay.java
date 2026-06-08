@@ -1,7 +1,7 @@
 package xyz.wagyourtail.jsmacros.client.gui.overlays;
 
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import xyz.wagyourtail.wagyourgui.elements.Button;
 import xyz.wagyourtail.wagyourgui.overlays.IOverlayParent;
@@ -26,7 +26,7 @@ public class TextOverlay extends OverlayContainer {
     }
 
     @Override
-    public void render(GuiGraphics drawContext, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
         renderBackground(drawContext);
         int x = this.centered ? Math.max(this.x + 3, this.x + 3 + (this.width - 6) / 2 - this.textRenderer.width(this.text) / 2) : this.x + 3;
         drawContext.drawWordWrap(textRenderer, this.text, x, this.y + 5, width - 6, 0xFFFFFFFF, false);

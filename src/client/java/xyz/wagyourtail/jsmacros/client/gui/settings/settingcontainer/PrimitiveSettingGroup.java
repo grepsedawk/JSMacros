@@ -1,7 +1,7 @@
 package xyz.wagyourtail.jsmacros.client.gui.settings.settingcontainer;
 
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import xyz.wagyourtail.jsmacros.client.gui.settings.SettingsOverlay;
 import xyz.wagyourtail.jsmacros.client.gui.settings.settingfields.AbstractSettingField;
 import xyz.wagyourtail.jsmacros.client.gui.settings.settingfields.BooleanField;
@@ -43,7 +43,7 @@ public class PrimitiveSettingGroup extends AbstractSettingContainer {
     }
 
     @Override
-    public void render(GuiGraphics drawContext, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
         for (AbstractSettingField<?> setting : settings) {
             setting.render(drawContext, mouseX, mouseY, delta);
         }

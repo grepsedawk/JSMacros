@@ -1,7 +1,7 @@
 package xyz.wagyourtail.wagyourgui.overlays;
 
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
 import xyz.wagyourtail.wagyourgui.elements.Button;
@@ -43,7 +43,7 @@ public class TextPrompt extends OverlayContainer {
     }
 
     @Override
-    public void render(GuiGraphics drawContext, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
         this.renderBackground(drawContext);
         int lineNum = 0;
         for (FormattedCharSequence line : textRenderer.split(message, width - 4)) {
