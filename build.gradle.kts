@@ -123,8 +123,8 @@ dependencies {
 
     fabricModImplementation(fabricApi.fabricModule("fabric-api-base", libs.versions.fapi.get()))
     fabricModImplementation(fabricApi.fabricModule("fabric-lifecycle-events-v1", libs.versions.fapi.get()))
-    fabricModImplementation(fabricApi.fabricModule("fabric-key-binding-api-v1", libs.versions.fapi.get()))
-    fabricModImplementation(fabricApi.fabricModule("fabric-resource-loader-v0", libs.versions.fapi.get()))
+    fabricModImplementation(fabricApi.fabricModule("fabric-key-mapping-api-v1", libs.versions.fapi.get()))
+    fabricModImplementation(fabricApi.fabricModule("fabric-resource-loader-v1", libs.versions.fapi.get()))
     fabricModImplementation(fabricApi.fabricModule("fabric-command-api-v2", libs.versions.fapi.get()))
     fabricModImplementation(fabricApi.fabricModule("fabric-rendering-v1", libs.versions.fapi.get()))
 
@@ -134,8 +134,8 @@ dependencies {
     fabricInclude(fabricApi.fabricModule("fabric-api-base", libs.versions.fapi.get()))
     fabricInclude(fabricApi.fabricModule("fabric-rendering-v1", libs.versions.fapi.get()))
     fabricInclude(fabricApi.fabricModule("fabric-lifecycle-events-v1", libs.versions.fapi.get()))
-    fabricInclude(fabricApi.fabricModule("fabric-key-binding-api-v1", libs.versions.fapi.get()))
-    fabricInclude(fabricApi.fabricModule("fabric-resource-loader-v0", libs.versions.fapi.get()))
+    fabricInclude(fabricApi.fabricModule("fabric-key-mapping-api-v1", libs.versions.fapi.get()))
+    fabricInclude(fabricApi.fabricModule("fabric-resource-loader-v1", libs.versions.fapi.get()))
     fabricInclude(fabricApi.fabricModule("fabric-command-api-v2", libs.versions.fapi.get()))
 
     fabricInclude(libs.prism4j)
