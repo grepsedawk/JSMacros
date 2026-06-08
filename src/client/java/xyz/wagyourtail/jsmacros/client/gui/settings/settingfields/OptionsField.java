@@ -51,7 +51,7 @@ public class OptionsField extends AbstractSettingField<Object> {
 
     @Override
     public void render(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
-        drawContext.drawString(textRenderer, BaseScreen.trimmed(textRenderer, settingName, width / 2), x, y + 1, 0xFFFFFFFF, false);
+        drawContext.text(textRenderer, BaseScreen.trimmed(textRenderer, settingName, width / 2), x, y + 1, 0xFFFFFFFF, false);
     }
 
 }

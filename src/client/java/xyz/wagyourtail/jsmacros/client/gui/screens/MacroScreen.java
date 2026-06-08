@@ -198,16 +198,12 @@ public class MacroScreen extends BaseScreen {
     }
 
     @Override
-    public void render(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
-        if (drawContext == null) {
-            return;
-        }
-
+    public void extractRenderState(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
         topbar.render(drawContext, mouseX, mouseY, delta);
 
         for (GuiEventListener b : ImmutableList.copyOf(this.children())) {
             if (b instanceof Renderable) {
-                ((Renderable) b).render(drawContext, mouseX, mouseY, delta);
+                ((Renderable) b).extractRenderState(drawContext, mouseX, mouseY, delta);
             }
         }
 
@@ -219,9 +215,9 @@ public class MacroScreen extends BaseScreen {
         drawContext.fill(this.width / 6 * 2, 0, this.width / 6 * 2 + 2, 20, 0xFFFFFFFF);
         drawContext.fill(this.width / 6 * 3 + 1, 0, this.width / 6 * 3 + 3, 20, 0xFFFFFFFF);
         drawContext.fill(0, 20, width, 22, 0xFFFFFFFF);
-        drawContext.drawCenteredString(this.font, JsMacrosClient.clientCore.profile.getCurrentProfileName(), this.width * 8 / 12, 5, 0xFF7F7F7F);
+        drawContext.centeredText(this.font, JsMacrosClient.clientCore.profile.getCurrentProfileName(), this.width * 8 / 12, 5, 0xFF7F7F7F);
         
-        super.render(drawContext, mouseX, mouseY, delta);
+        super.extractRenderState(drawContext, mouseX, mouseY, delta);
     }
 
     @Override

@@ -13,6 +13,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.server.network.EventLoopGroupHolder;
 import net.minecraft.world.level.storage.LevelStorageException;
 import net.minecraft.world.level.storage.LevelStorageSource;
 import org.jetbrains.annotations.Nullable;
@@ -355,7 +356,7 @@ public class FClient extends PerExecLibrary {
             throw new IllegalThreadStateException("pinging from main thread is not supported!");
         }
         Semaphore semaphore = new Semaphore(0);
-        TickBasedEvents.serverListPinger.pingServer(info, () -> {}, semaphore::release);
+        TickBasedEvents.serverListPinger.pingServer(info, () -> {}, semaphore::release, EventLoopGroupHolder.remote(true));
         semaphore.acquire();
         return new ServerInfoHelper(info);
     }
@@ -371,7 +372,7 @@ public class FClient extends PerExecLibrary {
         CompletableFuture.runAsync(() -> {
             ServerData info = new ServerData("", ip, ServerData.Type.OTHER);
             try {
-                TickBasedEvents.serverListPinger.pingServer(info, () -> {}, () -> callback.accept(new ServerInfoHelper(info), null));
+                TickBasedEvents.serverListPinger.pingServer(info, () -> {}, () -> callback.accept(new ServerInfoHelper(info), null), EventLoopGroupHolder.remote(true));
             } catch (IOException e) {
                 callback.accept(null, e);
             }
@@ -420,7 +421,6 @@ public class FClient extends PerExecLibrary {
      */
     public void grabMouse() {
         mc.options.pauseOnLostFocus = false;
-        mc.setWindowActive(true);
         mc.mouseHandler.grabMouse();
     }
 

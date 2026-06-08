@@ -102,7 +102,7 @@ public class EventChooser extends OverlayContainer {
     public void render(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
         renderBackground(drawContext);
 
-        drawContext.drawWordWrap(textRenderer, eventText, x + 3, y + 3, width - 14, 0xFFFFFFFF, false);
+        drawContext.textWithWordWrap(textRenderer, eventText, x + 3, y + 3, width - 14, 0xFFFFFFFF, false);
 
         drawContext.fill(x + 2, y + 12, x + width - 2, y + 13, 0xFFFFFFFF);
         drawContext.fill(x + 2, y + height - 15, x + width - 2, y + height - 14, 0xFFFFFFFF);
@@ -120,7 +120,7 @@ public class EventChooser extends OverlayContainer {
 
                 // fill
                 drawContext.fill(mouseX - 2, mouseY - textRenderer.lineHeight - 3, mouseX + width + 2, mouseY, 0xFF000000);
-                drawContext.drawString(textRenderer, b.getMessage(), mouseX, mouseY - textRenderer.lineHeight - 1, 0xFFFFFFFF);
+                drawContext.text(textRenderer, b.getMessage(), mouseX, mouseY - textRenderer.lineHeight - 1, 0xFFFFFFFF);
             }
         }
     }

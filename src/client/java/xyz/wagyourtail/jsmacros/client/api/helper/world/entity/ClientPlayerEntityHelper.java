@@ -6,8 +6,10 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
@@ -23,6 +25,7 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -463,10 +466,11 @@ public class ClientPlayerEntityHelper<T extends LocalPlayer> extends PlayerEntit
         if (entity.getRaw() == mc.player) {
             throw new AssertionError("Can't interact with self!");
         }
+        var rawEntity = entity.getRaw();
         InteractionHand hand = offHand ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
         boolean joinedMain = JsMacrosClient.clientCore.profile.checkJoinedThreadStack();
         if (joinedMain) {
-            InteractionResult result = mc.gameMode.interact(mc.player, entity.getRaw(), hand);
+            InteractionResult result = mc.gameMode.interact(mc.player, rawEntity, new EntityHitResult(rawEntity), hand);
             assert mc.player != null;
             if (result.consumesAction()) {
                 mc.player.swing(hand);
@@ -474,7 +478,7 @@ public class ClientPlayerEntityHelper<T extends LocalPlayer> extends PlayerEntit
         } else {
             Semaphore wait = new Semaphore(await ? 0 : 1);
             mc.execute(() -> {
-                InteractionResult result = mc.gameMode.interact(mc.player, entity.getRaw(), hand);
+                InteractionResult result = mc.gameMode.interact(mc.player, rawEntity, new EntityHitResult(rawEntity), hand);
                 assert mc.player != null;
                 if (result.consumesAction()) {
                     mc.player.swing(hand);
@@ -717,7 +721,7 @@ public class ClientPlayerEntityHelper<T extends LocalPlayer> extends PlayerEntit
     public Map<String, Integer> getItemCooldownsRemainingTicks() {
         int tick = ((IItemCooldownManager) base.getCooldowns()).jsmacros_getManagerTicks();
         Map<Item, IItemCooldownEntry> map = ((IItemCooldownManager) base.getCooldowns()).jsmacros_getCooldownItems();
-        return map.entrySet().stream().collect(Collectors.toMap(e -> e.getKey().getName().getString(), e -> e.getValue().jsmacros_getEndTick() - tick));
+        return map.entrySet().stream().collect(Collectors.toMap(e -> BuiltInRegistries.ITEM.getKey(e.getKey()).toString(), e -> e.getValue().jsmacros_getEndTick() - tick));
     }
 
     /**
@@ -744,7 +748,7 @@ public class ClientPlayerEntityHelper<T extends LocalPlayer> extends PlayerEntit
     public Map<String, Integer> getTicksSinceCooldownsStart() {
         int tick = ((IItemCooldownManager) base.getCooldowns()).jsmacros_getManagerTicks();
         Map<Item, IItemCooldownEntry> map = ((IItemCooldownManager) base.getCooldowns()).jsmacros_getCooldownItems();
-        return map.entrySet().stream().collect(Collectors.toMap(e -> e.getKey().getName().getString(), e -> e.getValue().jsmacros_getStartTick() - tick));
+        return map.entrySet().stream().collect(Collectors.toMap(e -> e.getKey().getName(e.getKey().getDefaultInstance()).getString(), e -> e.getValue().jsmacros_getStartTick() - tick));
     }
 
     /**

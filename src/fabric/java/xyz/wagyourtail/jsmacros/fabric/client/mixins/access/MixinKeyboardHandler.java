@@ -21,7 +21,7 @@ public class MixinKeyboardHandler {
 
     @WrapOperation(method = "charTyped", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/Screen;charTyped(Lnet/minecraft/client/input/CharacterEvent;)Z"))
     private boolean onCharTyped1(Screen instance, CharacterEvent event, Operation<Boolean> original) {
-        ((IScreenInternal) instance).jsmacros_charTyped((char) event.codepoint(), event.modifiers());
+        ((IScreenInternal) instance).jsmacros_charTyped((char) event.codepoint(), 0);
         return original.call(instance, event);
     }
 

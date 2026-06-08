@@ -625,8 +625,9 @@ public class InteractionManagerHelper extends BaseHelper<MultiPlayerGameMode> {
         }
         InteractionHand hand = offHand ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
         boolean joinedMain = JsMacrosClient.clientCore.profile.checkJoinedThreadStack();
+        var rawEntity = entity.getRaw();
         if (joinedMain) {
-            InteractionResult result = base.interact(mc.player, entity.getRaw(), hand);
+            InteractionResult result = base.interact(mc.player, rawEntity, new EntityHitResult(rawEntity), hand);
             assert mc.player != null;
             if (result.consumesAction()) {
                 mc.player.swing(hand);
@@ -634,7 +635,7 @@ public class InteractionManagerHelper extends BaseHelper<MultiPlayerGameMode> {
         } else {
             Semaphore wait = new Semaphore(await ? 0 : 1);
             mc.execute(() -> {
-                InteractionResult result = base.interact(mc.player, entity.getRaw(), hand);
+                InteractionResult result = base.interact(mc.player, rawEntity, new EntityHitResult(rawEntity), hand);
                 assert mc.player != null;
                 if (result.consumesAction()) {
                     mc.player.swing(hand);

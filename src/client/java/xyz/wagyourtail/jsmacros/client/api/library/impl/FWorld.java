@@ -23,6 +23,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
+import net.minecraft.world.attribute.EnvironmentAttributes;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.targeting.TargetingConditions;
@@ -617,7 +618,7 @@ public class FWorld extends BaseLibrary {
     public String getDimension() {
         ClientLevel world = mc.level;
         if (world == null) return null;
-        return world.dimension().location().toString();
+        return world.dimension().identifier().toString();
     }
 
     /**
@@ -655,7 +656,7 @@ public class FWorld extends BaseLibrary {
     public long getTimeOfDay() {
         ClientLevel world = mc.level;
         if (world == null) return -1;
-        return world.getDayTime();
+        return world.getDefaultClockTime();
     }
 
     /**
@@ -750,7 +751,7 @@ public class FWorld extends BaseLibrary {
     public int getMoonPhase() {
         ClientLevel world = mc.level;
         if (world == null) return -1;
-        return world.getMoonPhase();
+        return world.environmentAttributes().getValue(EnvironmentAttributes.MOON_PHASE, BlockPos.ZERO).index();
     }
 
     /**

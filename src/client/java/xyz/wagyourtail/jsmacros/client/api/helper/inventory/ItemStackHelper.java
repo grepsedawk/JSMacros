@@ -252,7 +252,7 @@ public class ItemStackHelper extends BaseHelper<ItemStack> {
     public double getAttackDamage() {
         assert mc.player != null;
         ItemAttributeModifiers lv = base.getOrDefault(DataComponents.ATTRIBUTE_MODIFIERS, ItemAttributeModifiers.EMPTY);
-        return lv.compute(mc.player.getAttributeBaseValue(Attributes.ATTACK_DAMAGE), EquipmentSlot.MAINHAND);
+        return lv.compute(Attributes.ATTACK_DAMAGE, mc.player.getAttributeBaseValue(Attributes.ATTACK_DAMAGE), EquipmentSlot.MAINHAND);
     }
 
     /**
@@ -260,7 +260,7 @@ public class ItemStackHelper extends BaseHelper<ItemStack> {
      * @since 1.2.0
      */
     public TextHelper getDefaultName() {
-        return TextHelper.wrap(base.getItem().getName());
+        return TextHelper.wrap(base.getItemName());
     }
 
     /**
@@ -329,7 +329,7 @@ public class ItemStackHelper extends BaseHelper<ItemStack> {
      */
     @DocletReplaceReturn("JavaList<ItemTag>")
     public List<String> getTags() {
-        return base.getItemHolder().tags().map(t -> t.location().toString()).collect(Collectors.toList());
+        return base.tags().map(t -> t.location().toString()).collect(Collectors.toList());
     }
 
     /**

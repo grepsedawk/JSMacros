@@ -67,25 +67,22 @@ public class ScriptScreen extends BaseScreen {
     }
 
     @Override
-    public void render(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
-        if (drawContext == null) {
-            return;
-        }
+    public void extractRenderState(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
         if (bgStyle == 0) {
-            this.renderMenuBackground(drawContext);
+            this.extractMenuBackground(drawContext);
         }
 
         if (drawTitle) {
-            drawContext.drawCenteredString(this.font, this.title, this.width / 2, 20, 0xFFFFFFFF);
+            drawContext.centeredText(this.font, this.title, this.width / 2, 20, 0xFFFFFFFF);
         }
 
-        super.render(drawContext, mouseX, mouseY, delta);
+        super.extractRenderState(drawContext, mouseX, mouseY, delta);
 
         for (GuiEventListener button : ImmutableList.copyOf(this.children())) {
             if (!(button instanceof Renderable)) {
                 continue;
             }
-            ((Renderable) button).render(drawContext, mouseX, mouseY, delta);
+            ((Renderable) button).extractRenderState(drawContext, mouseX, mouseY, delta);
         }
 
         ((IScreenInternal) this).jsmacros_render(drawContext, mouseX, mouseY, delta);

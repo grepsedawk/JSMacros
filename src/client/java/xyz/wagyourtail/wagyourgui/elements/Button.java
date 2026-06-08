@@ -81,12 +81,12 @@ public class Button extends AbstractButton {
     protected void renderMessage(GuiGraphicsExtractor drawContext) {
         for (int i = 0; i < visibleLines; ++i) {
             int w = textRenderer.width(textLines.get(i));
-            drawContext.drawString(textRenderer, textLines.get(i), (int) (horizCenter ? getX() + width / 2F - w / 2F : getX() + 1), getY() + 2 + verticalCenter + (i * textRenderer.lineHeight), textColor, false);
+            drawContext.text(textRenderer, textLines.get(i), (int) (horizCenter ? getX() + width / 2F - w / 2F : getX() + 1), getY() + 2 + verticalCenter + (i * textRenderer.lineHeight), textColor, false);
         }
     }
 
     @Override
-    public void renderWidget(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
+    public void extractContents(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
         if (this.visible) {
             // fill
             if (mouseX - getX() >= 0 && mouseX - getX() - width <= 0 && mouseY - getY() >= 0 && mouseY - getY() - height <= 0 && this.active || forceHover) {

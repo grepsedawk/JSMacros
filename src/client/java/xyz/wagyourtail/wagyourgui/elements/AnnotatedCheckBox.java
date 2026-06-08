@@ -36,12 +36,12 @@ public class AnnotatedCheckBox extends Button {
         int width = this.width - height;
         for (int i = 0; i < visibleLines; ++i) {
             int w = textRenderer.width(textLines.get(i));
-            drawContext.drawString(textRenderer, textLines.get(i), (int) (horizCenter ? getX() + width / 2F - w / 2F : getX() + 1), getY() + 2 + verticalCenter + (i * textRenderer.lineHeight), textColor, false);
+            drawContext.text(textRenderer, textLines.get(i), (int) (horizCenter ? getX() + width / 2F - w / 2F : getX() + 1), getY() + 2 + verticalCenter + (i * textRenderer.lineHeight), textColor, false);
         }
     }
 
     @Override
-    public void renderWidget(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
+    public void extractContents(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
         if (this.visible) {
             this.renderMessage(drawContext);
 

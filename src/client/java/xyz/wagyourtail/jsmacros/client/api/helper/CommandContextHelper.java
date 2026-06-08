@@ -82,7 +82,7 @@ public class CommandContextHelper extends BaseEvent {
         } else if (arg instanceof Identifier) {
             arg = ((Identifier) arg).toString();
         } else if (arg instanceof ItemInput) {
-            arg = new ItemStackHelper(((ItemInput) arg).createItemStack(1, false));
+            arg = new ItemStackHelper(((ItemInput) arg).createItemStack(1));
         } else if (arg instanceof Tag) {
             arg = NBTElementHelper.resolve((Tag) arg);
         } else if (arg instanceof Component) {

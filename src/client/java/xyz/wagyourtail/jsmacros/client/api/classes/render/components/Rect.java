@@ -305,7 +305,7 @@ public class Rect implements RenderElement, Alignable<Rect> {
     }
 
     @Override
-    public void render(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
+    public void extractRenderState(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
         Matrix3x2fStack matrices = drawContext.pose();
         matrices.pushMatrix();
         setupMatrix(matrices, x1, y1, 1, rotation, getWidth(), getHeight(), rotateCenter);

@@ -6,8 +6,8 @@ import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
+import net.fabricmc.fabric.api.client.command.v2.ClientCommands;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
@@ -31,24 +31,24 @@ public class CommandBuilderFabric extends CommandBuilder {
     private final Stack<Pair<Boolean, Function<CommandBuildContext, ArgumentBuilder<FabricClientCommandSource, ?>>>> pointer = new Stack<>();
 
     public CommandBuilderFabric(String name) {
-        Function<CommandBuildContext, ArgumentBuilder<FabricClientCommandSource, ?>> head = (a) -> ClientCommandManager.literal(name);
+        Function<CommandBuildContext, ArgumentBuilder<FabricClientCommandSource, ?>> head = (a) -> ClientCommands.literal(name);
         this.name = name;
         pointer.push(new Pair<>(false, head));
     }
 
     @Override
     protected void argument(String name, Supplier<ArgumentType<?>> type) {
-        pointer.push(new Pair<>(true, (e) -> ClientCommandManager.argument(name, type.get())));
+        pointer.push(new Pair<>(true, (e) -> ClientCommands.argument(name, type.get())));
     }
 
     @Override
     protected void argument(String name, Function<CommandBuildContext, ArgumentType<?>> type) {
-        pointer.push(new Pair<>(true, (e) -> ClientCommandManager.argument(name, type.apply(e))));
+        pointer.push(new Pair<>(true, (e) -> ClientCommands.argument(name, type.apply(e))));
     }
 
     @Override
     public CommandBuilder literalArg(String name) {
-        pointer.push(new Pair<>(false, (e) -> ClientCommandManager.literal(name)));
+        pointer.push(new Pair<>(false, (e) -> ClientCommands.literal(name)));
         return this;
     }
 
@@ -94,7 +94,7 @@ public class CommandBuilderFabric extends CommandBuilder {
     @Override
     public CommandBuilder register() {
         or(1);
-        CommandDispatcher<FabricClientCommandSource> dispatcher = ClientCommandManager.getActiveDispatcher();
+        CommandDispatcher<FabricClientCommandSource> dispatcher = ClientCommands.getActiveDispatcher();
         Function<CommandBuildContext, ArgumentBuilder<FabricClientCommandSource, ?>> head = pointer.pop().getU();
         if (dispatcher != null) {
             ClientPacketListener networkHandler = Minecraft.getInstance().getConnection();
@@ -110,7 +110,7 @@ public class CommandBuilderFabric extends CommandBuilder {
 
     @Override
     public CommandBuilder unregister() throws IllegalAccessException {
-        CommandNodeAccessor.remove(ClientCommandManager.getActiveDispatcher().getRoot(), name);
+        CommandNodeAccessor.remove(ClientCommands.getActiveDispatcher().getRoot(), name);
         ClientPacketListener p = Minecraft.getInstance().getConnection();
         if (p != null) {
             CommandDispatcher<?> cd = p.getCommands();

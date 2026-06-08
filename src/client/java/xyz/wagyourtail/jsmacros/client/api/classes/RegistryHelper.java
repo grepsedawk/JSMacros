@@ -120,7 +120,7 @@ public class RegistryHelper {
     @DocletReplaceParams("id: CanOmitNamespace<ItemId>, nbt: string")
     public ItemStackHelper getItemStack(String id, String nbt) throws CommandSyntaxException {
         ItemParser reader = new ItemParser(Objects.requireNonNull(mc.getConnection()).registryAccess());
-        ItemParser.ItemResult itemResult = reader.parse(new StringReader(parseNameSpace(id) + nbt));
+        var itemResult = reader.parse(new StringReader(parseNameSpace(id) + nbt));
         ItemStack stack = new ItemStack(itemResult.item());
         stack.applyComponents(itemResult.components());
         return new CreativeItemStackHelper(stack);

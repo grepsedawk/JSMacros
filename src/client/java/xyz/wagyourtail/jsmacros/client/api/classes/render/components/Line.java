@@ -267,7 +267,7 @@ public class Line implements RenderElement, Alignable<Line> {
     }
 
     @Override
-    public void render(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
+    public void extractRenderState(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
         Matrix3x2fStack matrices = drawContext.pose();
         matrices.pushMatrix();
         setupMatrix(matrices, x1, y1, 1, rotation, getScaledWidth(), getScaledHeight(), rotateCenter);

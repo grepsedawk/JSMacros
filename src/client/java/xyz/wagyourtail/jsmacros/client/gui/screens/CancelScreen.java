@@ -97,11 +97,7 @@ public class CancelScreen extends BaseScreen {
     }
 
     @Override
-    public void render(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
-        if (drawContext == null) {
-            return;
-        }
-
+    public void extractRenderState(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
         List<BaseScriptContext<?>> tl = new ArrayList<>(JsMacrosClient.clientCore.getContexts());
 
         for (RunningContextContainer r : ImmutableList.copyOf(this.running)) {
@@ -117,10 +113,7 @@ public class CancelScreen extends BaseScreen {
         }
 
         for (GuiEventListener b : ImmutableList.copyOf(this.children())) {
-            if (!(b instanceof Renderable)) {
-                continue;
-            }
-            ((Renderable) b).render(drawContext, mouseX, mouseY, delta);
+            if (b instanceof Renderable r) r.extractRenderState(drawContext, mouseX, mouseY, delta);
         }
     }
 

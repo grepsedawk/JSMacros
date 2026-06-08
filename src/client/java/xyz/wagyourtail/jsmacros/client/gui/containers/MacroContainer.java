@@ -250,7 +250,7 @@ public class MacroContainer extends MultiElementContainer<MacroScreen> {
             // overlay
             if (keyBtn.hovering && keyBtn.cantRenderAllText()) {
                 drawContext.fill(mouseX - 2, mouseY - textRenderer.lineHeight - 3, mouseX + textRenderer.width(keyBtn.getMessage()) + 2, mouseY, 0xFF000000);
-                drawContext.drawString(textRenderer, keyBtn.getMessage(), mouseX, mouseY - textRenderer.lineHeight - 1, 0xFFFFFFFF);
+                drawContext.text(textRenderer, keyBtn.getMessage(), mouseX, mouseY - textRenderer.lineHeight - 1, 0xFFFFFFFF);
             }
             if (fileBtn.hovering && fileBtn.cantRenderAllText()) {
                 List<FormattedCharSequence> lines = textRenderer.split(fileBtn.getMessage(), this.x + this.width - mouseX);
@@ -259,7 +259,7 @@ public class MacroContainer extends MultiElementContainer<MacroScreen> {
                 drawContext.fill(mouseX - 2, top - 1, mouseX + width + 2, mouseY, 0xFF000000);
                 for (int i = 0; i < lines.size(); ++i) {
                     int wi = textRenderer.width(lines.get(i)) / 2;
-                    drawContext.drawString(textRenderer, lines.get(i), mouseX + width / 2 - wi, top + textRenderer.lineHeight * i, 0xFFFFFFFF, false);
+                    drawContext.text(textRenderer, lines.get(i), mouseX + width / 2 - wi, top + textRenderer.lineHeight * i, 0xFFFFFFFF, false);
                 }
             }
         }

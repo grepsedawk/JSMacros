@@ -175,7 +175,7 @@ public class LivingEntityHelper<T extends LivingEntity> extends EntityHelper<T> 
      * @since 1.8.4
      */
     public int getDefaultHealth() {
-        return base.invulnerableDuration;
+        return (int) base.getMaxHealth();
     }
 
     /**

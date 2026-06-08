@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.gui.overlays;
 
-import net.minecraft.Util;
+import net.minecraft.util.Util;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
@@ -44,7 +44,7 @@ public class AboutOverlay extends OverlayContainer {
     protected void renderMessage(GuiGraphicsExtractor drawContext) {
         for (int i = 0; i < lines; ++i) {
             int w = textRenderer.width(text.get(i));
-            drawContext.drawString(textRenderer, text.get(i), (int) (x + width / 2F - w / 2F), y + 2 + vcenter + (i * textRenderer.lineHeight), 0xFFFFFFFF, false);
+            drawContext.text(textRenderer, text.get(i), (int) (x + width / 2F - w / 2F), y + 2 + vcenter + (i * textRenderer.lineHeight), 0xFFFFFFFF, false);
         }
     }
 
@@ -52,7 +52,7 @@ public class AboutOverlay extends OverlayContainer {
     public void render(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
         renderBackground(drawContext);
 
-        drawContext.drawWordWrap(textRenderer, Component.translatable("jsmacros.about"), x + 3, y + 3, width - 14, 0xFFFFFFFF, false);
+        drawContext.textWithWordWrap(textRenderer, Component.translatable("jsmacros.about"), x + 3, y + 3, width - 14, 0xFFFFFFFF, false);
         renderMessage(drawContext);
 
         drawContext.fill(x + 2, y + 12, x + width - 2, y + 13, 0xFFFFFFFF);

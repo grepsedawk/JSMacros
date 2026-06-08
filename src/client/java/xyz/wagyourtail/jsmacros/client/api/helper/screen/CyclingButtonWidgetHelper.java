@@ -312,7 +312,7 @@ public class CyclingButtonWidgetHelper<T> extends ClickableWidgetHelper<CyclingB
         @Override
         public CyclingButtonWidgetHelper<T> createWidget() {
             AtomicReference<CyclingButtonWidgetHelper<T>> b = new AtomicReference<>(null);
-            CycleButton.Builder<T> builder = CycleButton.builder(obj -> valueToText.apply(obj).getRaw());
+            CycleButton.Builder<T> builder = CycleButton.builder(obj -> valueToText.apply(obj).getRaw(), value);
             if (optionTextOmitted || StringUtils.isBlank(optionText.getString())) {
                 builder.displayOnlyValue();
             }
@@ -321,7 +321,6 @@ public class CyclingButtonWidgetHelper<T> extends ClickableWidgetHelper<CyclingB
             } else {
                 builder.withValues(defaultValues);
             }
-            builder.withInitialValue(value);
             CycleButton<T> cyclingButton = builder.create(getX(), getY(), getWidth(), getHeight(), optionText, (btn, val) -> {
                 try {
                     if (action != null) {

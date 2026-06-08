@@ -1,11 +1,12 @@
 package xyz.wagyourtail.jsmacros.client.api.classes.render.components3d;
 
-import com.mojang.blaze3d.platform.DepthTestFunction;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.ShapeRenderer;
+import net.minecraft.gizmos.CuboidGizmo;
+import net.minecraft.gizmos.GizmoProperties;
+import net.minecraft.gizmos.GizmoStyle;
+import net.minecraft.gizmos.Gizmos;
+import net.minecraft.world.phys.AABB;
 import xyz.wagyourtail.doclet.DocletIgnore;
 import xyz.wagyourtail.jsmacros.api.math.Pos3D;
 import xyz.wagyourtail.jsmacros.api.math.Vec3D;
@@ -13,7 +14,6 @@ import xyz.wagyourtail.jsmacros.client.api.classes.render.Draw3D;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.BlockPosHelper;
 import xyz.wagyourtail.jsmacros.client.util.ColorUtil;
 
-import java.lang.reflect.Field;
 import java.util.Objects;
 
 /**
@@ -21,23 +21,6 @@ import java.util.Objects;
  */
 @SuppressWarnings("unused")
 public class Box implements RenderElement3D<Box> {
-    private static final Field lineDepthTestFunction;
-    private static final DepthTestFunction oldlineDepthTestFunction;
-    private static final Field boxDepthTestFunction;
-    private static final DepthTestFunction oldboxDepthTestFunction;
-
-    static {
-        try {
-            lineDepthTestFunction = RenderPipelines.LINES.getClass().getDeclaredField("depthTestFunction");
-            lineDepthTestFunction.setAccessible(true);
-            oldlineDepthTestFunction = (DepthTestFunction) lineDepthTestFunction.get(RenderPipelines.LINES);
-            boxDepthTestFunction = RenderPipelines.DEBUG_FILLED_BOX.getClass().getDeclaredField("depthTestFunction");
-            boxDepthTestFunction.setAccessible(true);
-            oldboxDepthTestFunction = (DepthTestFunction) boxDepthTestFunction.get(RenderPipelines.DEBUG_FILLED_BOX);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-    }
     public Vec3D pos;
     public int color;
     public int fillColor;
@@ -189,51 +172,12 @@ public class Box implements RenderElement3D<Box> {
     @Override
     @DocletIgnore
     public void render(PoseStack matrixStack, MultiBufferSource consumers, float tickDelta) {
-        float x1 = (float) pos.x1;
-        float y1 = (float) pos.y1;
-        float z1 = (float) pos.z1;
-        float x2 = (float) pos.x2;
-        float y2 = (float) pos.y2;
-        float z2 = (float) pos.z2;
-
-        boolean seeThrough = !this.cull;
-        MultiBufferSource.BufferSource immediate = (MultiBufferSource.BufferSource) consumers;
-        try {
-            if (seeThrough) {
-                lineDepthTestFunction.set(RenderPipelines.LINES, DepthTestFunction.NO_DEPTH_TEST);
-                boxDepthTestFunction.set(RenderPipelines.DEBUG_FILLED_BOX, DepthTestFunction.NO_DEPTH_TEST);
-            }
-            RenderType linesLayer = RenderType.lines();
-            RenderType fillLayer = RenderType.debugFilledBox();
-
-            if (this.fill) {
-                float fa = ((fillColor >> 24) & 0xFF) / 255.0F;
-                float fr = ((fillColor >> 16) & 0xFF) / 255.0F;
-                float fg = ((fillColor >> 8) & 0xFF) / 255.0F;
-                float fb = (fillColor & 0xFF) / 255.0F;
-                ShapeRenderer.addChainedFilledBoxVertices(matrixStack, consumers.getBuffer(fillLayer), x1, y1, z1, x2, y2, z2, fr, fg, fb, fa);
-            }
-
-            float r = ((color >> 16) & 0xFF) / 255.0F;
-            float g = ((color >> 8) & 0xFF) / 255.0F;
-            float b = (color & 0xFF) / 255.0F;
-            float a = ((color >> 24) & 0xFF) / 255.0F;
-            ShapeRenderer.renderLineBox(matrixStack.last(), consumers.getBuffer(linesLayer), x1, y1, z1, x2, y2, z2, r, g, b, a);
-            if (seeThrough) {
-                immediate.endBatch();
-            }
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } finally {
-
-            if (seeThrough) {
-                try {
-                    lineDepthTestFunction.set(RenderPipelines.LINES, oldlineDepthTestFunction);
-                    boxDepthTestFunction.set(RenderPipelines.DEBUG_FILLED_BOX, oldboxDepthTestFunction);
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                }
-            }
+        GizmoProperties gizmo = Gizmos.addGizmo(new CuboidGizmo(
+                new AABB(pos.getStart().toMojangDoubleVector(), pos.getEnd().toMojangDoubleVector()),
+                new GizmoStyle(color, 2.5f, fill ? fillColor : 0),
+                false));
+        if (!this.cull) {
+            gizmo.setAlwaysOnTop();
         }
     }
 

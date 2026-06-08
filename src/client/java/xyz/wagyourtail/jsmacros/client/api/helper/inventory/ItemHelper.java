@@ -4,9 +4,13 @@ import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.client.Minecraft;
 import net.minecraft.commands.arguments.item.ItemParser;
+import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
@@ -135,7 +139,7 @@ public class ItemHelper extends BaseHelper<Item> {
      * @since 1.8.4
      */
     public boolean hasRecipeRemainder() {
-        return !base.getCraftingRemainder().isEmpty();
+        return base.getCraftingRemainder() != null;
     }
 
     /**
@@ -144,7 +148,7 @@ public class ItemHelper extends BaseHelper<Item> {
      */
     @Nullable
     public ItemStackHelper getRecipeRemainder() {
-        return new ItemStackHelper(base.getCraftingRemainder());
+        return new ItemStackHelper(base.getCraftingRemainder().create());
     }
 
     /**
@@ -166,7 +170,7 @@ public class ItemHelper extends BaseHelper<Item> {
      * @since 1.8.4
      */
     public String getName() {
-        return base.getName().getString();
+        return base.components().getOrDefault(DataComponents.ITEM_NAME, CommonComponents.EMPTY).getString();
     }
 
     /**
@@ -205,7 +209,7 @@ public class ItemHelper extends BaseHelper<Item> {
         if (types == null) {
             return false;
         }
-        return types.types() == DamageTypeTags.IS_FIRE;
+        return types.types().unwrap().left().map(t -> t.equals(DamageTypeTags.IS_FIRE)).orElse(false);
     }
 
     /**
@@ -269,7 +273,7 @@ public class ItemHelper extends BaseHelper<Item> {
      */
     public ItemStackHelper getStackWithNbt(String nbt) throws CommandSyntaxException {
         ItemParser reader = new ItemParser(Objects.requireNonNull(mc.getConnection()).registryAccess());
-        ItemParser.ItemResult itemResult = reader.parse(new StringReader(getId() + nbt));
+        var itemResult = reader.parse(new StringReader(getId() + nbt));
         return new ItemStackHelper(new ItemStack(itemResult.item()));
     }
 

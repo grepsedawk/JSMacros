@@ -17,7 +17,7 @@ public interface RenderElement extends Renderable {
 
     @DocletIgnore
     default void render3D(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
-        render(drawContext, mouseX, mouseY, delta);
+        extractRenderState(drawContext, mouseX, mouseY, delta);
     }
 
     @DocletIgnore

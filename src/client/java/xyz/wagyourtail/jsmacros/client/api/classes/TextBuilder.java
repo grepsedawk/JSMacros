@@ -11,6 +11,7 @@ import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.ItemStackTemplate;
 import xyz.wagyourtail.doclet.DocletReplaceParams;
 import xyz.wagyourtail.jsmacros.access.CustomClickEvent;
 import xyz.wagyourtail.jsmacros.client.JsMacrosClient;
@@ -159,7 +160,11 @@ public class TextBuilder {
      * @since 1.3.0
      */
     public TextBuilder withShowItemHover(ItemStackHelper item) {
-        self.withStyle(style -> style.withHoverEvent(new HoverEvent.ShowItem(item.getRaw())));
+        var is = item.getRaw();
+        if (!is.isEmpty()) {
+            var template = ItemStackTemplate.fromNonEmptyStack(is);
+            self.withStyle(style -> style.withHoverEvent(new HoverEvent.ShowItem(template)));
+        }
         return this;
     }
 

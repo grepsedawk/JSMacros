@@ -298,7 +298,7 @@ public class Image implements RenderElement, Alignable<Image> {
     }
 
     @Override
-    public void render(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
+    public void extractRenderState(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
         Matrix3x2fStack matrices = drawContext.pose();
         matrices.pushMatrix();
         setupMatrix(matrices, x, y, 1, rotation, getWidth(), getHeight(), rotateCenter);

@@ -211,7 +211,7 @@ public class TextInput extends Button {
     @Override
     protected void renderMessage(GuiGraphicsExtractor drawContext) {
         drawContext.fill(selStart, height > 9 ? getY() + 2 : getY(), Math.min(selEnd, getX() + width - 2), (height > 9 ? getY() + 2 : getY()) + textRenderer.lineHeight, selColor);
-        drawContext.drawString(textRenderer, textRenderer.plainSubstrByWidth(content, width - 4), getX() + 2, height > 9 ? getY() + 2 :
+        drawContext.text(textRenderer, textRenderer.plainSubstrByWidth(content, width - 4), getX() + 2, height > 9 ? getY() + 2 :
                 getY(), textColor);
     }
 

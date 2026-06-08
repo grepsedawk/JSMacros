@@ -1,10 +1,10 @@
 package xyz.wagyourtail.jsmacros.client.api.classes.render.components3d;
 
-import com.mojang.blaze3d.platform.DepthTestFunction;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.gizmos.GizmoProperties;
+import net.minecraft.gizmos.Gizmos;
+import net.minecraft.gizmos.LineGizmo;
 import xyz.wagyourtail.doclet.DocletIgnore;
 import xyz.wagyourtail.jsmacros.api.math.Pos3D;
 import xyz.wagyourtail.jsmacros.api.math.Vec3D;
@@ -12,7 +12,6 @@ import xyz.wagyourtail.jsmacros.client.api.classes.render.Draw3D;
 import xyz.wagyourtail.jsmacros.client.api.helper.world.BlockPosHelper;
 import xyz.wagyourtail.jsmacros.client.util.ColorUtil;
 
-import java.lang.reflect.Field;
 import java.util.Objects;
 
 /**
@@ -20,18 +19,6 @@ import java.util.Objects;
  */
 @SuppressWarnings("unused")
 public class Line3D implements RenderElement3D<Line3D> {
-    private static final Field lineDepthTestFunction;
-    private static final DepthTestFunction oldlineDepthTestFunction;
-
-    static {
-        try {
-            lineDepthTestFunction = RenderPipelines.LINES.getClass().getDeclaredField("depthTestFunction");
-            lineDepthTestFunction.setAccessible(true);
-            oldlineDepthTestFunction = (DepthTestFunction) lineDepthTestFunction.get(RenderPipelines.LINES);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new RuntimeException("JS-Macros 3D Rendering failed to reflect into RenderLayer for Line3D", e);
-        }
-    }
     public Vec3D pos;
     public int color;
     public boolean cull;
@@ -107,36 +94,14 @@ public class Line3D implements RenderElement3D<Line3D> {
     @Override
     @DocletIgnore
     public void render(PoseStack matrixStack, MultiBufferSource consumers, float tickDelta) {
-        boolean seeThrough = !this.cull;
-        var consumer = consumers.getBuffer(RenderType.lines());
-
-        try {
-            if (seeThrough) {
-                lineDepthTestFunction.set(RenderPipelines.LINES, DepthTestFunction.NO_DEPTH_TEST);
-            }
-            PoseStack.Pose entry = matrixStack.last();
-
-            // Draw 3 lines in each of the normals for consistency
-            consumer.addVertex(entry, (float) pos.x1, (float) pos.y1, (float) pos.z1).setColor(color).setNormal(entry, 1, 0, 0);
-            consumer.addVertex(entry, (float) pos.x2, (float) pos.y2, (float) pos.z2).setColor(color).setNormal(entry, 1, 0, 0);
-            consumer.addVertex(entry, (float) pos.x1, (float) pos.y1, (float) pos.z1).setColor(color).setNormal(entry, 0, 1, 0);
-            consumer.addVertex(entry, (float) pos.x2, (float) pos.y2, (float) pos.z2).setColor(color).setNormal(entry, 0, 1, 0);
-            consumer.addVertex(entry, (float) pos.x1, (float) pos.y1, (float) pos.z1).setColor(color).setNormal(entry, 0, 0, 1);
-            consumer.addVertex(entry, (float) pos.x2, (float) pos.y2, (float) pos.z2).setColor(color).setNormal(entry, 0, 0, 1);
-
-          if (seeThrough && consumer instanceof MultiBufferSource.BufferSource immediate) {
-            immediate.endBatch();
-          }
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } finally {
-            if (seeThrough) {
-                try {
-                    lineDepthTestFunction.set(RenderPipelines.LINES, oldlineDepthTestFunction);
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                }
-            }
+        GizmoProperties gizmo = Gizmos.addGizmo(new LineGizmo(
+                pos.getStart().toMojangDoubleVector(),
+                pos.getEnd().toMojangDoubleVector(),
+                color,
+                LineGizmo.DEFAULT_WIDTH
+        ));
+        if (!this.cull) {
+            gizmo.setAlwaysOnTop();
         }
     }
 

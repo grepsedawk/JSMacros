@@ -173,7 +173,7 @@ public abstract class MixinClientPacketListener extends ClientCommonPacketListen
 
     @Inject(at = @At("TAIL"), method = "handleForgetLevelChunk")
     public void onUnloadChunk(ClientboundForgetLevelChunkPacket packet, CallbackInfo info) {
-        new EventChunkUnload(packet.pos().x, packet.pos().z).trigger();
+        new EventChunkUnload(packet.pos().x(), packet.pos().z()).trigger();
     }
 
     @Inject(method = "handleUpdateMobEffect", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/protocol/PacketUtils;ensureRunningOnSameThread(Lnet/minecraft/network/protocol/Packet;Lnet/minecraft/network/PacketListener;Lnet/minecraft/network/PacketProcessor;)V", shift = At.Shift.AFTER))

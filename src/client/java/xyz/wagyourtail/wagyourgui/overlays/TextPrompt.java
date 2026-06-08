@@ -47,7 +47,7 @@ public class TextPrompt extends OverlayContainer {
         this.renderBackground(drawContext);
         int lineNum = 0;
         for (FormattedCharSequence line : textRenderer.split(message, width - 4)) {
-            drawContext.drawString(textRenderer, line, (int) (x + width / 2F - textRenderer.width(line) / 2F), y + 5 + (lineNum++) * textRenderer.lineHeight, 0xFFFFFFFF, false);
+            drawContext.text(textRenderer, line, (int) (x + width / 2F - textRenderer.width(line) / 2F), y + 5 + (lineNum++) * textRenderer.lineHeight, 0xFFFFFFFF, false);
         }
         super.render(drawContext, mouseX, mouseY, delta);
     }

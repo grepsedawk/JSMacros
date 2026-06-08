@@ -97,7 +97,7 @@ public class ChunkHelper extends BaseHelper<ChunkAccess> {
      * @since 1.8.4
      */
     public int getChunkX() {
-        return base.getPos().x;
+        return base.getPos().x();
     }
 
     /**
@@ -105,7 +105,7 @@ public class ChunkHelper extends BaseHelper<ChunkAccess> {
      * @since 1.8.4
      */
     public int getChunkZ() {
-        return base.getPos().z;
+        return base.getPos().z();
     }
 
     /**

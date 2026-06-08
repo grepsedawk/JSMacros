@@ -1,6 +1,5 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world;
 
-import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -17,7 +16,7 @@ import xyz.wagyourtail.jsmacros.core.helpers.BaseHelper;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 /**
  * @author Wagyourtail
@@ -116,11 +115,7 @@ public class BlockDataHelper extends BaseHelper<BlockState> {
      * @since 1.1.7
      */
     public Map<String, String> getBlockState() {
-        Map<String, String> map = new HashMap<>();
-        for (Entry<Property<?>, Comparable<?>> e : base.getValues().entrySet()) {
-            map.put(e.getKey().getName(), Util.getPropertyName(e.getKey(), e.getValue()));
-        }
-        return map;
+        return base.getValues().collect(Collectors.toMap(e -> e.property().getName(), Property.Value::valueName));
     }
 
     /**

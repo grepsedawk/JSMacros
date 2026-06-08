@@ -220,7 +220,7 @@ public class Draw2DElement implements RenderElement, Alignable<Draw2DElement> {
     }
 
     @Override
-    public void render(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
+    public void extractRenderState(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
         Matrix3x2fStack matrices = drawContext.pose();
         matrices.pushMatrix();
         matrices.translate(x, y);

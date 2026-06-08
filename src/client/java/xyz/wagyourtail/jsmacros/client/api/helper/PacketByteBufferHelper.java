@@ -558,7 +558,7 @@ public class PacketByteBufferHelper extends BaseHelper<FriendlyByteBuf> {
      */
     public int[] readChunkPos() {
         ChunkPos pos = base.readChunkPos();
-        return new int[]{pos.x, pos.z};
+        return new int[]{pos.x(), pos.z()};
     }
 
     /**
@@ -569,7 +569,7 @@ public class PacketByteBufferHelper extends BaseHelper<FriendlyByteBuf> {
     public ChunkHelper readChunkHelper() {
         ChunkPos pos = base.readChunkPos();
         assert Minecraft.getInstance().level != null;
-        ChunkAccess chunk = Minecraft.getInstance().level.getChunk(pos.x, pos.z);
+        ChunkAccess chunk = Minecraft.getInstance().level.getChunk(pos.x(), pos.z());
         return chunk == null ? null : new ChunkHelper(chunk);
     }
 
@@ -792,7 +792,7 @@ public class PacketByteBufferHelper extends BaseHelper<FriendlyByteBuf> {
      * @since 1.8.4
      */
     public PacketByteBufferHelper writeDate(Date date) {
-        base.writeDate(date);
+        base.writeLong(date.getTime());
         return this;
     }
 
@@ -801,7 +801,7 @@ public class PacketByteBufferHelper extends BaseHelper<FriendlyByteBuf> {
      * @since 1.8.4
      */
     public Date readDate() {
-        return base.readDate();
+        return new Date(base.readLong());
     }
 
     /**
@@ -1668,7 +1668,7 @@ public class PacketByteBufferHelper extends BaseHelper<FriendlyByteBuf> {
         PACKETS.put("ProfilelessChatMessageS2CPacket", net.minecraft.network.protocol.game.ClientboundDisguisedChatPacket.class);
         PACKETS.put("PlayerListS2CPacket", net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket.class);
         PACKETS.put("EnterCombatS2CPacket", net.minecraft.network.protocol.game.ClientboundPlayerCombatEnterPacket.class);
-        PACKETS.put("OpenHorseScreenS2CPacket", net.minecraft.network.protocol.game.ClientboundHorseScreenOpenPacket.class);
+        PACKETS.put("OpenHorseScreenS2CPacket", net.minecraft.network.protocol.game.ClientboundMountScreenOpenPacket.class);
         PACKETS.put("CommandExecutionC2SPacket", net.minecraft.network.protocol.game.ServerboundChatCommandPacket.class);
         PACKETS.put("CraftRequestC2SPacket", net.minecraft.network.protocol.game.ServerboundPlaceRecipePacket.class);
         PACKETS.put("HandSwingC2SPacket", net.minecraft.network.protocol.game.ServerboundSwingPacket.class);

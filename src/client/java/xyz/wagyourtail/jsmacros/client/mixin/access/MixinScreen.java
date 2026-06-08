@@ -2,10 +2,13 @@ package xyz.wagyourtail.jsmacros.client.mixin.access;
 
 import com.google.common.collect.ImmutableList;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.ActiveTextCollector;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.TextAlignment;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.ChatComponent;
 import net.minecraft.client.gui.components.Checkbox;
 import net.minecraft.client.gui.components.CycleButton;
 import net.minecraft.client.gui.components.EditBox;
@@ -115,11 +118,6 @@ public abstract class MixinScreen extends AbstractContainerEventHandler implemen
     @Shadow
     protected Font font;
 
-    @Inject(method = "handleComponentClicked", at = @At("HEAD"), cancellable = true)
-    private void onHandleTextClick(Style style, CallbackInfoReturnable<Boolean> cir) {
-        handleCustomClickEvent(style, cir);
-    }
-
     @Shadow
     protected abstract <T extends GuiEventListener & Renderable & NarratableEntry> T addRenderableWidget(T drawableElement);
 
@@ -137,7 +135,12 @@ public abstract class MixinScreen extends AbstractContainerEventHandler implemen
     private List<GuiEventListener> children;
 
     @Shadow
-    public abstract boolean handleComponentClicked(@Nullable Style style);
+    protected static void defaultHandleGameClickEvent(ClickEvent clickEvent, Minecraft minecraft, @Nullable Screen screen) {
+    }
+
+    @Shadow
+    protected static void defaultHandleClickEvent(ClickEvent clickEvent, Minecraft minecraft, @Nullable Screen screen) {
+    }
 
     @Override
     public int getWidth() {
@@ -147,6 +150,14 @@ public abstract class MixinScreen extends AbstractContainerEventHandler implemen
     @Override
     public int getHeight() {
         return height;
+    }
+
+    @Inject(method = "defaultHandleGameClickEvent", at = @At("HEAD"), cancellable = true)
+    private static void onHandleTextClick(ClickEvent clickEvent, Minecraft minecraft, Screen screen, CallbackInfo ci) {
+        if (clickEvent instanceof CustomClickEvent cce) {
+            cce.getEvent().run();
+            ci.cancel();
+        }
     }
 
     @Override
@@ -736,14 +747,13 @@ public abstract class MixinScreen extends AbstractContainerEventHandler implemen
     public CyclingButtonWidgetHelper<?> addCyclingButton(int x, int y, int width, int height, int zIndex, String[] values, String[] alternatives, String initial, String prefix, MethodWrapper<?, ?, Boolean, ?> alternateToggle, MethodWrapper<CyclingButtonWidgetHelper<?>, IScreen, Object, ?> callback) {
         AtomicReference<CyclingButtonWidgetHelper<?>> ref = new AtomicReference<>(null);
         CycleButton<String> cyclingButton;
-        CycleButton.Builder<String> builder = CycleButton.builder(net.minecraft.network.chat.Component::literal);
+        CycleButton.Builder<String> builder = CycleButton.builder(net.minecraft.network.chat.Component::literal, initial);
         if (alternatives != null) {
             BooleanSupplier supplier = alternateToggle == null ? minecraft::hasAltDown : alternateToggle::get;
             builder.withValues(supplier, Arrays.asList(values), Arrays.asList(alternatives));
         } else {
             builder.withValues(values);
         }
-        builder.withInitialValue(initial);
 
         if (prefix == null || StringUtils.isBlank(prefix)) {
             builder.displayOnlyValue();
@@ -927,20 +937,9 @@ public abstract class MixinScreen extends AbstractContainerEventHandler implemen
 
         synchronized (elements) {
             Iterator<RenderElement> iter = elements.stream().sorted(Comparator.comparingInt(RenderElement::getZIndex)).iterator();
-            xyz.wagyourtail.jsmacros.client.api.classes.render.components.Text hoverText = null;
-
             while (iter.hasNext()) {
                 RenderElement e = iter.next();
-                e.render(drawContext, mouseX, mouseY, delta);
-                if (e instanceof xyz.wagyourtail.jsmacros.client.api.classes.render.components.Text t) {
-                    if (mouseX > t.x && mouseX < t.x + t.width && mouseY > t.y && mouseY < t.y + font.lineHeight) {
-                        hoverText = t;
-                    }
-                }
-            }
-
-            if (hoverText != null) {
-                drawContext.renderComponentHoverEffect(font, font.getSplitter().componentStyleAtWidth(hoverText.text, mouseX - hoverText.x), mouseX, mouseY);
+                e.extractRenderState(drawContext, mouseX, mouseY, delta);
             }
         }
     }
@@ -967,7 +966,14 @@ public abstract class MixinScreen extends AbstractContainerEventHandler implemen
         }
 
         if (hoverText != null) {
-            handleComponentClicked(font.getSplitter().componentStyleAtWidth(hoverText.text, (int) mouseX - hoverText.x));
+            var finder = new ActiveTextCollector.ClickableStyleFinder(font, (int) mouseX, (int) mouseY);
+            finder.defaultParameters(new ActiveTextCollector.Parameters(hoverText.pose()));
+            // TODO: check 0,0 works given we already have translation in the pose
+            finder.accept(0, 0, hoverText.text);
+            Style clicked = finder.result();
+            if (clicked != null && clicked.getClickEvent() != null) {
+                defaultHandleClickEvent(clicked.getClickEvent(), minecraft, (Screen) (Object) this);
+            }
         }
     }
 
@@ -1047,17 +1053,6 @@ public abstract class MixinScreen extends AbstractContainerEventHandler implemen
             }
         }
         getDraw2Ds().forEach(e -> e.getDraw2D().init());
-    }
-
-    //TODO: switch to enum extension with mixin 9.0 or whenever Mumfrey gets around to it
-    @Unique
-    public void handleCustomClickEvent(Style style, CallbackInfoReturnable<Boolean> cir) {
-        ClickEvent clickEvent = style.getClickEvent();
-        if (clickEvent instanceof CustomClickEvent) {
-            ((CustomClickEvent) clickEvent).getEvent().run();
-            cir.setReturnValue(true);
-            cir.cancel();
-        }
     }
 
     @Override

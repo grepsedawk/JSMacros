@@ -61,7 +61,7 @@ public class MixinAbstractContainerScreen<T extends AbstractContainerMenu> exten
         if (!slot.isActive()) return;
 
         int index = menu.slots.indexOf(slot);
-        context.drawString(Minecraft.getInstance().font, String.valueOf(index), slot.x, slot.y, 0xCCFFFFFF, false);
+        context.text(Minecraft.getInstance().font, String.valueOf(index), slot.x, slot.y, 0xCCFFFFFF, false);
     }
 
 }

@@ -250,7 +250,7 @@ public class Item implements RenderElement, Alignable<Item> {
     }
 
     @Override
-    public void render(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
+    public void extractRenderState(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
         render(drawContext, mouseX, mouseY, delta, false);
     }
 
@@ -277,16 +277,16 @@ public class Item implements RenderElement, Alignable<Item> {
             // Don't make this to small, otherwise there will be z-fighting for items like anvils
             final float scaleZ = 0.001f;
             matrices.scale(1, 1, matrices);
-            drawContext.renderItem(item, x, y);
+            drawContext.item(item, x, y);
             matrices.scale(1, 1, matrices);
         } else {
-            drawContext.renderItem(item, x, y);
+            drawContext.item(item, x, y);
         }
         if (overlay) {
             if (is3dRender) {
                 matrices.translate(0, 0, matrices);
             }
-            drawContext.renderItemDecorations(mc.font, item, x, y, ovText);
+            drawContext.itemDecorations(mc.font, item, x, y, ovText);
         }
         matrices.popMatrix();
     }

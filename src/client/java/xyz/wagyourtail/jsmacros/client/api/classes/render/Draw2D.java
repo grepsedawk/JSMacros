@@ -612,7 +612,7 @@ public class Draw2D implements IDraw2D<Draw2D>, Registrable<Draw2D> {
         synchronized (elements) {
             Iterator<RenderElement> iter = getElementsByZIndex();
             while (iter.hasNext()) {
-                iter.next().render(drawContext, 0, 0, 0);
+                iter.next().extractRenderState(drawContext, 0, 0, 0);
             }
         }
     }

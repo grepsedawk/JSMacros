@@ -124,7 +124,7 @@ public abstract class OverlayContainer extends MultiElementContainer<IOverlayPar
     @Override
     public void render(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
         for (AbstractWidget btn : buttons) {
-            btn.render(drawContext, mouseX, mouseY, delta);
+            btn.extractRenderState(drawContext, mouseX, mouseY, delta);
         }
         if (this.overlay != null) {
             this.overlay.render(drawContext, mouseX, mouseY, delta);

@@ -21,18 +21,12 @@ public class MixinGameRenderer {
     @Final
     private Minecraft minecraft;
 
-    @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/Screen;renderWithTooltipAndSubtitles(Lnet/minecraft/client/gui/GuiGraphicsExtractor;IIF)V"))
+    @Redirect(method = "extractGui", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/Screen;extractRenderStateWithTooltipAndSubtitles(Lnet/minecraft/client/gui/GuiGraphicsExtractor;IIF)V"))
     private void onRender(Screen instance, GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
-        instance.renderWithTooltipAndSubtitles(drawContext, mouseX, mouseY, delta);
+        instance.extractRenderStateWithTooltipAndSubtitles(drawContext, mouseX, mouseY, delta);
         if (!(minecraft.screen instanceof ScriptScreen)) {
             ((IScreenInternal) instance).jsmacros_render(drawContext, mouseX, mouseY, delta);
         }
     }
 
-    @Inject(at = @At("HEAD"), method = "pick(F)V", cancellable = true)
-    public void onTargetUpdate(float tickDelta, CallbackInfo ci) {
-        if (InteractionProxy.Target.onUpdate(tickDelta)) {
-            ci.cancel();
-        }
-    }
 }

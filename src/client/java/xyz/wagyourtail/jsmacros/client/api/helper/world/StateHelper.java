@@ -1,6 +1,5 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world;
 
-import net.minecraft.Util;
 import net.minecraft.world.level.block.state.StateHolder;
 import net.minecraft.world.level.block.state.properties.Property;
 import xyz.wagyourtail.jsmacros.core.helpers.BaseHelper;
@@ -25,7 +24,7 @@ public abstract class StateHelper<U extends StateHolder<?, ?>> extends BaseHelpe
      * @since 1.8.4
      */
     public Map<String, String> toMap() {
-        return base.getValues().entrySet().stream().collect(Collectors.toMap(entry -> entry.getKey().getName(), entry -> Util.getPropertyName(entry.getKey(), entry.getValue())));
+        return base.getValues().collect(Collectors.toMap(e -> e.property().getName(), Property.Value::valueName));
     }
 
     public <T extends Comparable<?>> StateHelper<U> with(String property, String value) {

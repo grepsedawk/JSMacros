@@ -675,13 +675,13 @@ public class EditorScreen extends BaseScreen {
     }
 
     @Override
-    public void render(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
+    public void extractRenderState(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
         assert minecraft != null;
 
-        drawContext.drawString(font, fileName, 2, 2, 0xFFFFFFFF);
+        drawContext.text(font, fileName, 2, 2, 0xFFFFFFFF);
 
-        drawContext.drawString(font, String.format("%d ms", (int) textRenderTime), 2, height - 10, 0xFFFFFFFF);
-        drawContext.drawString(font, lineCol, (int) (width - font.width(lineCol) - (width - 10) / 4F - 2), height - 10, 0xFFFFFFFF);
+        drawContext.text(font, String.format("%d ms", (int) textRenderTime), 2, height - 10, 0xFFFFFFFF);
+        drawContext.text(font, lineCol, (int) (width - font.width(lineCol) - (width - 10) / 4F - 2), height - 10, 0xFFFFFFFF);
 
         drawContext.fill(0, 12, width - 10, height - 12, 0xFF2B2B2B);
         drawContext.fill(28, 12, 29, height - 12, 0xFF707070);
@@ -710,17 +710,17 @@ public class EditorScreen extends BaseScreen {
                 drawContext.fill(29, y + add + i * lineSpread, 30 + cursor.endCol, y + add + (i + 1) * lineSpread, 0xFF33508F);
             }
             Component lineNum = Component.literal(String.format("%d.", j + 1)).setStyle(lineNumStyle);
-            drawContext.drawString(minecraft.font, lineNum, 28 - minecraft.font.width(lineNum), y + add + i * lineSpread, 0xFFFFFFFF, false);
-            drawContext.drawString(minecraft.font, trim(renderedText[j]), 30, y + add + i * lineSpread, 0xFFFFFFFF, false);
+            drawContext.text(minecraft.font, lineNum, 28 - minecraft.font.width(lineNum), y + add + i * lineSpread, 0xFFFFFFFF, false);
+            drawContext.text(minecraft.font, trim(renderedText[j]), 30, y + add + i * lineSpread, 0xFFFFFFFF, false);
         }
 
         for (GuiEventListener b : ImmutableList.copyOf(this.children())) {
-            if (b instanceof Renderable) {
-                ((Renderable) b).render(drawContext, mouseX, mouseY, delta);
+            if (b instanceof Renderable r) {
+                r.extractRenderState(drawContext, mouseX, mouseY, delta);
             }
         }
 
-        super.render(drawContext, mouseX, mouseY, delta);
+        super.extractRenderState(drawContext, mouseX, mouseY, delta);
     }
 
     private FormattedCharSequence trim(Component text) {

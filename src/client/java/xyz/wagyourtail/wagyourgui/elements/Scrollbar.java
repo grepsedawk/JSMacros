@@ -94,7 +94,7 @@ public class Scrollbar extends AbstractWidget {
     }
 
     @Override
-    public void renderWidget(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
+    public void extractWidgetRenderState(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
         // mainpart
         drawContext.fill(getX() + 1, (int) (getY() + 1 + scrollAmount), getX() + width - 1, (int) (getY() + 1 + scrollAmount + scrollbarHeight), highlightColor);
 

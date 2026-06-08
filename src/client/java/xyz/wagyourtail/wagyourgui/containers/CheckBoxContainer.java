@@ -42,7 +42,7 @@ public class CheckBoxContainer extends MultiElementContainer<IContainerParent> {
     @Override
     public void render(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
         if (this.visible) {
-            drawContext.drawWordWrap(textRenderer, message, x + height, y + 2, width - height - 2, 0xFFFFFFFF, false);
+            drawContext.textWithWordWrap(textRenderer, message, x + height, y + 2, width - height - 2, 0xFFFFFFFF, false);
         }
     }
 

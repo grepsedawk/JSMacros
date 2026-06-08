@@ -154,7 +154,8 @@ public class TextFieldWidgetHelper extends ClickableWidgetHelper<TextFieldWidget
      * @since 1.8.4
      */
     public TextFieldWidgetHelper setTextPredicate(MethodWrapper<String, ?, ?, ?> predicate) {
-        base.setFilter(predicate);
+        // NO-OP, removed upstream
+        //base.setFilter(predicate);
         return this;
     }
 
@@ -163,7 +164,8 @@ public class TextFieldWidgetHelper extends ClickableWidgetHelper<TextFieldWidget
      * @since 1.8.4
      */
     public TextFieldWidgetHelper resetTextPredicate() {
-        base.setFilter(Objects::nonNull);
+        // NO-OP, removed upstream
+        //base.setFilter(Objects::nonNull);
         return this;
     }
 

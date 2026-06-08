@@ -6,7 +6,9 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.util.Mth;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Matrix3x2f;
 import org.joml.Matrix3x2fStack;
+import org.joml.Matrix3x2fc;
 import org.joml.Matrix4f;
 import org.lwjgl.system.MemoryStack;
 import xyz.wagyourtail.doclet.DocletIgnore;
@@ -259,12 +261,18 @@ public class Text implements RenderElement, Alignable<Text> {
         return zIndex;
     }
 
+    public Matrix3x2fc pose() {
+        var matrices = new Matrix3x2fStack();
+        setupMatrix(matrices, x, y, (float) scale, rotation, getWidth(), getHeight(), rotateCenter);
+        return matrices;
+    }
+
     @Override
-    public void render(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
+    public void extractRenderState(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
         Matrix3x2fStack matrices = drawContext.pose();
         matrices.pushMatrix();
         setupMatrix(matrices, x, y, (float) scale, rotation, getWidth(), getHeight(), rotateCenter);
-        drawContext.drawString(mc.font, text, 0, 0, color, shadow);
+        drawContext.text(mc.font, text, 0, 0, color, shadow);
         matrices.popMatrix();
     }
 

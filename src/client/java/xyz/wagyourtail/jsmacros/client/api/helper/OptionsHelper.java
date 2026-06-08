@@ -5,7 +5,7 @@ import com.mojang.blaze3d.platform.Window;
 import net.minecraft.client.AttackIndicatorStatus;
 import net.minecraft.client.CameraType;
 import net.minecraft.client.CloudStatus;
-import net.minecraft.client.GraphicsStatus;
+import net.minecraft.client.GraphicsPreset;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.NarratorStatus;
@@ -221,7 +221,7 @@ public class OptionsHelper extends BaseHelper<Options> {
      */
     @DocletReplaceReturn("Difficulty")
     public String getDifficulty() {
-        return mc.level.getDifficulty().getKey();
+        return mc.level.getDifficulty().getSerializedName();
     }
 
     /**
@@ -612,10 +612,11 @@ public class OptionsHelper extends BaseHelper<Options> {
          */
         @DocletReplaceReturn("GraphicsMode")
         public String getGraphicsMode() {
-            return switch (base.graphicsMode().get()) {
+            return switch (base.graphicsPreset().get()) {
                 case FAST -> "fast";
                 case FANCY -> "fancy";
                 case FABULOUS -> "fabulous";
+                case CUSTOM -> "custom";
             };
         }
 
@@ -627,11 +628,11 @@ public class OptionsHelper extends BaseHelper<Options> {
         @DocletReplaceParams("mode: GraphicsMode")
         @DocletDeclareType(name = "GraphicsMode", type = "'fast' | 'fancy' | 'fabulous'")
         public VideoOptionsHelper setGraphicsMode(String mode) {
-            base.graphicsMode().set(switch (mode.toUpperCase(Locale.ROOT)) {
-                case "FAST" -> GraphicsStatus.FAST;
-                case "FANCY" -> GraphicsStatus.FANCY;
-                case "FABULOUS" -> GraphicsStatus.FABULOUS;
-                default -> base.graphicsMode().get();
+            base.graphicsPreset().set(switch (mode.toUpperCase(Locale.ROOT)) {
+                case "FAST" -> GraphicsPreset.FAST;
+                case "FANCY" -> GraphicsPreset.FANCY;
+                case "FABULOUS" -> GraphicsPreset.FABULOUS;
+                default -> base.graphicsPreset().get();
             });
             return this;
         }
@@ -790,7 +791,7 @@ public class OptionsHelper extends BaseHelper<Options> {
          */
         public VideoOptionsHelper setGuiScale(int scale) {
             base.guiScale().set(scale);
-            mc.execute(mc::resizeDisplay);
+            mc.execute(mc::resizeGui);
             return this;
         }
 
@@ -1608,8 +1609,7 @@ public class OptionsHelper extends BaseHelper<Options> {
          */
         @DocletReplaceReturn("ChatVisibility")
         public String getChatVisibility() {
-            String chatVisibilityKey = base.chatVisibility().get().getKey();
-            return chatVisibilityKey.substring(chatVisibilityKey.lastIndexOf('.'));
+            return base.chatVisibility().get().name();
         }
 
         /**
@@ -2373,7 +2373,7 @@ public class OptionsHelper extends BaseHelper<Options> {
     @Deprecated
     public OptionsHelper setGuiScale(int scale) {
         base.guiScale().set(scale);
-        mc.execute(mc::resizeDisplay);
+        mc.execute(mc::resizeGui);
         return this;
     }
 

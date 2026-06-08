@@ -44,7 +44,7 @@ public abstract class MixinMinecraft {
     @Inject(at = @At("HEAD"), method = "setLevel")
     public void onJoinWorld(ClientLevel world, CallbackInfo ci) {
         if (world != null) {
-            new EventDimensionChange(world.dimension().location().toString()).trigger();
+            new EventDimensionChange(world.dimension().identifier().toString()).trigger();
         }
     }
 

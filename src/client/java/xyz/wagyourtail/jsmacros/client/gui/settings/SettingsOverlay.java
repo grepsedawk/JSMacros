@@ -151,7 +151,7 @@ public class SettingsOverlay extends OverlayContainer implements ICategoryTreePa
 
         sections.render(drawContext, mouseX, mouseY, delta);
 
-        drawContext.drawWordWrap(textRenderer, title, x + 3, y + 3, width - 14, 0xFFFFFFFF, false);
+        drawContext.textWithWordWrap(textRenderer, title, x + 3, y + 3, width - 14, 0xFFFFFFFF, false);
         drawContext.fill(x + 2, y + 12, x + width - 2, y + 13, 0xFFFFFFFF);
 
         //sep
