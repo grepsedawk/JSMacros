@@ -23,7 +23,7 @@ public class HorseInventory extends Inventory<HorseInventoryScreen> {
 
     protected HorseInventory(HorseInventoryScreen inventory) {
         super(inventory);
-        this.horse = (AbstractHorse) ((IHorseScreen) inventory).jsmacros_getEntity();
+        this.horse = (AbstractHorse) inventory.mount;
     }
 
     /**

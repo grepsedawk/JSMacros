@@ -6,8 +6,7 @@
     "MixinDebugScreenOverlay",
     "MixinGameRenderer",
     "MixinKeyboardHandler",
-    "MixinMouseHandler",
-    "MixinLevelRenderer"
+    "MixinMouseHandler"
   ],
   "injectors": {
     "defaultRequire": 1

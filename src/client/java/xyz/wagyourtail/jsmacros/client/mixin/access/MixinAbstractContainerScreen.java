@@ -54,8 +54,8 @@ public class MixinAbstractContainerScreen<T extends AbstractContainerMenu> exten
         return getHoveredSlot(x, y);
     }
 
-    @Inject(method = "renderSlot", at = @At("TAIL"))
-    private void onDrawSlot(GuiGraphicsExtractor context, Slot slot, CallbackInfo ci) {
+    @Inject(method = "extractSlot", at = @At("TAIL"))
+    private void onDrawSlot(GuiGraphicsExtractor context, Slot slot, int mouseX, int mouseY, CallbackInfo ci) {
         if (!JsMacrosClient.clientCore.config.getOptions(ClientConfigV2.class).showSlotIndexes) return;
 
         if (!slot.isActive()) return;

@@ -736,8 +736,8 @@ public class Inventory<T extends AbstractContainerScreen<?>> {
             } else if (inventory instanceof StonecutterScreen) {
                 map.put("output", new int[]{slots - 9 - 27 - 1});
                 map.put("input", new int[]{slots - 9 - 27 - 2});
-            } else if (inventory instanceof HorseInventoryScreen) {
-                AbstractHorse h = (AbstractHorse) ((IHorseScreen) this.inventory).jsmacros_getEntity();
+            } else if (inventory instanceof HorseInventoryScreen ihs) {
+                AbstractHorse h = (AbstractHorse) ihs.mount;
                 if (h.canUseSlot(EquipmentSlot.SADDLE)) {
                     map.put("saddle", new int[]{0});
                 }

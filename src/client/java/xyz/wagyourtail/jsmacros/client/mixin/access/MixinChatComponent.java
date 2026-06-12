@@ -1,6 +1,7 @@
 package xyz.wagyourtail.jsmacros.client.mixin.access;
 
 import net.minecraft.client.multiplayer.chat.GuiMessage;
+import net.minecraft.client.multiplayer.chat.GuiMessageSource;
 import net.minecraft.client.multiplayer.chat.GuiMessageTag;
 import net.minecraft.client.gui.components.ChatComponent;
 import net.minecraft.network.chat.Component;
@@ -12,6 +13,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import xyz.wagyourtail.jsmacros.client.access.IChatHud;
 
 import java.util.List;
@@ -20,16 +22,16 @@ import java.util.List;
 public abstract class MixinChatComponent implements IChatHud {
 
     @Shadow
-    private void addMessage(Component message, @Nullable MessageSignature signature, @Nullable GuiMessageTag indicator) {
+    private void addMessage(Component message, @Nullable MessageSignature signature, GuiMessageSource source, @Nullable GuiMessageTag indicator) {
     }
 
     @Shadow
     @Final
-    private List<GuiMessage> allMessages;
+    public List<GuiMessage> allMessages;
 
     @Override
     public void jsmacros_addMessageBypass(Component message) {
-        addMessage(message, null, GuiMessageTag.system());
+        addMessage(message, null, GuiMessageSource.SYSTEM_CLIENT, GuiMessageTag.system());
     }
 
     @Unique
@@ -38,13 +40,15 @@ public abstract class MixinChatComponent implements IChatHud {
     @Override
     public void jsmacros_addMessageAtIndexBypass(Component message, int index, int time) {
         jsmacros$positionOverride.set(index);
-        addMessage(message, null, GuiMessageTag.system());
+        addMessage(message, null, GuiMessageSource.SYSTEM_CLIENT, GuiMessageTag.system());
         jsmacros$positionOverride.set(0);
     }
 
-    @ModifyArg(method = "addMessageToQueue(Lnet/minecraft/client/GuiMessage;)V", at = @At(value = "INVOKE", target = "Ljava/util/List;add(ILjava/lang/Object;)V", remap = false))
-    public int overrideMessagePos(int pos) {
-        return jsmacros$positionOverride.get();
+    @SuppressWarnings("unchecked")
+    @Redirect(method = "addMessageToQueue(Lnet/minecraft/client/multiplayer/chat/GuiMessage;)V",
+            at = @At(value = "INVOKE", target = "Ljava/util/List;addFirst(Ljava/lang/Object;)V", remap = false))
+    public void redirectAddFirst(List instance, Object e) {
+        instance.add(jsmacros$positionOverride.get(), e);
     }
 
 

@@ -9,6 +9,7 @@ accessible method net/minecraft/client/Minecraft startUseItem ()V
 accessible method net/minecraft/client/Minecraft startAttack ()Z
 
 accessible field net/minecraft/client/gui/screens/inventory/AbstractContainerScreen skipNextRelease Z
+accessible field net/minecraft/client/gui/screens/inventory/AbstractMountInventoryScreen mount Lnet/minecraft/world/entity/LivingEntity;
 
 accessible field net/minecraft/client/gui/components/ChatComponent allMessages Ljava/util/List;
 
@@ -30,3 +31,4 @@ accessible field net/minecraft/world/entity/vehicle/boat/AbstractBoat status Lne
 accessible field net/minecraft/world/entity/animal/dolphin/Dolphin treasurePos Lnet/minecraft/core/BlockPos;
 accessible method net/minecraft/world/entity/animal/fish/TropicalFish getPackedVariant ()I
 accessible field net/minecraft/world/entity/animal/wolf/Wolf isWet Z
+

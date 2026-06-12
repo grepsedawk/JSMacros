@@ -3,7 +3,7 @@ java = "25"
 
 minecraft = "26.1.2"
 
-fabric_loader = "0.19.2"
+fabric_loader = "0.19.3"
 
 mixin = "0.8.7"
 mixin_extra = "0.3.2"

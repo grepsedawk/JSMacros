@@ -59,7 +59,7 @@ class MixinMinecraft {
     @Nullable
     public ClientLevel level;
 
-    @Inject(at = @At("TAIL"), method = "resizeDisplay")
+    @Inject(at = @At("TAIL"), method = "resizeGui")
     public void onResolutionChanged(CallbackInfo info) {
 
         synchronized (FHud.overlays) {
@@ -87,11 +87,9 @@ class MixinMinecraft {
         InteractionProxy.reset();
     }
 
-    @Inject(
-        at = @At(value = "FIELD", target = "Lnet/minecraft/client/Minecraft;isLocalServer:Z", opcode = Opcodes.PUTFIELD, shift = At.Shift.AFTER),
-        method = "disconnect(Lnet/minecraft/client/gui/screens/Screen;Z)V"
-    )
-    public void onDisconnect(Screen disconnectionScreen, boolean transferring, CallbackInfo ci) {
+    @Inject(method = "disconnect(Lnet/minecraft/client/gui/screens/Screen;ZZ)V",
+            at = @At(value = "FIELD", target = "Lnet/minecraft/client/Minecraft;isLocalServer:Z", opcode = Opcodes.PUTFIELD, shift = At.Shift.AFTER))
+    public void onDisconnect(Screen screen, boolean keepResourcePacks, boolean stopSound, CallbackInfo ci) {
         InteractionProxy.reset();
     }
 

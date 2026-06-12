@@ -76,8 +76,8 @@ public abstract class MixinMinecraft {
         jsmacros$prevScreen = null;
     }
 
-    @Inject(at = @At(value = "FIELD", target = "Lnet/minecraft/client/Minecraft;isLocalServer:Z", opcode = Opcodes.PUTFIELD, shift = At.Shift.AFTER), method = "disconnect(Lnet/minecraft/client/gui/screens/Screen;Z)V")
-    public void onDisconnect(Screen s, boolean transferring, CallbackInfo ci) {
+    @Inject(at = @At(value = "FIELD", target = "Lnet/minecraft/client/Minecraft;isLocalServer:Z", opcode = Opcodes.PUTFIELD, shift = At.Shift.AFTER, remap = false), method = "disconnect(Lnet/minecraft/client/gui/screens/Screen;ZZ)V")
+    public void onDisconnect(Screen s, boolean keepResourcePacks, boolean stopSound, CallbackInfo ci) {
         if (s instanceof DisconnectedScreen) {
             new EventDisconnect(((MixinDisconnectedScreen) s).getDetails().reason()).trigger();
         } else {

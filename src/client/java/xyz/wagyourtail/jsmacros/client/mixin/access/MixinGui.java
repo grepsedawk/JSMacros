@@ -13,7 +13,7 @@ import xyz.wagyourtail.jsmacros.client.api.library.impl.FHud;
 
 @Mixin(Gui.class)
 public class MixinGui {
-    @Inject(method = "render", at = @At("TAIL"))
+    @Inject(method = "extractRenderState", at = @At("TAIL"))
     private void onRenderHud(GuiGraphicsExtractor context, DeltaTracker tickCounter, CallbackInfo ci) {
         if (!FHud.overlays.isEmpty()) {
             for (IDraw2D<Draw2D> overlay : FHud.overlays) {
