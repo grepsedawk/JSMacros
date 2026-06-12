@@ -25,6 +25,15 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")
 }
 
+java {
+    sourceCompatibility = JavaVersion.toVersion(rootProject.libs.versions.java.get().toInt())
+    targetCompatibility = JavaVersion.toVersion(rootProject.libs.versions.java.get().toInt())
+
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(rootProject.libs.versions.java.get().toInt())
+    }
+}
+
 subprojects {
     apply(plugin= "java")
     apply(plugin= "com.github.johnrengelman.shadow")
