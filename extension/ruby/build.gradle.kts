@@ -60,9 +60,45 @@ tasks.processResources {
     }
 }
 
+// Fabric Loader 0.19+ only adds a nested jar-in-jar to the runtime classpath if
+// that nested jar contains its own fabric.mod.json. The stock jruby-complete jar
+// has none, so we repackage it with a generated fabric.mod.json before nesting.
+val jrubyModId = "org_jruby_jruby_complete"
+
+val jrubyFmjDir = layout.buildDirectory.dir("jruby-fmj")
+val writeJrubyFmj by tasks.registering {
+    val out = jrubyFmjDir.get().file("fabric.mod.json").asFile
+    outputs.file(out)
+    doLast {
+        out.parentFile.mkdirs()
+        out.writeText(
+            """
+            {
+              "schemaVersion": 1,
+              "id": "$jrubyModId",
+              "version": "$jrubyVersion",
+              "name": "JRuby (bundled)",
+              "environment": "*"
+            }
+            """.trimIndent()
+        )
+    }
+}
+
+val nestableJruby by tasks.registering(Jar::class) {
+    dependsOn(jrubyJar, writeJrubyFmj)
+    archiveFileName.set("jruby-complete-$jrubyVersion.jar")
+    destinationDirectory.set(layout.buildDirectory.dir("nestable-jruby"))
+    isPreserveFileTimestamps = false
+    isReproducibleFileOrder = true
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from(zipTree(jrubyJar.singleFile))
+    from(jrubyFmjDir)
+}
+
 tasks.jar {
-    dependsOn(jrubyJar)
-    from(jrubyJar) {
+    dependsOn(nestableJruby)
+    from(nestableJruby) {
         into("META-INF/jars")
     }
 
