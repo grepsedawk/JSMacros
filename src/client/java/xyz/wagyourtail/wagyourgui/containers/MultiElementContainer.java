@@ -1,5 +1,6 @@
 package xyz.wagyourtail.wagyourgui.containers;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -23,7 +24,7 @@ public abstract class MultiElementContainer<T extends IContainerParent> implemen
     public int height;
 
     public MultiElementContainer(int x, int y, int width, int height, Font textRenderer, T parent) {
-        this.textRenderer = textRenderer;
+        this.textRenderer = textRenderer != null ? textRenderer : Minecraft.getInstance().font;
         this.x = x;
         this.y = y;
         this.width = width;

@@ -36,7 +36,6 @@ import xyz.wagyourtail.jsmacros.client.api.helper.PacketByteBufferHelper;
 import xyz.wagyourtail.jsmacros.client.config.ClientConfigV2;
 import xyz.wagyourtail.jsmacros.client.config.ClientProfile;
 import xyz.wagyourtail.jsmacros.client.event.EventRegistry;
-import xyz.wagyourtail.jsmacros.client.gui.screens.KeyMacrosScreen;
 import xyz.wagyourtail.jsmacros.client.movement.MovementQueue;
 import xyz.wagyourtail.jsmacros.core.Core;
 import xyz.wagyourtail.wagyourgui.BaseScreen;
@@ -59,8 +58,6 @@ public class JsMacrosClient extends JsMacros {
         } catch (IllegalAccessException | InstantiationException | NoSuchMethodException | InvocationTargetException | IOException e) {
             e.printStackTrace();
         }
-
-        prevScreen = new KeyMacrosScreen(null);
 
         // Init MovementQueue
         MovementQueue.clear();

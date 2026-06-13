@@ -1,5 +1,6 @@
 package xyz.wagyourtail.wagyourgui.elements;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractButton;
@@ -29,7 +30,7 @@ public class Button extends AbstractButton {
 
     public Button(int x, int y, int width, int height, Font textRenderer, int color, int borderColor, int highlightColor, int textColor, Component message, Consumer<Button> onPress) {
         super(x, y, width, height, message);
-        this.textRenderer = textRenderer;
+        this.textRenderer = textRenderer != null ? textRenderer : Minecraft.getInstance().font;
         setColor(color);
         setBorderColor(borderColor);
         setHighlightColor(highlightColor);

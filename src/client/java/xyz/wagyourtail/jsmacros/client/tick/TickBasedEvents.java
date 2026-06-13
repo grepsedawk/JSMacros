@@ -7,6 +7,7 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import xyz.wagyourtail.jsmacros.client.JsMacrosClient;
+import xyz.wagyourtail.jsmacros.client.gui.screens.KeyMacrosScreen;
 import xyz.wagyourtail.jsmacros.client.api.event.impl.inventory.EventItemDamage;
 import xyz.wagyourtail.jsmacros.client.api.event.impl.player.EventArmorChange;
 import xyz.wagyourtail.jsmacros.client.api.event.impl.player.EventFallFlying;
@@ -48,6 +49,9 @@ public class TickBasedEvents {
 
     public static void onTick(Minecraft mc) {
         if (JsMacrosClient.keyBinding.consumeClick() && mc.screen == null) {
+            if (JsMacrosClient.prevScreen == null) {
+                JsMacrosClient.prevScreen = new KeyMacrosScreen(null);
+            }
             mc.setScreen(JsMacrosClient.prevScreen);
         }
 
