@@ -1,8 +1,12 @@
+import me.modmuss50.mpp.ReleaseType
+import me.modmuss50.mpp.PublishModTask
+import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import xyz.wagyourtail.unimined.internal.minecraft.task.RemapJarTaskImpl
 
 plugins {
     id("xyz.wagyourtail.unimined")
     alias(libs.plugins.shadow)
+    id("me.modmuss50.mod-publish-plugin") version "1.1.0"
 }
 
 val archives_base_name: String by project.properties
@@ -13,8 +17,26 @@ base {
     archivesName.set(archives_base_name)
 }
 
-version = mod_version
+// Release builds get the full version from the release tag (mod_version); dev builds
+// get a -dev-<sha> suffix. channel selects the Modrinth release type.
+val channel: String = (findProperty("channel") as String?) ?: "release"
+val buildSha: String = ((findProperty("build_sha") as String?)
+    ?: System.getenv("GITHUB_SHA") ?: "local").take(7)
+val computedVersion: String = when (channel) {
+    "dev" -> "$mod_version-dev-$buildSha"
+    else -> mod_version
+}
+
+version = computedVersion
 group = maven_group
+
+tasks.register("printVersion") {
+    group = "distribution"
+    description = "Prints the computed project version for CI workflows"
+    doLast {
+        println(project.version)
+    }
+}
 
 java {
     sourceCompatibility = JavaVersion.toVersion(libs.versions.java.get().toInt())
@@ -307,4 +329,78 @@ val createDist by tasks.registering(Copy::class) {
 
 tasks.build.configure {
     finalizedBy(createDist)
+}
+
+val releaseType = when (channel) {
+    "release" -> ReleaseType.STABLE
+    "beta" -> ReleaseType.BETA
+    else -> ReleaseType.ALPHA
+}
+
+val mcVersion = libs.versions.minecraft.get()
+
+val modrinthProjectId = providers.gradleProperty("modrinth_id")
+    .orElse(providers.environmentVariable("MODRINTH_PROJECT"))
+val rubyModrinthProjectId = providers.gradleProperty("modrinth_ruby_id")
+    .orElse(providers.environmentVariable("MODRINTH_RUBY_PROJECT"))
+val modrinthToken = providers.gradleProperty("modrinth_token")
+    .orElse(providers.environmentVariable("MODRINTH_TOKEN"))
+
+fun modrinthChangelog(): String = """
+    JsMacros Reloaded ${project.version} for fabric on Minecraft $mcVersion.
+""".trimIndent()
+
+fun rubyChangelog(): String = """
+    JsMacros Ruby ${project.version} for fabric on Minecraft $mcVersion.
+    Requires JsMacros Reloaded.
+""".trimIndent()
+
+publishMods {
+    val publishModrinth = modrinthToken.isPresent && channel != "dev"
+
+    if (publishModrinth) {
+        modrinth("modrinthFabric") {
+            projectId.set(modrinthProjectId)
+            accessToken.set(modrinthToken)
+            minecraftVersions.add(mcVersion)
+            modLoaders.set(listOf("fabric"))
+
+            version.set("${project.version}+$mcVersion-fabric")
+            displayName.set("JsMacros Reloaded ${project.version} (fabric $mcVersion)")
+            changelog.set(modrinthChangelog())
+            type.set(releaseType)
+            file.set(
+                tasks.named("remapFabricJar", AbstractArchiveTask::class.java)
+                    .flatMap { it.archiveFile }
+            )
+        }
+    }
+
+    val publishRubyModrinth = modrinthToken.isPresent && rubyModrinthProjectId.isPresent && channel != "dev"
+    if (publishRubyModrinth) {
+        modrinth("modrinthRuby") {
+            projectId.set(rubyModrinthProjectId)
+            accessToken.set(modrinthToken)
+            minecraftVersions.add(mcVersion)
+            modLoaders.set(listOf("fabric"))
+
+            version.set("${project.version}+$mcVersion-fabric")
+            displayName.set("JsMacros Ruby ${project.version} (fabric $mcVersion)")
+            changelog.set(rubyChangelog())
+            type.set(releaseType)
+            file.set(
+                project(":extension:ruby").tasks.named("jar", AbstractArchiveTask::class.java)
+                    .flatMap { it.archiveFile }
+            )
+            requires { slug.set("jsmacros-reloaded") }
+        }
+    }
+}
+
+tasks.named("publishMods") {
+    dependsOn("createDist")
+}
+
+tasks.withType(PublishModTask::class.java).configureEach {
+    dependsOn("createDist")
 }

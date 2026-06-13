@@ -1,54 +1,108 @@
-# This is a basic workflow to help you get started with Actions
+name: Release
 
-name: Build Release V2
-
-# Controls when the action will run. Triggers the workflow on push or pull request
-# events but only for the master branch
 on:
   release:
-    types: [ created ]
+    types: [published]
+
+permissions:
+  contents: write
 
 jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      MODRINTH_PROJECT: XcnNwheM                      # jsmacros-reloaded (mpp needs the ID, not the slug)
+      MODRINTH_RUBY_PROJECT: EQoulhLS                 # jsmacros-ruby (mpp needs the ID, not the slug)
+      MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}   # job-level so the skip-guard below works
+    steps:
+      - uses: actions/checkout@v4          # lands on the tag's commit — builds exactly what was tagged
 
-  build_latest:
-    needs: [build_backports, build_backports_neo]
-    uses: jsmacros/jsmacros/.github/workflows/releasebuild.yml@main
-    with:
-      branch: main
-      GITHUB_REF: ${{ github.ref }}
-      upload_docs: true
-      forge: neoforge
-    secrets:
-      CF_API_KEY: ${{ secrets.CF_API_KEY }}
-      MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
-      PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+      # See dev.yml: Gradle launches under JDK 21, toolchain compiles with JDK 25.
+      - name: Set up JDK 25 (toolchain)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '25'
 
-  build_backports_neo:
-    strategy:
-      matrix:
-        branch: [ 'backports/1.20.2', 'backports/1.20.4' ]
-    uses: jsmacros/jsmacros/.github/workflows/releasebuild.yml@main
-    with:
-      branch: ${{ matrix.branch }}
-      GITHUB_REF: ${{ github.ref }}
-      upload_docs: false
-      forge: neoforge
-    secrets:
-      CF_API_KEY: ${{ secrets.CF_API_KEY }}
-      MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
-      PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+      - name: Set up JDK 21 (Gradle launcher)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'gradle'
 
-  build_backports:
-    strategy:
-      matrix:
-        branch: [ 'backports/1.17.1', 'backports/1.18.2', 'backports/1.19.4', 'backports/1.20.1' ]
-    uses: jsmacros/jsmacros/.github/workflows/releasebuild.yml@main
-    with:
-      branch: ${{ matrix.branch }}
-      GITHUB_REF: ${{ github.ref }}
-      upload_docs: false
-      forge: forge
-    secrets:
-      CF_API_KEY: ${{ secrets.CF_API_KEY }}
-      MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
-      PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v5
+        with:
+          cache-overwrite-existing: true
+
+      - name: Resolve channel + version from tag
+        id: ver
+        shell: bash
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          VER="${TAG#v}"                 # full version, used verbatim
+          case "$VER" in
+            *-alpha*) CHANNEL=alpha ;;   # alpha type on Modrinth
+            *-*)      CHANNEL=beta ;;    # any other pre-release suffix -> beta
+            *)        CHANNEL=release ;; # stable
+          esac
+          ARGS="-Pchannel=$CHANNEL -Pmod_version=$VER"
+          MODVER=$(./gradlew -q printVersion $ARGS | tail -1 | tr -d '\n\r')
+          {
+            echo "tag=$TAG"
+            echo "args=$ARGS"
+            echo "mod_version=$MODVER"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Build distribution
+        run: ./gradlew createDist ${{ steps.ver.outputs.args }}
+
+      - name: Upload jars to the GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          V="${{ steps.ver.outputs.mod_version }}"
+          shopt -s nullglob
+          # Match the build's $modId-* dist outputs:
+          #   jsmacros-<mc>-<V>-fabric.jar          (main mod)
+          #   jsmacros-<mc>-ruby-<V>.jar            (ruby companion mod)
+          #   jsmacros-<mc>-*-extension.jar         (bundled extension jars, e.g. python)
+          FILES=(
+            dist/jsmacros-*-"$V"-fabric.jar
+            dist/jsmacros-*-ruby-"$V".jar
+            dist/jsmacros-*-extension.jar
+          )
+          if [ ${#FILES[@]} -eq 0 ]; then
+            echo "::error::No dist artifacts matched version $V"; exit 1
+          fi
+          gh release upload "${{ steps.ver.outputs.tag }}" "${FILES[@]}" --clobber
+
+      - name: Publish to Modrinth
+        if: env.MODRINTH_TOKEN != ''
+        run: ./gradlew publishMods ${{ steps.ver.outputs.args }}
+
+      # mod-publish-plugin can't set the per-version environment, so patch it after upload.
+      - name: Mark Modrinth versions as client-side
+        if: env.MODRINTH_TOKEN != ''
+        shell: bash
+        env:
+          V: ${{ steps.ver.outputs.mod_version }}
+        run: |
+          set -euo pipefail
+          for PID in "$MODRINTH_PROJECT" "$MODRINTH_RUBY_PROJECT"; do
+            [ -z "$PID" ] && continue
+            VID=$(curl -fsS -H "Authorization: $MODRINTH_TOKEN" \
+                  "https://api.modrinth.com/v3/project/$PID/version" \
+              | python3 -c "import sys,json,os; vs=json.load(sys.stdin); pfx=os.environ['V']+'+'; print(next((v['id'] for v in vs if v['version_number'].startswith(pfx)), ''))")
+            if [ -z "$VID" ]; then
+              echo "::warning::No Modrinth version matching $V for project $PID"; continue
+            fi
+            curl -fsS -X PATCH \
+              -H "Authorization: $MODRINTH_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d '{"environment":"client_only"}' \
+              "https://api.modrinth.com/v3/version/$VID"
+            echo "Set $PID version $VID ($V) to client_only"
+          done

@@ -1,0 +1,41 @@
+name: Dev Build
+
+on:
+  push:
+    branches: ['main', 'reloaded-canonical']
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # The build compiles against MC 26.1 (class file v69), which needs a JDK 25
+      # toolchain. Gradle 8.14's Kotlin DSL can't run under JDK 25, so Gradle itself
+      # is launched under JDK 21 (JAVA_HOME) while it auto-detects the JDK 25 toolchain.
+      - name: Set up JDK 25 (toolchain)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '25'
+
+      - name: Set up JDK 21 (Gradle launcher)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'gradle'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v5
+        with:
+          cache-overwrite-existing: true
+
+      - name: Build (sanity check, no publish)
+        run: |
+          SHORT_SHA=${GITHUB_SHA::7}
+          ./gradlew createDist -Pchannel=dev -Pbuild_sha=${SHORT_SHA}
