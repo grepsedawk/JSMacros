@@ -24,6 +24,8 @@ shadow = "8.3.6"
 [libraries]
 prism4j = { module = "io.noties:prism4j", version.ref = "prism4j" }
 
+fabric_loader = { module = "net.fabricmc:fabric-loader", version.ref = "fabric_loader" }
+
 mixin = { module = "org.spongepowered:mixin", version.ref = "mixin" }
 mixin_extra = { module = "io.github.llamalad7:mixinextras-common", version.ref = "mixin_extra" }
 

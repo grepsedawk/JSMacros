@@ -105,9 +105,14 @@ core.apply {
 
 dependencies {
     val coreImplementation by configurations.getting
+    val coreCompileOnly by configurations.getting
     val fabricModImplementation by configurations.getting
     val fabricInclude by configurations.getting
     val fabricRuntimeOnly by configurations.getting
+
+    // ExtensionLoader discovers companion-mod extensions via the Fabric entrypoint API.
+    // FabricLoader is present at runtime (single fabric mod jar); core only needs it to compile.
+    coreCompileOnly(libs.fabric.loader)
 
     compileOnly(libs.mixin)
     compileOnly(libs.mixin.extra)

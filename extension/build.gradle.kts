@@ -8,6 +8,7 @@ val archives_base_name: String by project.properties
 repositories {
     mavenCentral()
     maven("https://libraries.minecraft.net/")
+    maven("https://maven.fabricmc.net/")
 }
 
 dependencies {
@@ -23,6 +24,14 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
     testImplementation("org.jetbrains:annotations:20.1.0")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")
+    // Gradle 9 no longer ships the JUnit Platform launcher implicitly.
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.8.1")
+    // ExtensionLoader links against FabricLoader; needed to load the class under test.
+    testRuntimeOnly(rootProject.libs.fabric.loader)
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
 
 java {
