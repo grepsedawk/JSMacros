@@ -2,11 +2,13 @@ package xyz.wagyourtail.jsmacros.core.language;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.jsmacros.core.Core;
 import xyz.wagyourtail.jsmacros.core.event.BaseEvent;
 import xyz.wagyourtail.jsmacros.core.event.IEventListener;
 import xyz.wagyourtail.jsmacros.core.service.ServiceManager;
+import xyz.wagyourtail.jsmacros.core.threads.JsMacrosThreadPool;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
@@ -38,6 +40,12 @@ public abstract class BaseScriptContext<T> {
     protected Thread mainThread = null;
 
     protected final Set<Thread> threads = Collections.newSetFromMap(new ConcurrentHashMap<>());
+
+    // Threads bound only to participate in re-entry detection during a callback
+    // (e.g. the Minecraft render thread invoking a button handler). They are NOT
+    // owned by the script and must never be interrupted by closeContext —
+    // interrupting an engine thread mid-callback corrupts MC GL/network state.
+    protected final Set<Thread> borrowedThreads = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     protected final Map<Thread, EventContainer<? extends BaseScriptContext<T>>> events = new ConcurrentHashMap<>();
 
@@ -127,11 +135,29 @@ public abstract class BaseScriptContext<T> {
     }
 
     /**
+     * Binds the current thread for a callback dispatch. Non-pool (engine) threads
+     * are tracked in {@link #borrowedThreads}; see that field for why.
+     *
+     * @return is a newly bound thread
+     */
+    public synchronized boolean bindCallerThread() {
+        if (closed) {
+            throw new ScriptAssertionError("Cannot bind thread to closed context");
+        }
+        Thread t = Thread.currentThread();
+        if (!(t instanceof JsMacrosThreadPool.PoolThread)) {
+            borrowedThreads.add(t);
+        }
+        return threads.add(t);
+    }
+
+    /**
      * @param t
      * @since 1.6.0
      */
     public synchronized void unbindThread(Thread t) {
         if (!threads.remove(t)) throw new ScriptAssertionError("Cannot unbind thread that is not bound");
+        borrowedThreads.remove(t);
         EventContainer<?> container = events.get(t);
         if (container != null) {
             container.releaseLock();
@@ -181,13 +207,26 @@ public abstract class BaseScriptContext<T> {
         return closed;
     }
 
-    public synchronized void closeContext() {
+    public final synchronized void closeContext() {
+        if (closed) return;
         closed = true;
-        // fix concurrency issue the "fun" way
-        ImmutableList.copyOf(getBoundEvents().values()).forEach(EventContainer::releaseLock);
-        ImmutableSet.copyOf(getBoundThreads()).forEach(Thread::interrupt);
+
+        ImmutableList<EventContainer<? extends BaseScriptContext<T>>> eventsToRelease =
+            ImmutableList.copyOf(getBoundEvents().values());
+
+        // Borrowed engine threads are excluded from the interrupt wave; interrupting
+        // them mid-callback corrupts MC GL/network state.
+        ImmutableSet<Thread> threadsToInterrupt =
+            Sets.difference(getBoundThreads(), borrowedThreads).immutableCopy();
+
+        eventsToRelease.forEach(EventContainer::releaseLock);
+        threadsToInterrupt.forEach(Thread::interrupt);
+        doSubclassClose();
         runner.getContexts().remove(this);
     }
+
+    /** Hook for language-specific teardown; called at most once. */
+    protected void doSubclassClose() {}
 
     /**
      * @return
