@@ -29,7 +29,6 @@ import net.minecraft.commands.arguments.blocks.BlockPredicateArgument;
 import net.minecraft.commands.arguments.blocks.BlockStateArgument;
 import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
 import net.minecraft.commands.arguments.coordinates.ColumnPosArgument;
-import net.minecraft.commands.arguments.coordinates.Vec3Argument;
 import net.minecraft.commands.arguments.item.ItemArgument;
 import net.minecraft.commands.arguments.item.ItemPredicateArgument;
 import net.minecraft.network.chat.Component;
@@ -220,15 +219,6 @@ public abstract class CommandBuilder implements Registrable<CommandBuilder> {
 
     public CommandBuilder blockPosArg(String name) {
         argument(name, BlockPosArgument::new);
-        return this;
-    }
-
-    public CommandBuilder posArg(String name) {
-        return posArg(name, true);
-    }
-
-    public CommandBuilder posArg(String name, boolean centerArgs) {
-        argument(name, () -> Vec3Argument.vec3(centerArgs));
         return this;
     }
 
