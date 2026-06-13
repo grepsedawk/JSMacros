@@ -2,6 +2,7 @@ package xyz.wagyourtail.jsmacros.client.api.classes.render.components3d;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.gizmos.CuboidGizmo;
 import net.minecraft.gizmos.GizmoProperties;
 import net.minecraft.gizmos.GizmoStyle;
@@ -42,8 +43,6 @@ public class Box implements RenderElement3D<Box> {
         this.fill = fill;
         this.cull = cull;
     }
-
-    // ... All methods from setPos to compareToSame are unchanged ...
 
     /**
      * @param x1
@@ -103,7 +102,7 @@ public class Box implements RenderElement3D<Box> {
      * @since 1.0.6
      */
     public void setFillColor(int fillColor) {
-        this.fillColor = fillColor;
+        this.fillColor = ColorUtil.fixAlpha(fillColor);
     }
 
     /**
@@ -171,17 +170,17 @@ public class Box implements RenderElement3D<Box> {
 
     @Override
     @DocletIgnore
-    public void render(PoseStack matrixStack, MultiBufferSource consumers, float tickDelta) {
-        GizmoProperties gizmo = Gizmos.addGizmo(new CuboidGizmo(
-                new AABB(pos.getStart().toMojangDoubleVector(), pos.getEnd().toMojangDoubleVector()),
-                new GizmoStyle(color, 2.5f, fill ? fillColor : 0),
-                false));
-        if (!this.cull) {
+    public void render(PoseStack matrixStack, MultiBufferSource consumers, SubmitNodeCollector collector, float tickDelta) {
+        boolean seeThrough = !this.cull;
+        AABB box = new AABB(pos.getStart().toMojangDoubleVector(), pos.getEnd().toMojangDoubleVector());
+        int renderFillColor = fill ? fillColor : 0;
+        GizmoStyle style = new GizmoStyle(color, 2.5f, renderFillColor);
+        GizmoProperties gizmo = Gizmos.addGizmo(new CuboidGizmo(box, style, false));
+        if (seeThrough) {
             gizmo.setAlwaysOnTop();
         }
     }
 
-    // ... Builder class is unchanged ...
     /**
      * @author Etheradon
      * @since 1.8.4
