@@ -2,6 +2,9 @@ package xyz.wagyourtail.jsmacros.client.mixin.events;
 
 import com.mojang.authlib.GameProfile;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.inventory.AbstractSignEditScreen;
+import net.minecraft.client.gui.screens.inventory.HangingSignEditScreen;
+import net.minecraft.client.gui.screens.inventory.SignEditScreen;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.player.AbstractClientPlayer;
@@ -11,6 +14,7 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ServerboundSignUpdatePacket;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.block.entity.HangingSignBlockEntity;
 import net.minecraft.world.level.block.entity.SignBlockEntity;
 import net.minecraft.world.level.block.entity.SignText;
 import net.minecraft.world.phys.Vec2;
@@ -22,6 +26,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import xyz.wagyourtail.jsmacros.api.PlayerInput;
+import xyz.wagyourtail.jsmacros.client.access.ISignEditScreen;
 import xyz.wagyourtail.jsmacros.client.api.event.impl.inventory.EventDropSlot;
 import xyz.wagyourtail.jsmacros.client.api.event.impl.player.EventAirChange;
 import xyz.wagyourtail.jsmacros.client.api.event.impl.player.EventEXPChange;
@@ -29,10 +34,9 @@ import xyz.wagyourtail.jsmacros.client.api.event.impl.player.EventRiding;
 import xyz.wagyourtail.jsmacros.client.api.event.impl.player.EventSignEdit;
 import xyz.wagyourtail.jsmacros.client.movement.MovementQueue;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Mixin(LocalPlayer.class)
 abstract class MixinLocalPlayer extends AbstractClientPlayer {
@@ -69,37 +73,47 @@ abstract class MixinLocalPlayer extends AbstractClientPlayer {
 
     @Inject(at = @At("HEAD"), method = "openTextEdit", cancellable = true)
     public void onOpenEditSignScreen(SignBlockEntity sign, boolean front, CallbackInfo ci) {
-        var originalLines = Arrays.stream(sign.getText(front)
+        List<String> lines = Arrays.stream(sign.getText(front)
                 .getMessages(minecraft.isTextFilteringEnabled()))
                 .map(Component::getString)
-                .toList();
-
-        final EventSignEdit event = new EventSignEdit(new ArrayList<>(originalLines),
-                sign.getBlockPos().getX(), sign.getBlockPos().getY(), sign.getBlockPos().getZ(), front);
+                .collect(Collectors.toList());
+        final EventSignEdit event = new EventSignEdit(lines, sign.getBlockPos().getX(), sign.getBlockPos().getY(), sign.getBlockPos().getZ(), front);
         event.trigger();
-
-        // Cleanup sign edit result, null or lines != 4 need to be fixed.
-        List<String> lines = event.signText;
-        if (lines == null || lines.size() != 4) lines = Arrays.asList("", "", "", "");
-        if (event.signText != null) {
-            for (int i = 0; i < Math.min(4, event.signText.size()); i++) {
-                lines.set(i, event.signText.get(i));
-            }
-        }
-
-        // Replace text only if needed
-        if (!Objects.equals(originalLines, lines)) {
+        lines = event.signText;
+        if (lines == null) lines = Arrays.asList("", "", "", "");
+        if (event.closeScreen || event.isCanceled()) {
             SignText text = new SignText();
             for (int i = 0; i < 4; ++i) {
                 text = text.setMessage(i, Component.nullToEmpty(lines.get(i)));
             }
             sign.setText(text, front);
             sign.setChanged();
-        }
-
-        // Cancel only if needed
-        if (event.closeScreen || event.isCanceled()) {
             connection.send(new ServerboundSignUpdatePacket(sign.getBlockPos(), front, lines.get(0), lines.get(1), lines.get(2), lines.get(3)));
+            ci.cancel();
+            return;
+        }
+        //this part to not info.cancel is here for more compatibility with other mods.
+        boolean cancel = false;
+        for (String line : lines) {
+            if (!line.isEmpty()) {
+                cancel = true;
+                break;
+            }
+        } //else
+        if (cancel) {
+            // we're checking the type of block entity to choose the correct screen here.
+            AbstractSignEditScreen signScreen;
+            if (sign instanceof HangingSignBlockEntity hs) {
+                signScreen = new HangingSignEditScreen(hs, front, minecraft.isTextFilteringEnabled());
+            } else {
+                signScreen = new SignEditScreen(sign, front, minecraft.isTextFilteringEnabled());
+            }
+            minecraft.setScreen(signScreen);
+            for (int i = 0; i < 4; ++i) {
+                //noinspection DataFlowIssue
+                ((ISignEditScreen) signScreen).jsmacros_setLine(i, lines.get(i));
+            }
+            ((ISignEditScreen) signScreen).jsmacros_fixSelection();
             ci.cancel();
         }
     }
