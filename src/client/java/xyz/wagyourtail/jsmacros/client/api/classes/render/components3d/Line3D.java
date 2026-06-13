@@ -2,6 +2,7 @@ package xyz.wagyourtail.jsmacros.client.api.classes.render.components3d;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.gizmos.GizmoProperties;
 import net.minecraft.gizmos.Gizmos;
 import net.minecraft.gizmos.LineGizmo;
@@ -21,6 +22,7 @@ import java.util.Objects;
 public class Line3D implements RenderElement3D<Line3D> {
     public Vec3D pos;
     public int color;
+    // TODO: deprecate in favor of "alwaysOnTop" (alwaysOnTop is technically the reverse of this)
     public boolean cull;
 
     public Line3D(double x1, double y1, double z1, double x2, double y2, double z2, int color, boolean cull) {
@@ -49,6 +51,30 @@ public class Line3D implements RenderElement3D<Line3D> {
     }
 
     /**
+     * @return a new {@link Vec3D} containing the positions of the line
+     * @since 2.0.0
+     */
+    public Vec3D getPos() {
+        return new Vec3D(pos);
+    }
+
+    /**
+     * @return the first position of the line as a new {@link Pos3D}
+     * @since 2.0.0
+     */
+    public Pos3D getPos1() {
+        return new Pos3D(pos.x1, pos.y1, pos.z1);
+    }
+
+    /**
+     * @return the second position of the line as a new {@link Pos3D}
+     * @since 2.0.0
+     */
+    public Pos3D getPos2() {
+        return new Pos3D(pos.x2, pos.y2, pos.z2);
+    }
+
+    /**
      * @param color
      * @since 1.0.6
      */
@@ -66,11 +92,43 @@ public class Line3D implements RenderElement3D<Line3D> {
     }
 
     /**
+     * @return the color of the line
+     * @since 2.0.0
+     */
+    public int getColor() {
+        return color & 0xFFFFFF;
+    }
+
+    /**
      * @param alpha
      * @since 1.1.8
      */
     public void setAlpha(int alpha) {
         this.color = (alpha << 24) | (color & 0xFFFFFF);
+    }
+
+    /**
+     * @return the alpha value of the line's color
+     * @since 2.0.0
+     */
+    public int getAlpha() {
+        return (color >> 24) & 0xFF;
+    }
+
+    /**
+     * @param alwaysOnTop whether the line should be rendered on top of everything else or not
+     * @since 2.0.0
+     */
+    public void setAlwaysOnTop(boolean alwaysOnTop) {
+        this.cull = !alwaysOnTop;
+    }
+
+    /**
+     * @return whether the line is rendered on top of everything else
+     * @since 2.0.0
+     */
+    public boolean isAlwaysOnTop() {
+        return !cull;
     }
 
     @Override
@@ -93,14 +151,15 @@ public class Line3D implements RenderElement3D<Line3D> {
 
     @Override
     @DocletIgnore
-    public void render(PoseStack matrixStack, MultiBufferSource consumers, float tickDelta) {
+    public void render(PoseStack matrixStack, MultiBufferSource consumers, SubmitNodeCollector collector, float tickDelta) {
+        boolean alwaysOnTop = !this.cull;
         GizmoProperties gizmo = Gizmos.addGizmo(new LineGizmo(
                 pos.getStart().toMojangDoubleVector(),
                 pos.getEnd().toMojangDoubleVector(),
                 color,
                 LineGizmo.DEFAULT_WIDTH
         ));
-        if (!this.cull) {
+        if (alwaysOnTop) {
             gizmo.setAlwaysOnTop();
         }
     }
