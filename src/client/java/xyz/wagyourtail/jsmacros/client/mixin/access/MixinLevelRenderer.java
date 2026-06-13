@@ -10,6 +10,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.LevelTargetBundle;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeStorage;
 import net.minecraft.client.renderer.chunk.ChunkSectionsToRender;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.state.level.LevelRenderState;
@@ -20,6 +21,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import xyz.wagyourtail.jsmacros.client.JsMacros;
 import xyz.wagyourtail.jsmacros.client.api.classes.render.Draw3D;
 import xyz.wagyourtail.jsmacros.client.api.library.impl.FHud;
 
@@ -28,6 +30,9 @@ public class MixinLevelRenderer {
 
     @Shadow
     private LevelTargetBundle targets;
+
+    @Shadow
+    private SubmitNodeStorage submitNodeStorage;
 
     @Inject(method = "addMainPass", at = @At("TAIL"))
     private void onRenderMain(
@@ -45,6 +50,10 @@ public class MixinLevelRenderer {
         if (this.targets == null) {
             return;
         }
+        // Capture the live submit-node storage: addMainPass still has it before the engine
+        // drains it (clearSubmitNodes), so collector-based draws (e.g. Item on a Surface)
+        // render this frame. Injecting later (addWeatherPass) would no-op those.
+        SubmitNodeStorage capturedStorage = this.submitNodeStorage;
         FramePass framePass = frame.addPass("jsmacros_draw3d");
         LevelTargetBundle frameBufferSet = this.targets;
         frameBufferSet.main = framePass.readsAndWrites(frameBufferSet.main);
@@ -60,14 +69,13 @@ public class MixinLevelRenderer {
                 PoseStack matrixStack = new PoseStack();
 
                 for (Draw3D d : ImmutableSet.copyOf(FHud.renders)) {
-
-                    d.render(matrixStack, consumers, tickDelta);
+                    d.render(matrixStack, consumers, capturedStorage, tickDelta);
                 }
 
                 consumers.endBatch();
 
             } catch (Throwable e) {
-                e.printStackTrace();
+                JsMacros.LOGGER.error("Draw3D render error", e);
             }
 
             profiler.pop();
