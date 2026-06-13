@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "jsmacros-ruby",
+  "version": "${version}",
+  "name": "JsMacros Ruby",
+  "description": "JRuby scripting language support for JsMacros Reloaded.",
+  "license": "MIT",
+  "environment": "*",
+  "entrypoints": {
+    "jsmacros": [
+      "xyz.wagyourtail.jsmacros.jruby.client.JRubyExtension"
+    ]
+  },
+  "jars": [
+    {
+      "file": "META-INF/jars/${jruby_jar}"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=0.15.0",
+    "jsmacros": ">=2.1.0 <2.2.0",
+    "minecraft": ["${minecraft_version}"]
+  }
+}
