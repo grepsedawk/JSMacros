@@ -1,4 +1,7 @@
-# JsMacros
+# JsMacros Reloaded
+
+> JsMacros Reloaded is a clean fork of [JsMacros](https://github.com/wagyourtail/JsMacros) by WagYourTail.
+> The Minecraft 26.1 port is based on work by Pablete1234, and the rendering subsystem is by Jack Manning.
 
 This mod allows for the development of scripts to interact with the chat, and other parts of the world, using a
 scripting language.  

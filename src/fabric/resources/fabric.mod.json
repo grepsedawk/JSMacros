@@ -2,10 +2,14 @@
   "schemaVersion": 1,
   "id": "jsmacros",
   "version": "${version}",
-  "name": "Js Macros",
+  "name": "JsMacros Reloaded",
   "description": "Javascript Macros for Fabric",
   "authors": [
     "wagyourtail"
+  ],
+  "contributors": [
+    "Pablete1234",
+    "Jack Manning"
   ],
   "contact": {
     "homepage": "https://wagyourtail.xyz/",
