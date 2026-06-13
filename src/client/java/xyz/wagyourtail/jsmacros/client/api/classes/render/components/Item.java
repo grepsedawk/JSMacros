@@ -1,13 +1,20 @@
 package xyz.wagyourtail.jsmacros.client.api.classes.render.components;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.util.Mth;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix3x2fStack;
+import org.joml.Quaternionf;
 import xyz.wagyourtail.doclet.DocletIgnore;
 import xyz.wagyourtail.doclet.DocletReplaceParams;
 import xyz.wagyourtail.jsmacros.client.api.classes.RegistryHelper;
@@ -22,6 +29,8 @@ import xyz.wagyourtail.jsmacros.client.api.helper.inventory.ItemStackHelper;
 public class Item implements RenderElement, Alignable<Item> {
 
     private static final int DEFAULT_ITEM_SIZE = 16;
+    private static final float FLAT_ITEM_DEPTH_SCALE = 0.001f;
+    private static final float OVERLAY_TEXT_Z_OFFSET = 0.001f;
     private static final Minecraft mc = Minecraft.getInstance();
 
     @Nullable
@@ -256,8 +265,47 @@ public class Item implements RenderElement, Alignable<Item> {
 
     @Override
     @DocletIgnore
-    public void render3D(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
-        render(drawContext, mouseX, mouseY, delta, true);
+    public void render3D(PoseStack matrixStack, MultiBufferSource consumers, int light, boolean seeThrough, SubmitNodeCollector collector, float delta) {
+        if (item == null) {
+            return;
+        }
+        matrixStack.pushPose();
+        matrixStack.translate(x, y, 0);
+        matrixStack.scale((float) scale, (float) scale, 1);
+        if (rotateCenter) {
+            matrixStack.translate(DEFAULT_ITEM_SIZE / 2d, DEFAULT_ITEM_SIZE / 2d, 0);
+            matrixStack.mulPose(new Quaternionf().rotateLocalZ((float) Math.toRadians(rotation)));
+            matrixStack.translate(-DEFAULT_ITEM_SIZE / 2d, -DEFAULT_ITEM_SIZE / 2d, 0);
+        } else {
+            matrixStack.mulPose(new Quaternionf().rotateLocalZ((float) Math.toRadians(rotation)));
+        }
+
+        ItemStackRenderState renderState = new ItemStackRenderState();
+        mc.getItemModelResolver().updateForTopItem(renderState, item, ItemDisplayContext.GUI, mc.level, mc.player, 0);
+
+        matrixStack.pushPose();
+        matrixStack.translate(DEFAULT_ITEM_SIZE / 2d, DEFAULT_ITEM_SIZE / 2d, 0);
+        matrixStack.scale(1, -1, 1);
+        matrixStack.scale(DEFAULT_ITEM_SIZE, DEFAULT_ITEM_SIZE, DEFAULT_ITEM_SIZE);
+        matrixStack.scale(1, 1, FLAT_ITEM_DEPTH_SCALE);
+        renderState.submit(matrixStack, collector, light, OverlayTexture.NO_OVERLAY, 0);
+        matrixStack.popPose();
+
+        if (overlay) {
+            String text = ovText != null ? ovText : (item.getCount() > 1 ? String.valueOf(item.getCount()) : null);
+            if (text != null) {
+                Font font = mc.font;
+                // Text offset
+                float tx = DEFAULT_ITEM_SIZE + 1 - font.width(text);
+                float ty = 9;
+                matrixStack.pushPose();
+                matrixStack.translate(0, 0, OVERLAY_TEXT_Z_OFFSET);
+                font.drawInBatch(text, tx, ty, 0xFFFFFFFF, true, matrixStack.last().pose(), consumers, Font.DisplayMode.POLYGON_OFFSET, 0, light);
+                matrixStack.popPose();
+            }
+        }
+
+        matrixStack.popPose();
     }
 
     @DocletIgnore
