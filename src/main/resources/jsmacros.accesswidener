@@ -32,3 +32,8 @@ accessible field net/minecraft/world/entity/animal/dolphin/Dolphin treasurePos L
 accessible method net/minecraft/world/entity/animal/fish/TropicalFish getPackedVariant ()I
 accessible field net/minecraft/world/entity/animal/wolf/Wolf isWet Z
 
+# See-through render pipelines for Surface elements (Image/Rect render3D)
+accessible field net/minecraft/client/renderer/RenderPipelines DEBUG_FILLED_SNIPPET Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+accessible field net/minecraft/client/renderer/RenderPipelines ENTITY_SNIPPET Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+accessible method net/minecraft/client/renderer/rendertype/RenderType create (Ljava/lang/String;Lnet/minecraft/client/renderer/rendertype/RenderSetup;)Lnet/minecraft/client/renderer/rendertype/RenderType;
+

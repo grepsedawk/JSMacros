@@ -317,7 +317,7 @@ public class Surface extends Draw2D implements RenderElement, RenderElement3D<Su
         matrices.pushPose();
 
         boolean isTrackingEntity = boundEntity != null && boundEntity.isAlive();
-        Pos3D renderPos = isTrackingEntity ? new Pos3D(boundEntity.getPos(partialTicks)) : pos;
+        Pos3D renderPos = isTrackingEntity ? boundEntity.getPos(partialTicks) : pos;
         matrices.translate(renderPos.x, renderPos.y, renderPos.z);
 
         if (rotateToPlayer) {

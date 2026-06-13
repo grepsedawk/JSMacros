@@ -55,7 +55,7 @@ public class Line3D implements RenderElement3D<Line3D> {
      * @since 2.0.0
      */
     public Vec3D getPos() {
-        return new Vec3D(pos);
+        return new Vec3D(pos.x1, pos.y1, pos.z1, pos.x2, pos.y2, pos.z2);
     }
 
     /**
