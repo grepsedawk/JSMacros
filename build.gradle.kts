@@ -319,6 +319,8 @@ val createDist by tasks.registering(Copy::class) {
     group = "build"
     description = "Creates all files for the distribution of the project"
     dependsOn(copyPyDoc, copyTSDoc, copyWebDoc)
+    // build/libs is copied as a raw dir, so its producers must be explicit deps (Gradle 8.14 fails the build otherwise on a clean run).
+    dependsOn(fabricJar, remapFabricJar)
 
     from(File(rootProject.layout.buildDirectory.get().asFile, "docs"))
     from(File(rootProject.layout.buildDirectory.get().asFile, "libs"))
