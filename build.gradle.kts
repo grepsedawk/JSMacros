@@ -348,6 +348,10 @@ val modrinthToken = providers.gradleProperty("modrinth_token")
 
 fun modrinthChangelog(): String = """
     JsMacros Reloaded ${project.version} for fabric on Minecraft $mcVersion.
+
+    The first release of JsMacros Reloaded — a clean re-fork built directly on the original JsMacros, updated for Minecraft $mcVersion (fabric-only).
+
+    Thanks to WagYourTail for the original JsMacros, and to Pablete1234 for the Minecraft $mcVersion port work.
 """.trimIndent()
 
 fun rubyChangelog(): String = """
