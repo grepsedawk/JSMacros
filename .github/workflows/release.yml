@@ -12,7 +12,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       MODRINTH_PROJECT: XcnNwheM                      # jsmacros-reloaded (mpp needs the ID, not the slug)
-      MODRINTH_RUBY_PROJECT: EQoulhLS                 # jsmacros-ruby (mpp needs the ID, not the slug)
       MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}   # job-level so the skip-guard below works
     steps:
       - uses: actions/checkout@v4          # lands on the tag's commit — builds exactly what was tagged
@@ -67,11 +66,9 @@ jobs:
           shopt -s nullglob
           # Match the build's $modId-* dist outputs:
           #   jsmacros-<mc>-<V>-fabric.jar          (main mod)
-          #   jsmacros-<mc>-ruby-<V>.jar            (ruby companion mod)
           #   jsmacros-<mc>-*-extension.jar         (bundled extension jars, e.g. python)
           FILES=(
             dist/jsmacros-*-"$V"-fabric.jar
-            dist/jsmacros-*-ruby-"$V".jar
             dist/jsmacros-*-extension.jar
           )
           if [ ${#FILES[@]} -eq 0 ]; then
@@ -84,14 +81,14 @@ jobs:
         run: ./gradlew publishMods ${{ steps.ver.outputs.args }}
 
       # mod-publish-plugin can't set the per-version environment, so patch it after upload.
-      - name: Mark Modrinth versions as client-side
+      - name: Mark Modrinth version as client-side
         if: env.MODRINTH_TOKEN != ''
         shell: bash
         env:
           V: ${{ steps.ver.outputs.mod_version }}
         run: |
           set -euo pipefail
-          for PID in "$MODRINTH_PROJECT" "$MODRINTH_RUBY_PROJECT"; do
+          for PID in "$MODRINTH_PROJECT"; do
             [ -z "$PID" ] && continue
             VID=$(curl -fsS -H "Authorization: $MODRINTH_TOKEN" \
                   "https://api.modrinth.com/v3/project/$PID/version" \

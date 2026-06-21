@@ -325,7 +325,6 @@ val createDist by tasks.registering(Copy::class) {
     from(File(rootProject.layout.buildDirectory.get().asFile, "docs"))
     from(File(rootProject.layout.buildDirectory.get().asFile, "libs"))
     from(project(":extension:graal:python").tasks.jar.get().outputs)
-    from(project(":extension:ruby").tasks.jar.get().outputs)
     into(File(rootProject.rootDir, "dist"))
 }
 
@@ -343,8 +342,6 @@ val mcVersion = libs.versions.minecraft.get()
 
 val modrinthProjectId = providers.gradleProperty("modrinth_id")
     .orElse(providers.environmentVariable("MODRINTH_PROJECT"))
-val rubyModrinthProjectId = providers.gradleProperty("modrinth_ruby_id")
-    .orElse(providers.environmentVariable("MODRINTH_RUBY_PROJECT"))
 val modrinthToken = providers.gradleProperty("modrinth_token")
     .orElse(providers.environmentVariable("MODRINTH_TOKEN"))
 
@@ -354,11 +351,6 @@ fun modrinthChangelog(): String = """
     The first release of JsMacros Reloaded — a clean re-fork built directly on the original JsMacros, updated for Minecraft $mcVersion (fabric-only).
 
     Thanks to WagYourTail for the original JsMacros, and to Pablete1234 for the Minecraft $mcVersion port work.
-""".trimIndent()
-
-fun rubyChangelog(): String = """
-    JsMacros Ruby ${project.version} for fabric on Minecraft $mcVersion.
-    Requires JsMacros Reloaded.
 """.trimIndent()
 
 publishMods {
@@ -379,26 +371,6 @@ publishMods {
                 tasks.named("remapFabricJar", AbstractArchiveTask::class.java)
                     .flatMap { it.archiveFile }
             )
-        }
-    }
-
-    val publishRubyModrinth = modrinthToken.isPresent && rubyModrinthProjectId.isPresent && channel != "dev"
-    if (publishRubyModrinth) {
-        modrinth("modrinthRuby") {
-            projectId.set(rubyModrinthProjectId)
-            accessToken.set(modrinthToken)
-            minecraftVersions.add(mcVersion)
-            modLoaders.set(listOf("fabric"))
-
-            version.set("${project.version}+$mcVersion-fabric")
-            displayName.set("JsMacros Ruby ${project.version} (fabric $mcVersion)")
-            changelog.set(rubyChangelog())
-            type.set(releaseType)
-            file.set(
-                project(":extension:ruby").tasks.named("jar", AbstractArchiveTask::class.java)
-                    .flatMap { it.archiveFile }
-            )
-            requires { slug.set("jsmacros-reloaded") }
         }
     }
 }
