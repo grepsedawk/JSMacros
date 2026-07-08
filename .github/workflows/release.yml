@@ -40,7 +40,8 @@ jobs:
         shell: bash
         run: |
           TAG="${{ github.event.release.tag_name }}"
-          VER="${TAG#v}"                 # full version, used verbatim
+          VER="${TAG#v}"
+          VER="${VER%%+*}"               # tags carry +<mc> build metadata (v2.1.0+26.2); mod_version excludes it
           case "$VER" in
             *-alpha*) CHANNEL=alpha ;;   # alpha type on Modrinth
             *-*)      CHANNEL=beta ;;    # any other pre-release suffix -> beta
