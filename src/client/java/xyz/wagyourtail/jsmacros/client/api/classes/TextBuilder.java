@@ -80,7 +80,8 @@ public class TextBuilder {
      * @since 1.3.0
      */
     public TextBuilder withColor(int color) {
-        self.withStyle(style -> style.withColor(ChatFormatting.getById(color)));
+        ChatFormatting formatting = color >= 0 && color < ChatFormatting.values().length ? ChatFormatting.values()[color] : null;
+        self.withStyle(style -> style.withColor(formatting));
         return this;
     }
 

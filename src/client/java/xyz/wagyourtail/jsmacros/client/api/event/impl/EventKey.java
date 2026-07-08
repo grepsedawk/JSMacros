@@ -75,15 +75,15 @@ public class EventKey extends BaseEvent {
             FKeyBind.KeyTracker.unpress(keycode);
         }
 
-        if (mc.screen != null) {
+        if (mc.gui.screen() != null) {
             if (action != 0 || !wasNullOnDown.contains(key)) {
                 if (JsMacrosClient.clientCore.config.getOptions(ClientConfigV2.class).disableKeyWhenScreenOpen) {
                     return false;
                 }
-                if (mc.screen instanceof BaseScreen) {
+                if (mc.gui.screen() instanceof BaseScreen) {
                     return false;
                 }
-                GuiEventListener focused = mc.screen.getFocused();
+                GuiEventListener focused = mc.gui.screen().getFocused();
                 if (focused instanceof EditBox) {
                     return false;
                 }

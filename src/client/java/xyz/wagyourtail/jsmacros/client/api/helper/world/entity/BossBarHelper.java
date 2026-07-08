@@ -1,6 +1,7 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world.entity;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.TextColor;
 import net.minecraft.world.BossEvent;
 import xyz.wagyourtail.doclet.DocletReplaceReturn;
 import xyz.wagyourtail.jsmacros.client.api.helper.FormattingHelper;
@@ -60,7 +61,8 @@ public class BossBarHelper extends BaseHelper<BossEvent> {
      */
     public int getColorValue() {
         ChatFormatting f = base.getColor().getFormatting();
-        return f.getColor() == null ? -1 : f.getColor();
+        TextColor c = TextColor.fromLegacyFormat(f);
+        return c == null ? -1 : c.getValue();
     }
 
     /**

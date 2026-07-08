@@ -1,6 +1,5 @@
 package xyz.wagyourtail.jsmacros.client.gui.containers;
 
-import com.mojang.blaze3d.opengl.GlStateManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -212,9 +211,7 @@ public class MacroContainer extends MultiElementContainer<MacroScreen> {
                 } else {
                     tex = script_fork_tex;
                 }
-                GlStateManager._enableBlend();
                 drawContext.blit(RenderPipelines.GUI_TEXTURED, tex, x + w / 4 - 2 * height + 2, y + 2, 0, 0, height - 4, height - 4, 32, 32, 32, 32);
-                GlStateManager._disableBlend();
                 switch (macro.triggerType) {
                     default:
                     case KEY_FALLING:
@@ -227,18 +224,14 @@ public class MacroContainer extends MultiElementContainer<MacroScreen> {
                         tex = key_both_tex;
                         break;
                 }
-                GlStateManager._enableBlend();
                 drawContext.blit(RenderPipelines.GUI_TEXTURED, tex, x + w / 4 - height + 2, y + 2, 0, 0, height - 4, height - 4, 32, 32, 32, 32);
-                GlStateManager._disableBlend();
             } else {
                 if (macro.joined) {
                     tex = script_join_tex;
                 } else {
                     tex = script_fork_tex;
                 }
-                GlStateManager._enableBlend();
                 drawContext.blit(RenderPipelines.GUI_TEXTURED, tex, x + w / 4 - height + 2, y + 2, 0, 0, height - 4, height - 4, 32, 32, 32, 32);
-                GlStateManager._disableBlend();
             }
 
             // border

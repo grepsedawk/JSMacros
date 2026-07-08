@@ -84,7 +84,7 @@ public class TradeOfferHelper extends BaseHelper<MerchantOffer> {
      * select trade offer on screen
      */
     public TradeOfferHelper select() {
-        if (inv != null && Minecraft.getInstance().screen == inv.getRawContainer()) {
+        if (inv != null && Minecraft.getInstance().gui.screen() == inv.getRawContainer()) {
             inv.selectTrade(index);
         }
         return this;

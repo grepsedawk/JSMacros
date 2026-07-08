@@ -283,7 +283,7 @@ public class ClickableWidgetHelper<B extends ClickableWidgetHelper<B, T>, T exte
 
     @Override
     public int getParentWidth() {
-        return Minecraft.getInstance().screen.width;
+        return Minecraft.getInstance().gui.screen().width;
     }
 
     @Override
@@ -293,7 +293,7 @@ public class ClickableWidgetHelper<B extends ClickableWidgetHelper<B, T>, T exte
 
     @Override
     public int getParentHeight() {
-        return Minecraft.getInstance().screen.height;
+        return Minecraft.getInstance().gui.screen().height;
     }
 
     @Override

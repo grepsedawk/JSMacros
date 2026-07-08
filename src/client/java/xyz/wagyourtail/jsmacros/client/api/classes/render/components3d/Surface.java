@@ -6,7 +6,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.util.LightCoordsUtil;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.LightLayer;
@@ -312,7 +311,7 @@ public class Surface extends Draw2D implements RenderElement, RenderElement3D<Su
 
     @Override
     @DocletIgnore
-    public void render(PoseStack matrices, MultiBufferSource consumers, SubmitNodeCollector collector, float partialTicks) {
+    public void render(PoseStack matrices, SubmitNodeCollector collector, float partialTicks) {
         boolean seeThrough = !this.cull;
         matrices.pushPose();
 
@@ -321,7 +320,7 @@ public class Surface extends Draw2D implements RenderElement, RenderElement3D<Su
         matrices.translate(renderPos.x, renderPos.y, renderPos.z);
 
         if (rotateToPlayer) {
-            Vec3 cameraPos = Minecraft.getInstance().gameRenderer.getMainCamera().position();
+            Vec3 cameraPos = Minecraft.getInstance().gameRenderer.mainCamera().position();
             double pivotX = rotateCenter ? renderPos.x + (sizes.x / 2.0) : renderPos.x;
             double pivotY = rotateCenter ? renderPos.y - (sizes.y / 2.0) : renderPos.y;
             double pivotZ = renderPos.z;
@@ -359,7 +358,6 @@ public class Surface extends Draw2D implements RenderElement, RenderElement3D<Su
 
         synchronized (elements) {
             renderElements3D(matrices,
-                    consumers,
                     collector,
                     partialTicks,
                     resolveLightValue(renderPos.toRawBlockPos()),
@@ -383,19 +381,19 @@ public class Surface extends Draw2D implements RenderElement, RenderElement3D<Su
         };
     }
 
-    private void renderElements3D(PoseStack matrices, MultiBufferSource consumers, SubmitNodeCollector collector, float delta, int light, boolean seeThrough, Iterator<RenderElement> iter) {
+    private void renderElements3D(PoseStack matrices, SubmitNodeCollector collector, float delta, int light, boolean seeThrough, Iterator<RenderElement> iter) {
         while (iter.hasNext()) {
             RenderElement element = iter.next();
             // Render each draw2D element individually so that the cull and renderBack settings are used
             if (element instanceof Draw2DElement draw2DElement) {
-                renderDraw2D3D(matrices, consumers, collector, delta, light, seeThrough, draw2DElement);
+                renderDraw2D3D(matrices, collector, delta, light, seeThrough, draw2DElement);
             } else {
-                renderElement3D(matrices, consumers, collector, delta, light, seeThrough, element);
+                renderElement3D(matrices, collector, delta, light, seeThrough, element);
             }
         }
     }
 
-    private void renderDraw2D3D(PoseStack matrices, MultiBufferSource consumers, SubmitNodeCollector collector, float delta, int light, boolean seeThrough, Draw2DElement element) {
+    private void renderDraw2D3D(PoseStack matrices, SubmitNodeCollector collector, float delta, int light, boolean seeThrough, Draw2DElement element) {
         matrices.pushPose();
         matrices.translate(element.x, element.y, 0);
         matrices.scale(element.scale, element.scale, 1);
@@ -409,19 +407,19 @@ public class Surface extends Draw2D implements RenderElement, RenderElement3D<Su
         // Don't translate back! Elements are rendered relative to the translated origin.
         Draw2D draw2D = element.getDraw2D();
         synchronized (draw2D.getElements()) {
-            renderElements3D(matrices, consumers, collector, delta, light, seeThrough, draw2D.getElementsByZIndex());
+            renderElements3D(matrices, collector, delta, light, seeThrough, draw2D.getElementsByZIndex());
         }
         matrices.popPose();
     }
 
-    private void renderElement3D(PoseStack matrices, MultiBufferSource consumers, SubmitNodeCollector collector, float delta, int light, boolean seeThrough, RenderElement element) {
+    private void renderElement3D(PoseStack matrices, SubmitNodeCollector collector, float delta, int light, boolean seeThrough, RenderElement element) {
         matrices.pushPose();
         // The surface's scale transform has already been applied to the matrix stack, so a plain
         // zIndexScale * zIndex translation would be scaled down by `scale` (e.g. 0.01), causing
         // z-fighting.  Divide by scale to keep the world-space z-separation equal to
         // zIndexScale * zIndex regardless of the surface's pixel-to-block scale factor.
         matrices.translate(0, 0, (zIndexScale / scale) * element.getZIndex());
-        element.render3D(matrices, consumers, light, seeThrough, collector, delta);
+        element.render3D(matrices, light, seeThrough, collector, delta);
         matrices.popPose();
     }
 

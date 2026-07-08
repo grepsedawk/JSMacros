@@ -209,7 +209,7 @@ public class FClient extends PerExecLibrary {
             } else {
                 mc.disconnect(null, false);
             }
-            mc.createWorldOpenFlows().openWorld(folderName, () -> mc.setScreen(new TitleScreen()));
+            mc.createWorldOpenFlows().openWorld(folderName, () -> mc.gui.setScreen(new TitleScreen()));
         });
     }
 
@@ -271,15 +271,15 @@ public class FClient extends PerExecLibrary {
                     mc.level.disconnect(Component.nullToEmpty(""));
                 }
                 mc.disconnect(new GenericMessageScreen(Component.translatable("menu.savingLevel")), false);
-                mc.setScreen(new TitleScreen());
+                mc.gui.setScreen(new TitleScreen());
             }
             if (isInSingleplayer) {
-                mc.setScreen(new TitleScreen());
+                mc.gui.setScreen(new TitleScreen());
             } else if (mc.getCurrentServer() != null) {
                 if (mc.getCurrentServer().isRealm()) {
-                    mc.setScreen(new RealmsMainScreen(new TitleScreen()));
+                    mc.gui.setScreen(new RealmsMainScreen(new TitleScreen()));
                 } else {
-                    mc.setScreen(new JoinMultiplayerScreen(new TitleScreen()));
+                    mc.gui.setScreen(new JoinMultiplayerScreen(new TitleScreen()));
                 }
             }
             try {

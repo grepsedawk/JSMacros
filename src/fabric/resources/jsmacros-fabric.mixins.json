@@ -4,7 +4,7 @@
   "compatibilityLevel": "JAVA_17",
   "client": [
     "MixinDebugScreenOverlay",
-    "MixinGameRenderer",
+    "MixinGui",
     "MixinKeyboardHandler",
     "MixinMouseHandler"
   ],

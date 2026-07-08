@@ -110,7 +110,7 @@ public class StatusEffectHelper extends BaseHelper<MobEffectInstance> {
      * @since 1.8.4
      */
     public boolean isInstant() {
-        return base.getEffect().value().isInstantenous();
+        return base.getEffect().value().isInstantaneous();
     }
 
     /**

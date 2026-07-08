@@ -1,12 +1,12 @@
 package xyz.wagyourtail.jsmacros.client.access;
 
-import net.minecraft.world.item.Item;
+import net.minecraft.resources.Identifier;
 
 import java.util.Map;
 
 public interface IItemCooldownManager {
 
-    Map<Item, IItemCooldownEntry> jsmacros_getCooldownItems();
+    Map<Identifier, IItemCooldownEntry> jsmacros_getCooldownItems();
 
     int jsmacros_getManagerTicks();
 

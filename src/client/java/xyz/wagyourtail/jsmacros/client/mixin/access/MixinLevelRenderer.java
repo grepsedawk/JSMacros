@@ -5,17 +5,14 @@ import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.framegraph.FrameGraphBuilder;
 import com.mojang.blaze3d.framegraph.FramePass;
 import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.LevelTargetBundle;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.SubmitNodeStorage;
 import net.minecraft.client.renderer.chunk.ChunkSectionsToRender;
-import net.minecraft.client.renderer.culling.Frustum;
+import net.minecraft.client.renderer.feature.FeatureRenderDispatcher;
 import net.minecraft.client.renderer.state.level.LevelRenderState;
 import net.minecraft.util.profiling.ProfilerFiller;
-import org.joml.Matrix4fc;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -37,12 +34,9 @@ public class MixinLevelRenderer {
     @Inject(method = "addMainPass", at = @At("TAIL"))
     private void onRenderMain(
             FrameGraphBuilder frame,
-            Frustum frustum,
-            Matrix4fc modelViewMatrix,
+            FeatureRenderDispatcher.PreparedFrame preparedFrame,
             GpuBufferSlice terrainFog,
-            boolean renderOutline,
             LevelRenderState levelRenderState,
-            DeltaTracker deltaTracker,
             ProfilerFiller profiler,
             ChunkSectionsToRender chunkSectionsToRender,
             CallbackInfo ci
@@ -62,17 +56,13 @@ public class MixinLevelRenderer {
             profiler.push("jsmacros_d3d");
 
             try {
-                MultiBufferSource.BufferSource consumers = Minecraft.getInstance().renderBuffers().bufferSource();
-
-                float tickDelta = deltaTracker.getGameTimeDeltaPartialTick(true);
+                float tickDelta = Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(true);
 
                 PoseStack matrixStack = new PoseStack();
 
                 for (Draw3D d : ImmutableSet.copyOf(FHud.renders)) {
-                    d.render(matrixStack, consumers, capturedStorage, tickDelta);
+                    d.render(matrixStack, capturedStorage, tickDelta);
                 }
-
-                consumers.endBatch();
 
             } catch (Throwable e) {
                 JsMacros.LOGGER.error("Draw3D render error", e);

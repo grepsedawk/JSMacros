@@ -744,7 +744,7 @@ public class UniversalBlockStateHelper extends BlockStateHelper {
      * @since 1.8.4
      */
     public String getThickness() {
-        return base.getValue(BlockStateProperties.DRIPSTONE_THICKNESS).getSerializedName();
+        return base.getValue(BlockStateProperties.SPELEOTHEM_THICKNESS).getSerializedName();
     }
 
     /**

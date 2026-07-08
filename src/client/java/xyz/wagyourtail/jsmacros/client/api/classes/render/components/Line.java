@@ -3,7 +3,6 @@ package xyz.wagyourtail.jsmacros.client.api.classes.render.components;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.util.Mth;
@@ -304,7 +303,7 @@ public class Line implements RenderElement, Alignable<Line> {
     }
 
     @Override
-    public void render3D(PoseStack matrixStack, MultiBufferSource consumers, int light, boolean seeThrough, SubmitNodeCollector collector, float delta) {
+    public void render3D(PoseStack matrixStack, int light, boolean seeThrough, SubmitNodeCollector collector, float delta) {
         matrixStack.pushPose();
         matrixStack.translate(x1, y1, 0);
         if (rotateCenter) {
@@ -329,10 +328,10 @@ public class Line implements RenderElement, Alignable<Line> {
         float ny = len > 0 ? dy / len : 0;
 
         RenderType lineLayer = seeThrough ? RenderTypes.linesTranslucent() : RenderTypes.lines();
-        VertexConsumer vc = consumers.getBuffer(lineLayer);
-        PoseStack.Pose pose = matrixStack.last();
-        vc.addVertex(pose, x1, y1, 0).setColor(r, g, b, a).setLineWidth(width).setNormal(pose, nx, ny, 0);
-        vc.addVertex(pose, x2, y2, 0).setColor(r, g, b, a).setLineWidth(width).setNormal(pose, nx, ny, 0);
+        collector.submitCustomGeometry(matrixStack, lineLayer, (pose, vc) -> {
+            vc.addVertex(pose, x1, y1, 0).setColor(r, g, b, a).setLineWidth(width).setNormal(pose, nx, ny, 0);
+            vc.addVertex(pose, x2, y2, 0).setColor(r, g, b, a).setLineWidth(width).setNormal(pose, nx, ny, 0);
+        });
 
         matrixStack.popPose();
     }

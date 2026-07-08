@@ -1,7 +1,10 @@
 package xyz.wagyourtail.jsmacros.client.api.helper;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.TextColor;
 import xyz.wagyourtail.jsmacros.core.helpers.BaseHelper;
+
+import java.util.Locale;
 
 /**
  * @author Etheradon
@@ -19,7 +22,8 @@ public class FormattingHelper extends BaseHelper<ChatFormatting> {
      * @since 1.8.4
      */
     public int getColorValue() {
-        return base.getColor();
+        TextColor color = TextColor.fromLegacyFormat(base);
+        return color == null ? -1 : color.getValue();
     }
 
     /**
@@ -27,7 +31,7 @@ public class FormattingHelper extends BaseHelper<ChatFormatting> {
      * @since 1.8.4
      */
     public int getColorIndex() {
-        return base.getId();
+        return base.ordinal();
     }
 
     /**
@@ -35,7 +39,7 @@ public class FormattingHelper extends BaseHelper<ChatFormatting> {
      * @since 1.8.4
      */
     public String getName() {
-        return base.getName();
+        return base.name().toLowerCase(Locale.ROOT);
     }
 
     /**
@@ -45,7 +49,7 @@ public class FormattingHelper extends BaseHelper<ChatFormatting> {
      * @since 1.8.4
      */
     public char getCode() {
-        return base.getChar();
+        return base.toString().charAt(1);
     }
 
     /**
@@ -53,7 +57,7 @@ public class FormattingHelper extends BaseHelper<ChatFormatting> {
      * @since 1.8.4
      */
     public boolean isColor() {
-        return base.isColor();
+        return TextColor.fromLegacyFormat(base) != null;
     }
 
     /**
@@ -61,7 +65,7 @@ public class FormattingHelper extends BaseHelper<ChatFormatting> {
      * @since 1.8.4
      */
     public boolean isModifier() {
-        return base.isFormat();
+        return TextColor.fromLegacyFormat(base) == null && base != ChatFormatting.RESET;
     }
 
     @Override

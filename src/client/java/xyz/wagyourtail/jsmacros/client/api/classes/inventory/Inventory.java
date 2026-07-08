@@ -72,7 +72,7 @@ public class Inventory<T extends AbstractContainerScreen<?>> {
     protected static Minecraft mc = Minecraft.getInstance();
 
     public static Inventory<?> create() {
-        Inventory<?> inv = create(mc.screen);
+        Inventory<?> inv = create(mc.gui.screen());
         // What to do with horses? The horse inventory would need to be opened with a packet
         if (inv == null) {
             assert mc.player != null;
@@ -518,7 +518,7 @@ public class Inventory<T extends AbstractContainerScreen<?>> {
      * @since 1.2.8
      */
     public void openGui() {
-        mc.execute(() -> mc.setScreen(this.inventory));
+        mc.execute(() -> mc.gui.setScreen(this.inventory));
     }
 
     /**
@@ -529,7 +529,7 @@ public class Inventory<T extends AbstractContainerScreen<?>> {
         Minecraft mc = Minecraft.getInstance();
         double x = mc.mouseHandler.xpos() * (double) mc.getWindow().getGuiScaledWidth() / (double) mc.getWindow().getScreenWidth();
         double y = mc.mouseHandler.ypos() * (double) mc.getWindow().getGuiScaledHeight() / (double) mc.getWindow().getScreenHeight();
-        if (this.inventory != mc.screen) {
+        if (this.inventory != mc.gui.screen()) {
             throw new RuntimeException("Inventory screen is not open.");
         }
         Slot s = ((IInventory) this.inventory).jsmacros_getSlotUnder(x, y);

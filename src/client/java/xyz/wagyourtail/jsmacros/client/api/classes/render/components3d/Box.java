@@ -1,7 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.api.classes.render.components3d;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.gizmos.CuboidGizmo;
 import net.minecraft.gizmos.GizmoProperties;
@@ -170,7 +169,7 @@ public class Box implements RenderElement3D<Box> {
 
     @Override
     @DocletIgnore
-    public void render(PoseStack matrixStack, MultiBufferSource consumers, SubmitNodeCollector collector, float tickDelta) {
+    public void render(PoseStack matrixStack, SubmitNodeCollector collector, float tickDelta) {
         boolean seeThrough = !this.cull;
         AABB box = new AABB(pos.getStart().toMojangDoubleVector(), pos.getEnd().toMojangDoubleVector());
         int renderFillColor = fill ? fillColor : 0;

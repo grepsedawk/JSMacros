@@ -1,6 +1,6 @@
 package xyz.wagyourtail.jsmacros.client.mixin.access;
 
-import net.minecraft.world.item.Item;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemCooldowns;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -15,13 +15,13 @@ public class MixinItemCooldowns implements IItemCooldownManager {
 
     @Shadow
     @Final
-    private Map<Item, IItemCooldownEntry> cooldowns;
+    private Map<Identifier, IItemCooldownEntry> cooldowns;
 
     @Shadow
     private int tickCount;
 
     @Override
-    public Map<Item, IItemCooldownEntry> jsmacros_getCooldownItems() {
+    public Map<Identifier, IItemCooldownEntry> jsmacros_getCooldownItems() {
         return cooldowns;
     }
 

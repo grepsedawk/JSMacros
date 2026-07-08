@@ -4,7 +4,7 @@ import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
-import net.minecraft.client.gui.screens.Overlay;
+import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
@@ -20,14 +20,11 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import xyz.wagyourtail.jsmacros.client.JsMacrosClient;
 import xyz.wagyourtail.jsmacros.client.api.classes.InteractionProxy;
 import xyz.wagyourtail.jsmacros.client.api.classes.render.Draw2D;
 import xyz.wagyourtail.jsmacros.client.api.classes.render.IDraw2D;
-import xyz.wagyourtail.jsmacros.client.api.classes.render.IScreen;
 import xyz.wagyourtail.jsmacros.client.api.library.impl.FHud;
 
-import java.util.function.Consumer;
 
 @Mixin(Minecraft.class)
 abstract
@@ -40,10 +37,8 @@ class MixinMinecraft {
     protected int missTime;
 
     @Shadow
-    public Screen screen;
-
-    @Shadow
-    private Overlay overlay;
+    @Final
+    public Gui gui;
 
     @Shadow
     private volatile boolean pause;
@@ -69,16 +64,6 @@ class MixinMinecraft {
                 } catch (Throwable ignored) {
                 }
             }
-        }
-    }
-
-    @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/Screen;removed()V"), method = "setScreen")
-    public void onCloseScreen(Screen screen, CallbackInfo ci) {
-        Consumer<IScreen> onClose = ((IScreen) this.screen).getOnClose();
-        try {
-            if (onClose != null) onClose.accept((IScreen) screen);
-        } catch (Throwable e) {
-            JsMacrosClient.clientCore.profile.logError(e);
         }
     }
 
@@ -118,7 +103,7 @@ class MixinMinecraft {
 
     @Inject(at = @At(value = "INVOKE_STRING", target = "Lnet/minecraft/util/profiling/ProfilerFiller;popPush(Ljava/lang/String;)V", args = "ldc=gameRenderer"), method = "tick")
     private void ensureOverrideInteractions(CallbackInfo ci) {
-        if (!(overlay == null && screen == null) && !pause) {
+        if (!(gui.overlay() == null && gui.screen() == null) && !pause) {
             if (InteractionProxy.Break.isBreaking()) {
                 continueAttack(true);
                 if (missTime > 0) --missTime;

@@ -92,7 +92,7 @@ public abstract class MixinClientPacketListener extends ClientCommonPacketListen
         new EventPlayerLeave(uUID, playerListEntry).trigger();
     }
 
-    @ModifyArg(method = "setTitleText", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/Gui;setTitle(Lnet/minecraft/network/chat/Component;)V"))
+    @ModifyArg(method = "setTitleText", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/Hud;setTitle(Lnet/minecraft/network/chat/Component;)V"))
     public Component onTitle(Component title) {
         EventTitle et = new EventTitle("TITLE", title);
         et.trigger();
@@ -103,7 +103,7 @@ public abstract class MixinClientPacketListener extends ClientCommonPacketListen
         }
     }
 
-    @ModifyArg(method = "setSubtitleText", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/Gui;setSubtitle(Lnet/minecraft/network/chat/Component;)V"))
+    @ModifyArg(method = "setSubtitleText", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/Hud;setSubtitle(Lnet/minecraft/network/chat/Component;)V"))
     public Component onSubtitle(Component title) {
         EventTitle et = new EventTitle("SUBTITLE", title);
         et.trigger();
@@ -114,7 +114,7 @@ public abstract class MixinClientPacketListener extends ClientCommonPacketListen
         }
     }
 
-    @ModifyArg(method = "setActionBarText", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/Gui;setOverlayMessage(Lnet/minecraft/network/chat/Component;Z)V"))
+    @ModifyArg(method = "setActionBarText", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/Hud;setOverlayMessage(Lnet/minecraft/network/chat/Component;Z)V"))
     public Component onOverlayMessage(Component title) {
         EventTitle et = new EventTitle("ACTIONBAR", title);
         et.trigger();
@@ -197,8 +197,8 @@ public abstract class MixinClientPacketListener extends ClientCommonPacketListen
     @Inject(method = "handleSetCursorItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/inventory/AbstractContainerMenu;setCarried(Lnet/minecraft/world/item/ItemStack;)V"))
     public void onHeldSlotUpdate(ClientboundSetCursorItemPacket packet, CallbackInfo ci) {
         AbstractContainerScreen<?> screen;
-        if (this.minecraft.screen instanceof AbstractContainerScreen<?>) {
-            screen = (AbstractContainerScreen<?>) this.minecraft.screen;
+        if (this.minecraft.gui.screen() instanceof AbstractContainerScreen<?>) {
+            screen = (AbstractContainerScreen<?>) this.minecraft.gui.screen();
         } else {
             screen = new InventoryScreen(this.minecraft.player);
         }
@@ -223,9 +223,9 @@ public abstract class MixinClientPacketListener extends ClientCommonPacketListen
         if (packet.getContainerId() == 0) {
             new EventSlotUpdate(new InventoryScreen(this.minecraft.player), "INVENTORY", packet.getSlot(), this.minecraft.player.containerMenu.getSlot(packet.getSlot()).getItem(), packet.getItem()).trigger();
             return;
-        } else if (this.minecraft.screen instanceof AbstractContainerScreen<?>) {
-            if (packet.getContainerId() == ((AbstractContainerScreen<?>) this.minecraft.screen).getMenu().containerId) {
-                new EventSlotUpdate((AbstractContainerScreen<?>) this.minecraft.screen, "CONTAINER", packet.getSlot(), this.minecraft.player.containerMenu.getSlot(packet.getSlot()).getItem(), packet.getItem()).trigger();
+        } else if (this.minecraft.gui.screen() instanceof AbstractContainerScreen<?>) {
+            if (packet.getContainerId() == ((AbstractContainerScreen<?>) this.minecraft.gui.screen()).getMenu().containerId) {
+                new EventSlotUpdate((AbstractContainerScreen<?>) this.minecraft.gui.screen(), "CONTAINER", packet.getSlot(), this.minecraft.player.containerMenu.getSlot(packet.getSlot()).getItem(), packet.getItem()).trigger();
                 return;
             }
         }
@@ -238,8 +238,8 @@ public abstract class MixinClientPacketListener extends ClientCommonPacketListen
             assert minecraft.player != null;
             new EventContainerUpdate(new InventoryScreen(minecraft.player)).trigger();
         } else {
-            if (this.minecraft.screen instanceof AbstractContainerScreen<?>) {
-                new EventContainerUpdate((AbstractContainerScreen<?>) this.minecraft.screen).trigger();
+            if (this.minecraft.gui.screen() instanceof AbstractContainerScreen<?>) {
+                new EventContainerUpdate((AbstractContainerScreen<?>) this.minecraft.gui.screen()).trigger();
             }
         }
     }

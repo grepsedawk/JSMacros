@@ -3,7 +3,6 @@ package xyz.wagyourtail.jsmacros.client.api.classes.render.components;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Renderable;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import org.joml.Matrix3x2fStack;
 import xyz.wagyourtail.doclet.DocletIgnore;
@@ -22,7 +21,7 @@ public interface RenderElement extends Renderable {
      * Called by Surface for >1.21.5. Default is a no-op.
      */
     @DocletIgnore
-    default void render3D(PoseStack matrixStack, MultiBufferSource consumers, int light, boolean seeThrough, SubmitNodeCollector collector, float delta) {}
+    default void render3D(PoseStack matrixStack, int light, boolean seeThrough, SubmitNodeCollector collector, float delta) {}
 
     /**
      * Converts a packed lightmap value (as returned by {@code LightTexture.pack()}) to a

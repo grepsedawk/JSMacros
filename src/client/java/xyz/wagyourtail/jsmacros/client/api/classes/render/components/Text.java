@@ -4,7 +4,6 @@ import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.util.Mth;
 import org.jetbrains.annotations.Nullable;
@@ -280,7 +279,7 @@ public class Text implements RenderElement, Alignable<Text> {
 
     @Override
     @DocletIgnore
-    public void render3D(PoseStack matrixStack, MultiBufferSource consumers, int light, boolean seeThrough, SubmitNodeCollector collector, float delta) {
+    public void render3D(PoseStack matrixStack, int light, boolean seeThrough, SubmitNodeCollector collector, float delta) {
         matrixStack.pushPose();
         matrixStack.translate(x, y, 0);
         matrixStack.scale((float) scale, (float) scale, 1);
@@ -293,17 +292,17 @@ public class Text implements RenderElement, Alignable<Text> {
         }
         matrixStack.translate(-x, -y, 0);
 
-        mc.font.drawInBatch(
-            text,
+        collector.submitText(
+            matrixStack,
             (float) x,
             (float) y,
-            color,
+            text.getVisualOrderText(),
             shadow,
-            matrixStack.last().pose(),
-            consumers,
             seeThrough ? Font.DisplayMode.SEE_THROUGH : Font.DisplayMode.NORMAL,
+            light,
+            color,
             0,
-            light
+            0
         );
         matrixStack.popPose();
     }

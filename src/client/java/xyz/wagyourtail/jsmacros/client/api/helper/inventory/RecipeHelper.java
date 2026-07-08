@@ -70,8 +70,8 @@ public class RecipeHelper extends BaseHelper<RecipeDisplayEntry> {
     public RecipeHelper craft(boolean craftAll) {
         Minecraft mc = Minecraft.getInstance();
         assert mc.player != null;
-        if ((mc.screen instanceof AbstractContainerScreen && ((AbstractContainerScreen<?>) mc.screen).getMenu().containerId == syncId) ||
-                (mc.screen == null && syncId == mc.player.inventoryMenu.containerId)) {
+        if ((mc.gui.screen() instanceof AbstractContainerScreen && ((AbstractContainerScreen<?>) mc.gui.screen()).getMenu().containerId == syncId) ||
+                (mc.gui.screen() == null && syncId == mc.player.inventoryMenu.containerId)) {
             assert mc.gameMode != null;
             mc.gameMode.handlePlaceRecipe(syncId, base.id(), craftAll);
             return this;
@@ -127,7 +127,7 @@ public class RecipeHelper extends BaseHelper<RecipeDisplayEntry> {
     public boolean canCraft() {
         StackedItemContents recipeFinder = new StackedItemContents();
         mc.player.getInventory().fillStackedContents(recipeFinder);
-        if (mc.screen instanceof AbstractRecipeBookScreen<?> screen) {
+        if (mc.gui.screen() instanceof AbstractRecipeBookScreen<?> screen) {
             screen.getMenu().fillCraftSlotsStackedContents(recipeFinder);
         }
         return base.canCraft(recipeFinder);
@@ -150,7 +150,7 @@ public class RecipeHelper extends BaseHelper<RecipeDisplayEntry> {
     public int getCraftableAmount() {
         StackedItemContents recipeFinder = new StackedItemContents();
         mc.player.getInventory().fillStackedContents(recipeFinder);
-        if (mc.screen instanceof AbstractRecipeBookScreen<?> screen) {
+        if (mc.gui.screen() instanceof AbstractRecipeBookScreen<?> screen) {
             screen.getMenu().fillCraftSlotsStackedContents(recipeFinder);
         }
         return recipeFinder.raw.tryPickAll(base.craftingRequirements().get(), Integer.MAX_VALUE, null);

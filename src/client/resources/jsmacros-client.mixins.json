@@ -68,6 +68,7 @@
     "events.MixinConnection",
     "events.MixinCreativeModeInventoryScreen",
     "events.MixinFoodData",
+    "events.MixinGui",
     "events.MixinKeyboardHandler",
     "events.MixinLivingEntity",
     "events.MixinLoadingOverlay",

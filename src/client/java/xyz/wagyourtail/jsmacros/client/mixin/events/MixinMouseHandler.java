@@ -36,7 +36,7 @@ class MixinMouseHandler {
     @Inject(at = @At("HEAD"), method = "onScroll", cancellable = true)
     private void onMouseScroll(long window, double horizontal, double vertical, CallbackInfo ci) {
         if (window != minecraft.getWindow().handle()) return;
-        if (minecraft.getOverlay() != null || minecraft.screen != null || minecraft.player == null) return;
+        if (minecraft.gui.overlay() != null || minecraft.gui.screen() != null || minecraft.player == null) return;
         if (vertical == 0.0 && horizontal == 0.0) return;
         EventMouseScroll event = new EventMouseScroll(horizontal, vertical);
         event.trigger();

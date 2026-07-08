@@ -2,7 +2,6 @@ package xyz.wagyourtail.jsmacros.client.api.classes.render.components;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -345,7 +344,7 @@ public class Image implements RenderElement, Alignable<Image> {
     }
 
     @Override
-    public void render3D(PoseStack matrixStack, MultiBufferSource consumers, int light, boolean seeThrough, SubmitNodeCollector collector, float delta) {
+    public void render3D(PoseStack matrixStack, int light, boolean seeThrough, SubmitNodeCollector collector, float delta) {
         matrixStack.pushPose();
         matrixStack.translate(x, y, 0);
         if (rotateCenter) {
@@ -376,8 +375,7 @@ public class Image implements RenderElement, Alignable<Image> {
                         .useOverlay()
                         .createRenderSetup()))
                 : RenderTypes.entityTranslucent(imageid);
-        VertexConsumer vc = consumers.getBuffer(layer);
-        PoseStack.Pose pose = matrixStack.last();
+        collector.submitCustomGeometry(matrixStack, layer, (pose, vc) -> {
             // Quad: top-left, bottom-left, bottom-right, top-right (counter-clockwise when viewed from front)
             vc.addVertex(pose, x, y, 0)
                     .setColor(r, g, b, a)
@@ -403,7 +401,7 @@ public class Image implements RenderElement, Alignable<Image> {
                     .setOverlay(OverlayTexture.NO_OVERLAY)
                     .setLight(light)
                     .setNormal(pose, 0, 0, 1);
-
+        });
 
         matrixStack.popPose();
     }

@@ -108,7 +108,7 @@ abstract class MixinLocalPlayer extends AbstractClientPlayer {
             } else {
                 signScreen = new SignEditScreen(sign, front, minecraft.isTextFilteringEnabled());
             }
-            minecraft.setScreen(signScreen);
+            minecraft.gui.setScreen(signScreen);
             for (int i = 0; i < 4; ++i) {
                 //noinspection DataFlowIssue
                 ((ISignEditScreen) signScreen).jsmacros_setLine(i, lines.get(i));

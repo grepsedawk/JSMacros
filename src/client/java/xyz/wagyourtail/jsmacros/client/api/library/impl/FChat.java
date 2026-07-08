@@ -145,13 +145,13 @@ public class FChat extends BaseLibrary {
     private static void logInternal(String message) {
         if (message != null) {
             Component text = Component.literal(message);
-            ((IChatHud) mc.gui.getChat()).jsmacros_addMessageBypass(text);
+            ((IChatHud) mc.gui.hud.getChat()).jsmacros_addMessageBypass(text);
         }
     }
 
     private static void logInternal(TextHelper text) {
         Minecraft mc = Minecraft.getInstance();
-        ((IChatHud) mc.gui.getChat()).jsmacros_addMessageBypass(text.getRaw());
+        ((IChatHud) mc.gui.hud.getChat()).jsmacros_addMessageBypass(text.getRaw());
     }
 
     /**
@@ -255,7 +255,7 @@ public class FChat extends BaseLibrary {
             String finalMessage = message;
             final Semaphore semaphore = new Semaphore(await ? 0 : 1);
             mc.execute(() -> {
-                mc.setScreen(new ChatScreen(finalMessage, true));
+                mc.gui.setScreen(new ChatScreen(finalMessage, true));
                 semaphore.release();
             });
             semaphore.acquire();
@@ -286,16 +286,16 @@ public class FChat extends BaseLibrary {
             subtitlee = Component.literal(subtitle.toString());
         }
         if (title != null) {
-            mc.gui.setTitle(titlee);
+            mc.gui.hud.setTitle(titlee);
         }
         if (subtitle != null) {
-            mc.gui.setSubtitle(subtitlee);
+            mc.gui.hud.setSubtitle(subtitlee);
         }
         if (title == null && subtitle == null) {
-            mc.gui.setTitle(null);
-            mc.gui.setSubtitle(null);
+            mc.gui.hud.setTitle(null);
+            mc.gui.hud.setSubtitle(null);
         }
-        mc.gui.setTimes(fadeIn, remain, fadeOut);
+        mc.gui.hud.setTimes(fadeIn, remain, fadeOut);
     }
 
     /**
@@ -321,7 +321,7 @@ public class FChat extends BaseLibrary {
         } else if (text != null) {
             textt = Component.literal(text.toString());
         }
-        mc.gui.setOverlayMessage(textt, tinted);
+        mc.gui.hud.setOverlayMessage(textt, tinted);
     }
 
     /**
@@ -332,13 +332,13 @@ public class FChat extends BaseLibrary {
      * @since 1.2.5
      */
     public void toast(Object title, Object desc) {
-        ToastManager t = mc.getToastManager();
+        ToastManager t = mc.gui.toastManager();
         if (t != null) {
             Component titlee = (title instanceof TextHelper) ? ((TextHelper) title).getRaw() : title != null ? Component.literal(title.toString()) : null;
             Component descc = (desc instanceof TextHelper) ? ((TextHelper) desc).getRaw() : desc != null ? Component.literal(desc.toString()) : null;
             // There doesn't seem to be a difference in the appearance or the functionality except for the UNSECURE_SERVER_WARNING with a longer duration
             if (titlee != null) {
-                t.addToast(SystemToast.multiline(mc, SystemToast.SystemToastId.PERIODIC_NOTIFICATION, titlee, descc));
+                SystemToast.add(t, SystemToast.SystemToastId.PERIODIC_NOTIFICATION, titlee, descc);
             }
         }
     }
@@ -453,7 +453,7 @@ public class FChat extends BaseLibrary {
      * @since 1.7.0
      */
     public ChatHistoryManager getHistory() {
-        return new ChatHistoryManager(mc.gui.getChat());
+        return new ChatHistoryManager(mc.gui.hud.getChat());
     }
 
     /**

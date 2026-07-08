@@ -51,22 +51,22 @@ public class MacroScreen extends BaseScreen {
         macros.clear();
         keyScreen = this.addDrawableChild(new Button(0, 0, this.width / 6 - 1, 20, font, 0, 0xFF000000, 0x7FFFFFFF, 0xFFFFFFFF, Component.translatable("jsmacros.keys"), btn -> {
             assert minecraft != null;
-            if (minecraft.screen.getClass() != KeyMacrosScreen.class) {
-                minecraft.setScreen(new KeyMacrosScreen(this));
+            if (minecraft.gui.screen().getClass() != KeyMacrosScreen.class) {
+                minecraft.gui.setScreen(new KeyMacrosScreen(this));
             }
         }));
 
         eventScreen = this.addDrawableChild(new Button(this.width / 6 + 1, 0, this.width / 6 - 1, 20, font, 0, 0xFF000000, 0x7FFFFFFF, 0xFFFFFFFF, Component.translatable("jsmacros.events"), btn -> {
             assert minecraft != null;
-            if (minecraft.screen.getClass() != EventMacrosScreen.class) {
-                minecraft.setScreen(new EventMacrosScreen(this));
+            if (minecraft.gui.screen().getClass() != EventMacrosScreen.class) {
+                minecraft.gui.setScreen(new EventMacrosScreen(this));
             }
         }));
 
         serviceScreen = this.addDrawableChild(new Button(2 * this.width / 6 + 2, 0, this.width / 6 - 1, 20, font, 0, 0xFF000000, 0x7FFFFFFF, 0xFFFFFFFF, Component.translatable("jsmacros.services"), btn -> {
             assert minecraft != null;
-            if (minecraft.screen.getClass() != ServiceScreen.class) {
-                minecraft.setScreen(new ServiceScreen(this));
+            if (minecraft.gui.screen().getClass() != ServiceScreen.class) {
+                minecraft.gui.setScreen(new ServiceScreen(this));
             }
         }));
 
@@ -81,7 +81,7 @@ public class MacroScreen extends BaseScreen {
 
         runningBtn = this.addDrawableChild(new Button(0, this.height - 12, this.width / 12, 12, font, 0, 0xFF000000, 0x7FFFFFFF, 0xFFFFFFFF, Component.translatable("jsmacros.running"), (btn) -> {
             assert minecraft != null;
-            minecraft.setScreen(new CancelScreen(this));
+            minecraft.gui.setScreen(new CancelScreen(this));
         }));
 
         aboutBtn = this.addDrawableChild(new Button(this.width * 11 / 12, this.height - 12, this.width / 12, 12, font, 0, 0xFF000000, 0x7FFFFFFF, 0xFFFFFFFF, Component.translatable("jsmacros.about"), (btn) -> this.openOverlay(new AboutOverlay(this.width / 4, this.height / 4, this.width / 2, this.height / 2, font, this))));
@@ -193,7 +193,7 @@ public class MacroScreen extends BaseScreen {
                 System.out.printf("Failed to run cmd '%s'", JsMacrosClient.clientCore.config.getOptions(ClientConfigV2.class).externalEditorCommand);
             }
             assert minecraft != null;
-            minecraft.setScreen(new EditorScreen(this, file));
+            minecraft.gui.setScreen(new EditorScreen(this, file));
         }
     }
 

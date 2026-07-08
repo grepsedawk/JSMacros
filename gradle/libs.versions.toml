@@ -1,14 +1,14 @@
 [versions]
 java = "25"
 
-minecraft = "26.1.2"
+minecraft = "26.2"
 
 fabric_loader = "0.19.3"
 
 mixin = "0.8.7"
 mixin_extra = "0.3.2"
 
-asm = "9.8"
+asm = "9.10.1"
 prism4j = "2.0.0"
 joor = "0.9.15"
 nv_websocket = "2.14"
@@ -16,8 +16,8 @@ junit = "5.8.1"
 jb_annotations = "20.1.0"
 javassist = "3.30.2-GA"
 
-fapi = "0.151.0+26.1.2"
-modmenu = "18.0.0-alpha.8"
+fapi = "0.154.2+26.2"
+modmenu = "20.0.0-beta.4"
 
 shadow = "8.3.6"
 

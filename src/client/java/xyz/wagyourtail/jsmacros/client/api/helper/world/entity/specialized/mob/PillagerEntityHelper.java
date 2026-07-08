@@ -20,7 +20,7 @@ public class PillagerEntityHelper extends IllagerEntityHelper<Pillager> {
      * @since 1.8.4
      */
     public boolean isCaptain() {
-        return base.getItemBySlot(EquipmentSlot.HEAD).is(Items.WHITE_BANNER);
+        return base.getItemBySlot(EquipmentSlot.HEAD).is(Items.BANNER.white());
     }
 
 }

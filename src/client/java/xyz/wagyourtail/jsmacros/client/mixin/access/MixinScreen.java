@@ -880,7 +880,7 @@ public abstract class MixinScreen extends AbstractContainerEventHandler implemen
 
     @Override
     public IScreen reloadScreen() {
-        minecraft.execute(() -> minecraft.setScreen((Screen) (Object) this));
+        minecraft.execute(() -> minecraft.gui.setScreen((Screen) (Object) this));
         return this;
     }
 

@@ -5,9 +5,9 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.advancements.AdvancementNode;
 import net.minecraft.advancements.AdvancementProgress;
 import net.minecraft.advancements.AdvancementTree;
-import net.minecraft.advancements.criterion.BlockPredicate;
-import net.minecraft.advancements.criterion.NbtPredicate;
-import net.minecraft.advancements.criterion.StatePropertiesPredicate;
+import net.minecraft.advancements.predicates.BlockPredicate;
+import net.minecraft.advancements.predicates.NbtPredicate;
+import net.minecraft.advancements.predicates.StatePropertiesPredicate;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
@@ -117,8 +117,8 @@ public class ClientProfile extends BaseProfile {
     protected boolean loadProfile(String profileName) {
         boolean val = super.loadProfile(profileName);
         final Minecraft mc = Minecraft.getInstance();
-        if (mc.screen instanceof MacroScreen) {
-            mc.execute(() -> ((MacroScreen) mc.screen).reload());
+        if (mc.gui != null && mc.gui.screen() instanceof MacroScreen) {
+            mc.execute(() -> ((MacroScreen) mc.gui.screen()).reload());
         }
         return val;
     }
@@ -154,15 +154,15 @@ public class ClientProfile extends BaseProfile {
                 e = runner.wrapException(ex);
             } catch (Throwable t) {
                 t.printStackTrace();
-                mc.execute(() -> ((IChatHud) mc.gui.getChat()).jsmacros_addMessageBypass(Component.translatable("jsmacros.errorerror").setStyle(Style.EMPTY.withColor(ChatFormatting.DARK_RED))));
+                mc.execute(() -> ((IChatHud) mc.gui.hud.getChat()).jsmacros_addMessageBypass(Component.translatable("jsmacros.errorerror").setStyle(Style.EMPTY.withColor(ChatFormatting.DARK_RED))));
                 return;
             }
             Component text = compileError(e);
             mc.execute(() -> {
                 try {
-                    ((IChatHud) mc.gui.getChat()).jsmacros_addMessageBypass(text);
+                    ((IChatHud) mc.gui.hud.getChat()).jsmacros_addMessageBypass(text);
                 } catch (Throwable t) {
-                    ((IChatHud) mc.gui.getChat()).jsmacros_addMessageBypass(Component.translatable("jsmacros.errorerror").setStyle(Style.EMPTY.withColor(ChatFormatting.DARK_RED)));
+                    ((IChatHud) mc.gui.hud.getChat()).jsmacros_addMessageBypass(Component.translatable("jsmacros.errorerror").setStyle(Style.EMPTY.withColor(ChatFormatting.DARK_RED)));
                     t.printStackTrace();
                 }
             });

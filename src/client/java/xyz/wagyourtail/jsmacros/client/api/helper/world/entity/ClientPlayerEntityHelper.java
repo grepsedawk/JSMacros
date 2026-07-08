@@ -17,6 +17,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.effect.MobEffectUtil;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
@@ -720,8 +721,8 @@ public class ClientPlayerEntityHelper<T extends LocalPlayer> extends PlayerEntit
     @DocletReplaceReturn("JavaMap<ItemId, int>")
     public Map<String, Integer> getItemCooldownsRemainingTicks() {
         int tick = ((IItemCooldownManager) base.getCooldowns()).jsmacros_getManagerTicks();
-        Map<Item, IItemCooldownEntry> map = ((IItemCooldownManager) base.getCooldowns()).jsmacros_getCooldownItems();
-        return map.entrySet().stream().collect(Collectors.toMap(e -> BuiltInRegistries.ITEM.getKey(e.getKey()).toString(), e -> e.getValue().jsmacros_getEndTick() - tick));
+        Map<Identifier, IItemCooldownEntry> map = ((IItemCooldownManager) base.getCooldowns()).jsmacros_getCooldownItems();
+        return map.entrySet().stream().collect(Collectors.toMap(e -> e.getKey().toString(), e -> e.getValue().jsmacros_getEndTick() - tick));
     }
 
     /**
@@ -732,8 +733,8 @@ public class ClientPlayerEntityHelper<T extends LocalPlayer> extends PlayerEntit
     @DocletReplaceParams("item: CanOmitNamespace<ItemId>")
     public int getItemCooldownRemainingTicks(String item) {
         int tick = ((IItemCooldownManager) base.getCooldowns()).jsmacros_getManagerTicks();
-        Map<Item, IItemCooldownEntry> map = ((IItemCooldownManager) base.getCooldowns()).jsmacros_getCooldownItems();
-        IItemCooldownEntry entry = map.get(BuiltInRegistries.ITEM.getValue(RegistryHelper.parseIdentifier(item)));
+        Map<Identifier, IItemCooldownEntry> map = ((IItemCooldownManager) base.getCooldowns()).jsmacros_getCooldownItems();
+        IItemCooldownEntry entry = map.get(RegistryHelper.parseIdentifier(item));
         if (entry == null) {
             return -1;
         }
@@ -747,8 +748,8 @@ public class ClientPlayerEntityHelper<T extends LocalPlayer> extends PlayerEntit
     @DocletReplaceReturn("JavaMap<ItemId, int>")
     public Map<String, Integer> getTicksSinceCooldownsStart() {
         int tick = ((IItemCooldownManager) base.getCooldowns()).jsmacros_getManagerTicks();
-        Map<Item, IItemCooldownEntry> map = ((IItemCooldownManager) base.getCooldowns()).jsmacros_getCooldownItems();
-        return map.entrySet().stream().collect(Collectors.toMap(e -> e.getKey().getName(e.getKey().getDefaultInstance()).getString(), e -> e.getValue().jsmacros_getStartTick() - tick));
+        Map<Identifier, IItemCooldownEntry> map = ((IItemCooldownManager) base.getCooldowns()).jsmacros_getCooldownItems();
+        return map.entrySet().stream().collect(Collectors.toMap(e -> e.getKey().toString(), e -> e.getValue().jsmacros_getStartTick() - tick));
     }
 
     /**
@@ -759,8 +760,8 @@ public class ClientPlayerEntityHelper<T extends LocalPlayer> extends PlayerEntit
     @DocletReplaceParams("item: CanOmitNamespace<ItemId>")
     public int getTicksSinceCooldownStart(String item) {
         int tick = ((IItemCooldownManager) base.getCooldowns()).jsmacros_getManagerTicks();
-        Map<Item, IItemCooldownEntry> map = ((IItemCooldownManager) base.getCooldowns()).jsmacros_getCooldownItems();
-        IItemCooldownEntry entry = map.get(BuiltInRegistries.ITEM.getValue(RegistryHelper.parseIdentifier(item)));
+        Map<Identifier, IItemCooldownEntry> map = ((IItemCooldownManager) base.getCooldowns()).jsmacros_getCooldownItems();
+        IItemCooldownEntry entry = map.get(RegistryHelper.parseIdentifier(item));
         if (entry == null) {
             return -1;
         }

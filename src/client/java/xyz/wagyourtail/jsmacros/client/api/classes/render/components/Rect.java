@@ -5,7 +5,6 @@ import com.mojang.blaze3d.pipeline.DepthStencilState;
 import com.mojang.blaze3d.platform.CompareOp;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.util.Mth;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.RenderPipelines;
 import org.jetbrains.annotations.Nullable;
@@ -340,7 +339,7 @@ public class Rect implements RenderElement, Alignable<Rect> {
     }
 
     @Override
-    public void render3D(PoseStack matrixStack, MultiBufferSource consumers, int light, boolean seeThrough, SubmitNodeCollector collector, float delta) {
+    public void render3D(PoseStack matrixStack, int light, boolean seeThrough, SubmitNodeCollector collector, float delta) {
         matrixStack.pushPose();
         matrixStack.translate(x1, y1, 0);
         if (rotateCenter) {
@@ -357,15 +356,14 @@ public class Rect implements RenderElement, Alignable<Rect> {
         float r = ((color >> 16) & 0xFF) / 255.0f * brightness;
         float g = ((color >> 8)  & 0xFF) / 255.0f * brightness;
         float b = (color         & 0xFF) / 255.0f * brightness;
-        PoseStack.Pose pose = matrixStack.last();
 
         RenderType fillLayer = seeThrough ? DEBUG_QUADS_SEE_THROUGH_TYPE : RenderTypes.debugQuads();
-        VertexConsumer vc = consumers.getBuffer(fillLayer);
+        collector.submitCustomGeometry(matrixStack, fillLayer, (pose, vc) -> {
             vc.addVertex(pose, x1, y1, 0).setColor(r, g, b, a);
             vc.addVertex(pose, x2, y1, 0).setColor(r, g, b, a);
             vc.addVertex(pose, x2, y2, 0).setColor(r, g, b, a);
             vc.addVertex(pose, x1, y2, 0).setColor(r, g, b, a);
-
+        });
 
         matrixStack.popPose();
     }

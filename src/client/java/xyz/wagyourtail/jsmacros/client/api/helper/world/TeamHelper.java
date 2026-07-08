@@ -1,6 +1,8 @@
 package xyz.wagyourtail.jsmacros.client.api.helper.world;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.world.scores.PlayerTeam;
+import net.minecraft.world.scores.TeamColor;
 import xyz.wagyourtail.doclet.DocletReplaceReturn;
 import xyz.wagyourtail.jsmacros.client.api.helper.FormattingHelper;
 import xyz.wagyourtail.jsmacros.client.api.helper.TextHelper;
@@ -8,6 +10,7 @@ import xyz.wagyourtail.jsmacros.core.helpers.BaseHelper;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * @author Wagyourtail
@@ -48,7 +51,7 @@ public class TeamHelper extends BaseHelper<PlayerTeam> {
      * @since 1.8.4
      */
     public FormattingHelper getColorFormat() {
-        return new FormattingHelper(base.getColor());
+        return new FormattingHelper(base.getColor().map(c -> ChatFormatting.valueOf(c.name())).orElse(ChatFormatting.RESET));
     }
 
     /**
@@ -66,7 +69,7 @@ public class TeamHelper extends BaseHelper<PlayerTeam> {
      * @since 1.8.4
      */
     public int getColorIndex() {
-        return base.getColor().getId();
+        return base.getColor().map(TeamColor::ordinal).orElse(ChatFormatting.RESET.ordinal());
     }
 
     /**
@@ -74,7 +77,7 @@ public class TeamHelper extends BaseHelper<PlayerTeam> {
      * @since 1.8.4
      */
     public int getColorValue() {
-        return base.getColor().getColor() == null ? -1 : base.getColor().getColor();
+        return base.getColor().map(TeamColor::rgb).orElse(-1);
     }
 
     /**
@@ -83,7 +86,7 @@ public class TeamHelper extends BaseHelper<PlayerTeam> {
      */
     @DocletReplaceReturn("FormattingColorName")
     public String getColorName() {
-        return base.getColor().getName();
+        return base.getColor().map(TeamColor::getSerializedName).orElse(ChatFormatting.RESET.name().toLowerCase(Locale.ROOT));
     }
 
     /**

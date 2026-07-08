@@ -7,6 +7,8 @@ import net.minecraft.world.scores.DisplaySlot;
 import net.minecraft.world.scores.Objective;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Scoreboard;
+import net.minecraft.world.scores.TeamColor;
+import net.minecraft.network.chat.TextColor;
 import org.jetbrains.annotations.Nullable;
 import xyz.wagyourtail.jsmacros.client.api.helper.FormattingHelper;
 import xyz.wagyourtail.jsmacros.client.api.helper.screen.ScoreboardObjectiveHelper;
@@ -14,6 +16,8 @@ import xyz.wagyourtail.jsmacros.client.api.helper.world.entity.PlayerEntityHelpe
 import xyz.wagyourtail.jsmacros.core.helpers.BaseHelper;
 
 import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -105,7 +109,8 @@ public class ScoreboardsHelper extends BaseHelper<Scoreboard> {
      */
     public int getTeamColor(PlayerEntityHelper<Player> player) {
         ChatFormatting team = getPlayerTeamColor(player.getRaw());
-        return team == null || team.getColor() == null ? -1 : team.getColor();
+        TextColor color = team == null ? null : TextColor.fromLegacyFormat(team);
+        return color == null ? -1 : color.getValue();
     }
 
     /**
@@ -114,7 +119,8 @@ public class ScoreboardsHelper extends BaseHelper<Scoreboard> {
      */
     public int getTeamColor() {
         ChatFormatting team = getPlayerTeamColor(Minecraft.getInstance().player);
-        return team != null && team.getColor() != null ? team.getColor() : -1;
+        TextColor color = team == null ? null : TextColor.fromLegacyFormat(team);
+        return color == null ? -1 : color.getValue();
     }
 
     /**
@@ -126,7 +132,7 @@ public class ScoreboardsHelper extends BaseHelper<Scoreboard> {
     @Nullable
     public String getTeamColorName(PlayerEntityHelper<Player> player) {
         ChatFormatting team = getPlayerTeamColor(player.getRaw());
-        return team == null ? null : team.getName();
+        return team == null ? null : team.name().toLowerCase(Locale.ROOT);
     }
 
     /**
@@ -136,7 +142,7 @@ public class ScoreboardsHelper extends BaseHelper<Scoreboard> {
     @Nullable
     public String getTeamColorName() {
         ChatFormatting team = getPlayerTeamColor(Minecraft.getInstance().player);
-        return team == null ? null : team.getName();
+        return team == null ? null : team.name().toLowerCase(Locale.ROOT);
     }
 
     /**
@@ -181,7 +187,7 @@ public class ScoreboardsHelper extends BaseHelper<Scoreboard> {
      */
     protected int getPlayerTeamColorIndex(Player entity) {
         ChatFormatting color = getPlayerTeamColor(entity);
-        return color == null ? -1 : color.getId();
+        return color == null ? -1 : color.ordinal();
     }
 
     /**
@@ -195,7 +201,8 @@ public class ScoreboardsHelper extends BaseHelper<Scoreboard> {
         if (t == null) {
             return null;
         }
-        return t.getColor();
+        Optional<TeamColor> color = t.getColor();
+        return color.map(c -> ChatFormatting.valueOf(c.name())).orElse(null);
     }
 
     /**

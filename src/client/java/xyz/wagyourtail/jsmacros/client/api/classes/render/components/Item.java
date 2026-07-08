@@ -3,8 +3,8 @@ package xyz.wagyourtail.jsmacros.client.api.classes.render.components;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
+import net.minecraft.network.chat.Component;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -265,7 +265,7 @@ public class Item implements RenderElement, Alignable<Item> {
 
     @Override
     @DocletIgnore
-    public void render3D(PoseStack matrixStack, MultiBufferSource consumers, int light, boolean seeThrough, SubmitNodeCollector collector, float delta) {
+    public void render3D(PoseStack matrixStack, int light, boolean seeThrough, SubmitNodeCollector collector, float delta) {
         if (item == null) {
             return;
         }
@@ -300,7 +300,7 @@ public class Item implements RenderElement, Alignable<Item> {
                 float ty = 9;
                 matrixStack.pushPose();
                 matrixStack.translate(0, 0, OVERLAY_TEXT_Z_OFFSET);
-                font.drawInBatch(text, tx, ty, 0xFFFFFFFF, true, matrixStack.last().pose(), consumers, Font.DisplayMode.POLYGON_OFFSET, 0, light);
+                collector.submitText(matrixStack, tx, ty, Component.literal(text).getVisualOrderText(), true, Font.DisplayMode.POLYGON_OFFSET, light, 0xFFFFFFFF, 0, 0);
                 matrixStack.popPose();
             }
         }

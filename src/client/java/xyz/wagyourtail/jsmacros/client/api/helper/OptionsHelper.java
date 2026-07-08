@@ -1425,7 +1425,7 @@ public class OptionsHelper extends BaseHelper<Options> {
          * @since 1.8.4
          */
         public boolean isTouchscreenEnabled() {
-            return base.touchscreen().get();
+            return false;
         }
 
         /**
@@ -1434,7 +1434,6 @@ public class OptionsHelper extends BaseHelper<Options> {
          * @since 1.8.4
          */
         public ControlOptionsHelper enableTouchscreen(boolean val) {
-            base.touchscreen().set(val);
             return this;
         }
 

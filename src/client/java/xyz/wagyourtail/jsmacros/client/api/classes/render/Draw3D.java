@@ -3,7 +3,6 @@ package xyz.wagyourtail.jsmacros.client.api.classes.render;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.world.phys.Vec3;
 import xyz.wagyourtail.doclet.DocletIgnore;
@@ -699,8 +698,8 @@ public class Draw3D implements Registrable<Draw3D> {
     }
 
     @DocletIgnore
-    public void render(PoseStack matrixStack, MultiBufferSource consumers, SubmitNodeCollector collector, float tickDelta) {
-        Camera camera = Minecraft.getInstance().gameRenderer.getMainCamera();
+    public void render(PoseStack matrixStack, SubmitNodeCollector collector, float tickDelta) {
+        Camera camera = Minecraft.getInstance().gameRenderer.mainCamera();
         Vec3 cameraPos = camera.position();
 
         matrixStack.pushPose();
@@ -712,7 +711,7 @@ public class Draw3D implements Registrable<Draw3D> {
             Collections.sort(elements);
 
             for (RenderElement3D<?> element : elements) {
-                element.render(matrixStack, consumers, collector, tickDelta);
+                element.render(matrixStack, collector, tickDelta);
             }
         }
 
