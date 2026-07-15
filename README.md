@@ -1,55 +1,64 @@
 # JsMacros Reloaded
 
-> JsMacros Reloaded is a clean fork of [JsMacros](https://github.com/wagyourtail/JsMacros) by WagYourTail.
-> The Minecraft 26.1 port is based on work by Pablete1234, and the rendering subsystem is by Jack Manning.
+A Fabric mod for scripting Minecraft. Write scripts in JavaScript (or Ruby, see below)
+that react to game events: chat messages, ticks, keybinds, whatever. The original
+[JsMacros](https://github.com/wagyourtail/JsMacros) is no longer actively maintained,
+so this fork carries it forward on current Minecraft versions.
 
-This mod allows for the development of scripts to interact with the chat, and other parts of the world, using a
-scripting language.  
-More information and documentation of all features and modules can be found on the
-website: <https://jsmacros.wagyourtail.xyz>
+## Downloads
 
-[**Join The JsMacros Discord**](https://discord.gg/P6W58J8)
+Grab the jar from [GitHub releases](https://github.com/grepsedawk/JSMacros/releases).
+That's it, releases live there and only there.
 
-## Downloads/Releases
+[![Build Release](https://github.com/grepsedawk/JSMacros/actions/workflows/release.yml/badge.svg)](https://github.com/grepsedawk/JSMacros/actions/workflows/release.yml)
 
-[![Build Release](https://github.com/JsMacros/JsMacros/actions/workflows/release.yml/badge.svg)](https://github.com/wagyourtail/JsMacros/actions/workflows/release.yml)
+## Getting started
 
-### For the releases of both fabric and forge versions see:
+1. Install [Fabric Loader](https://fabricmc.net/use/) for your Minecraft version.
+2. Drop the JsMacros jar into your `mods` folder.
+3. Launch the game and press `K` (default) to open the JsMacros hub.
+4. Create a script and bind it to an event.
 
-* [Curseforge](https://www.curseforge.com/minecraft/mc-mods/jsmacros)
-* [Modrinth](https://modrinth.com/mod/jsmacros)
-* [GitHub releases](https://github.com/wagyourtail/JsMacros/releases)
+Scripts live in `config/jsmacros/Macros`. A first script can be as small as this,
+like so:
 
-## Extensions
+```js
+Chat.log("Hello from JsMacros!");
+```
 
-Extensions allow you to code in languages other than the default language JavaScript, and some even have performance
-benefits.
+Bind that to the `Key` event and every keypress logs to chat. From there the
+[documentation site](https://jsmacros.wagyourtail.xyz) covers the full API: events,
+the `Player`/`World`/`Chat` libraries, services, and everything else.
 
-#### [More about extensions](https://jsmacros.wagyourtail.xyz/?/extensions.html)
+## Ruby scripting
 
-## Beta Builds
+Prefer Ruby? [jsmacros-ruby](https://github.com/grepsedawk/jsmacros-ruby) is an
+extension that runs JRuby scripts with the same API in snake_case
+(`Player.get_player`, `Client.wait_tick`, and so on).
 
-1.18: [![Build Beta](https://github.com/JsMacros/JsMacros/actions/workflows/betabuild.yml/badge.svg?branch=main-1.18)](https://github.com/wagyourtail/JsMacros/actions?query=branch%3Amain-1.18)
+## Development
 
-1.17.1: [![Build Beta](https://github.com/JsMacros/JsMacros/actions/workflows/betabuild.yml/badge.svg?branch=backport-1.17.1)](https://github.com/wagyourtail/JsMacros/actions?query=branch%3Abackport-1.17.1)
+You need a JDK to launch Gradle (21 works) and the build utilizes a JDK 25
+toolchain, which Gradle will provision if it can't find one.
 
-1.16.5: [![Build Beta](https://github.com/JsMacros/JsMacros/actions/workflows/betabuild.yml/badge.svg?branch=backport-1.16.5)](https://github.com/wagyourtail/JsMacros/actions?query=branch%3Abackport-1.16.5)
+```sh
+./gradlew build            # compile and assemble the jars
+./gradlew fabricRunClient  # launch a dev Minecraft client with the mod loaded
+./gradlew createDist       # build the distributable jars (what CI runs)
+```
 
-1.15.2: [![Build Beta](https://github.com/JsMacros/JsMacros/actions/workflows/betabuild.yml/badge.svg?branch=backport-1.15.2)](https://github.com/wagyourtail/JsMacros/actions?query=branch%3Abackport-1.15.2)
+There is no unit test suite currently, `build` plus a `fabricRunClient` smoke test
+is the verification story. CI runs `createDist` on every push.
 
-1.14.4: [![Build Beta](https://github.com/JsMacros/JsMacros/actions/workflows/betabuild.yml/badge.svg?branch=backport-1.14.4)](https://github.com/wagyourtail/JsMacros/actions?query=branch%3Abackport-1.14.4)
+Releases are cut by tagging `vX.Y.Z+<mc version>` on `main` and publishing a GitHub
+release; CI attaches the jars and publishes to Modrinth.
 
-1.8.9: [![Build Beta](https://github.com/JsMacros/JsMacros/actions/workflows/betabuild.yml/badge.svg?branch=backport-1.8.9)](https://github.com/wagyourtail/JsMacros/actions?query=branch%3Abackport-1.8.9)
+## Credits
 
-## Support me
+Fork of [JsMacros](https://github.com/wagyourtail/JsMacros) by WagYourTail. The
+Minecraft 26.1 port is based on work by Pablete1234, and the rendering subsystem
+is by Jack Manning.
 
-<https://ko-fi.com/wagyourtail>
+## License
 
-<https://www.patreon.com/wagyourtail>
-
-## Acknoledgements
-
-[
-![JProfiler](https://www.ej-technologies.com/images/product_banners/jprofiler_small.png)
-Thank You to JProfiler for usage of the Java Profiler tool for optimizing jsmacros!
-](https://www.ej-technologies.com/products/jprofiler/overview.html)
+[MPL-2.0](LICENSE)
