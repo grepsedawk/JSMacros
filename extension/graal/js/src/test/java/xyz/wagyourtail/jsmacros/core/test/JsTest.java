@@ -106,6 +106,9 @@ public class JsTest extends BaseTest {
                 JavaWrapper.methodToJavaAsync(fn).run()
             }
             runAsync(long)
+            while (a.length === 0) {
+                JavaWrapper.deferCurrentTask()
+            }
             runAsync(rapid)
             while (!isDone) {
                 JavaWrapper.deferCurrentTask()
