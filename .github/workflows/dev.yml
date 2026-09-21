@@ -51,3 +51,10 @@ jobs:
 
       - name: Test the client smoke harness
         run: python3 -m unittest discover -s scripts -p 'test_*.py'
+
+      - name: Validate publishing configuration without uploading
+        run: |
+          ./gradlew publishMods --dry-run \
+            -PmcProfile=${{ matrix.profile }} \
+            -Pmodrinth_id=XcnNwheM \
+            -Pmodrinth_token=validation-placeholder

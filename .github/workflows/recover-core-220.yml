@@ -1,0 +1,199 @@
+name: Recover JsMacros 2.2.0 Modrinth publication
+
+on:
+  push:
+    branches: [support-minecraft-26.3]
+    paths: [.github/workflows/recover-core-220.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: recover-jsmacros-220
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      TAG: v2.2.0
+      EXPECTED_SHA: 87fe63055b969c34c1e5da86d567be9dbe586aee
+      MODRINTH_PROJECT: XcnNwheM
+      MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Require the publication secret
+        run: test -n "$MODRINTH_TOKEN"
+
+      - name: Verify the immutable release tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --depth=1 origin "refs/tags/$TAG:refs/tags/$TAG"
+          test "$(git rev-list -n 1 "$TAG")" = "$EXPECTED_SHA"
+
+      - name: Download the published core jars
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir release-assets
+          for profile in 26.1 26.2 26.3; do
+            gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --dir release-assets \
+              --pattern "jsmacros-$profile-2.2.0-fabric.jar"
+          done
+
+      - name: Verify and publish the exact release assets
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import mimetypes
+          import os
+          import secrets
+          import urllib.error
+          import urllib.request
+          import zipfile
+          from pathlib import Path
+
+          project = os.environ["MODRINTH_PROJECT"]
+          token = os.environ["MODRINTH_TOKEN"]
+          tag = os.environ["TAG"]
+          expected_version = tag.removeprefix("v")
+          expected_sha256s = {
+              "26.1": "65bbef07f6e5ddfb71145caba58970415d997409d77f3a7e5ed4d5194c7166d9",
+              "26.2": "826f331f106e17c8c7a5c6a1cd457bf40a94c209dc9a9b20735bc11ac3738475",
+              "26.3": "52c4e0cbdd7e9c1113cc1e59e9ca1c24efc8b5dfff329221dca02d0a8e6b3aa1",
+          }
+          profiles = {
+              "26.1": ["26.1", "26.1.1", "26.1.2"],
+              "26.2": ["26.2"],
+              "26.3": ["26.3"],
+          }
+
+          def digest(path, algorithm):
+              hasher = hashlib.new(algorithm)
+              with path.open("rb") as stream:
+                  for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+                      hasher.update(chunk)
+              return hasher.hexdigest()
+
+          def request(method, url, body=None, headers=None):
+              request_headers = {
+                  "Authorization": token,
+                  "User-Agent": "JsMacros-2.2.0-recovery",
+                  **(headers or {}),
+              }
+              req = urllib.request.Request(url, data=body, headers=request_headers, method=method)
+              try:
+                  with urllib.request.urlopen(req, timeout=60) as response:
+                      content = response.read()
+                      return json.loads(content) if content else None
+              except urllib.error.HTTPError as error:
+                  detail = error.read().decode("utf-8", "replace")
+                  raise RuntimeError(f"{method} {url} failed ({error.code}): {detail}") from error
+
+          def multipart(data, path):
+              boundary = "----jsmacros-recovery-" + secrets.token_hex(16)
+              parts = [
+                  (f"--{boundary}\r\nContent-Disposition: form-data; name=\"data\"\r\n"
+                   "Content-Type: application/json\r\n\r\n").encode() + json.dumps(data).encode() + b"\r\n",
+                  (f"--{boundary}\r\nContent-Disposition: form-data; name=\"file\"; filename=\"{path.name}\"\r\n"
+                   f"Content-Type: {mimetypes.guess_type(path.name)[0] or 'application/java-archive'}\r\n\r\n").encode()
+                  + path.read_bytes() + b"\r\n",
+                  f"--{boundary}--\r\n".encode(),
+              ]
+              return b"".join(parts), f"multipart/form-data; boundary={boundary}"
+
+          versions = request("GET", f"https://api.modrinth.com/v2/project/{project}/version")
+          plans = []
+          for profile, minecraft_versions in profiles.items():
+              path = Path("release-assets") / f"jsmacros-{profile}-{expected_version}-fabric.jar"
+              if not path.is_file():
+                  raise RuntimeError(f"Missing published asset: {path}")
+              if digest(path, "sha256") != expected_sha256s[profile]:
+                  raise RuntimeError(f"GitHub SHA-256 verification failed for {path.name}")
+              with zipfile.ZipFile(path) as archive:
+                  metadata = json.loads(archive.read("fabric.mod.json"))
+              if metadata.get("id") != "jsmacros":
+                  raise RuntimeError(f"{path.name} fabric mod id is {metadata.get('id')!r}")
+              if metadata.get("version") != expected_version:
+                  raise RuntimeError(f"{path.name} metadata version is {metadata.get('version')!r}")
+              if metadata.get("depends", {}).get("minecraft") != minecraft_versions:
+                  raise RuntimeError(f"{path.name} metadata has wrong Minecraft versions")
+
+              version_number = f"{expected_version}+{profile}-fabric"
+              matches = [version for version in versions if version.get("version_number") == version_number]
+              sha512 = digest(path, "sha512")
+              existing_id = None
+              if matches:
+                  if len(matches) != 1:
+                      raise RuntimeError(f"Expected one existing Modrinth version for {version_number}")
+                  existing = matches[0]
+                  if (
+                      set(existing.get("game_versions", [])) != set(minecraft_versions)
+                      or existing.get("loaders") != ["fabric"]
+                      or existing.get("version_type") != "release"
+                      or len(existing.get("files", [])) != 1
+                  ):
+                      raise RuntimeError(f"Existing {version_number} has incompatible metadata")
+                  if existing["files"][0].get("hashes", {}).get("sha512") != sha512:
+                      raise RuntimeError(f"Existing {version_number} does not contain the published GitHub asset")
+                  existing_id = existing["id"]
+              plans.append({
+                  "profile": profile,
+                  "minecraft_versions": minecraft_versions,
+                  "path": path,
+                  "version_number": version_number,
+                  "sha512": sha512,
+                  "existing_id": existing_id,
+              })
+
+          # No API writes occur until every published GitHub asset and every
+          # pre-existing Modrinth version has passed the checks above.
+          for plan in plans:
+              profile = plan["profile"]
+              minecraft_versions = plan["minecraft_versions"]
+              path = plan["path"]
+              version_number = plan["version_number"]
+              sha512 = plan["sha512"]
+              if plan["existing_id"]:
+                  version_id = plan["existing_id"]
+              else:
+                  payload = {
+                      "name": f"JsMacros Reloaded {expected_version} (fabric {profile})",
+                      "version_number": version_number,
+                      "changelog": f"JsMacros Reloaded {expected_version} for fabric on Minecraft {minecraft_versions[0]}.\n\nFull changelog: https://github.com/grepsedawk/JsMacros/releases/tag/{tag}",
+                      "dependencies": [],
+                      "game_versions": minecraft_versions,
+                      "version_type": "release",
+                      "loaders": ["fabric"],
+                      "featured": False,
+                      "project_id": project,
+                      "file_parts": ["file"],
+                      "environment": "client_only",
+                  }
+                  body, content_type = multipart(payload, path)
+                  created = request("POST", "https://api.modrinth.com/v2/version", body, {"Content-Type": content_type})
+                  version_id = created["id"]
+
+              request("PATCH", f"https://api.modrinth.com/v3/version/{version_id}", json.dumps({"environment": "client_only"}).encode(), {"Content-Type": "application/json"})
+              published_v2 = request("GET", f"https://api.modrinth.com/v2/version/{version_id}")
+              if (
+                  published_v2.get("version_number") != version_number
+                  or set(published_v2.get("game_versions", [])) != set(minecraft_versions)
+                  or published_v2.get("loaders") != ["fabric"]
+                  or published_v2.get("version_type") != "release"
+                  or len(published_v2.get("files", [])) != 1
+                  or published_v2["files"][0].get("hashes", {}).get("sha512") != sha512
+              ):
+                  raise RuntimeError(f"Modrinth v2 verification failed for {version_number}")
+              published_v3 = request("GET", f"https://api.modrinth.com/v3/version/{version_id}")
+              if published_v3.get("environment") != "client_only":
+                  raise RuntimeError(f"Modrinth v3 environment verification failed for {version_number}")
+              print(f"verified {version_number}: {version_id}")
+          PY

@@ -32,13 +32,13 @@ fun profileProperty(name: String): String = profileProperties.getProperty(name)
     ?: throw GradleException("versions/$mcProfile.properties is missing '$name'.")
 
 val minecraftVersion = profileProperty("minecraft_version")
-val minecraftVersions = profileProperty("minecraft_versions").split(',').map(String::trim).filter(String::isNotEmpty)
-require(minecraftVersion in minecraftVersions) {
+val supportedMinecraftVersions = profileProperty("minecraft_versions").split(',').map(String::trim).filter(String::isNotEmpty)
+require(minecraftVersion in supportedMinecraftVersions) {
     "versions/$mcProfile.properties must include minecraft_version in minecraft_versions."
 }
 val smokeMinecraftVersion = providers.gradleProperty("mcVersion").orElse(minecraftVersion).get()
-require(smokeMinecraftVersion in minecraftVersions) {
-    "mcVersion '$smokeMinecraftVersion' is not supported by profile $mcProfile (${minecraftVersions.joinToString(", ")})."
+require(smokeMinecraftVersion in supportedMinecraftVersions) {
+    "mcVersion '$smokeMinecraftVersion' is not supported by profile $mcProfile (${supportedMinecraftVersions.joinToString(", ")})."
 }
 val fabricLoaderVersion = profileProperty("fabric_loader_version")
 val fabricApiVersion = profileProperty("fabric_api_version")
@@ -88,7 +88,7 @@ tasks.register("printMcProfile") {
         println("profile=$mcProfile")
         println("baselineMinecraftVersion=$minecraftVersion")
         println("smokeMinecraftVersion=$smokeMinecraftVersion")
-        println("minecraftVersions=${minecraftVersions.joinToString(",")}")
+        println("minecraftVersions=${supportedMinecraftVersions.joinToString(",")}")
         println("fabricLoaderVersion=$fabricLoaderVersion")
         println("fabricApiVersion=$fabricApiVersion")
         println("modMenuVersion=$modMenuVersion")
@@ -355,9 +355,9 @@ tasks.jar {
 val processFabricResources by tasks.getting(ProcessResources::class) {
     inputs.property("version", project.version)
     inputs.property("minecraftVersion", minecraftVersion)
-    inputs.property("minecraftVersions", minecraftVersions)
+    inputs.property("minecraftVersions", supportedMinecraftVersions)
     inputs.property("fabricLoaderVersion", fabricLoaderVersion)
-    val metadataMinecraftVersions = minecraftVersions.joinToString(", ", prefix = "[", postfix = "]", transform = { "\"$it\"" })
+    val metadataMinecraftVersions = supportedMinecraftVersions.joinToString(", ", prefix = "[", postfix = "]", transform = { "\"$it\"" })
 
     filesMatching("fabric.mod.json") {
         expand(
@@ -524,7 +524,7 @@ publishMods {
         modrinth("modrinthFabric") {
             projectId.set(modrinthProjectId)
             accessToken.set(modrinthToken)
-            minecraftVersions.addAll(minecraftVersions)
+            minecraftVersions.addAll(supportedMinecraftVersions)
             modLoaders.set(listOf("fabric"))
 
             version.set("${project.version}+$mcProfile-fabric")
@@ -571,7 +571,7 @@ val checkProfileArtifacts by tasks.registering {
             check(metadata["id"] == "jsmacros") { "Fabric metadata has the wrong id." }
             check(metadata["version"] == project.version.toString()) { "Fabric metadata has the wrong version." }
             val dependencies = metadata["depends"] as Map<*, *>
-            check(dependencies["minecraft"] == minecraftVersions) { "Fabric metadata has the wrong Minecraft versions." }
+            check(dependencies["minecraft"] == supportedMinecraftVersions) { "Fabric metadata has the wrong Minecraft versions." }
             check(dependencies["fabricloader"] == ">=$fabricLoaderVersion") { "Fabric metadata has the wrong Fabric Loader floor." }
 
             val entrypoints = metadata["entrypoints"] as Map<*, *>
