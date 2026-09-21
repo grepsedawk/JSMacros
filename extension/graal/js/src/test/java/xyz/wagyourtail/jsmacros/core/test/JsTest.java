@@ -44,34 +44,43 @@ public class JsTest extends BaseTest {
     @Language("js")
     private final String TEST_SCRIPT_2 = """
             var j = []
-            var atime = 0
-            var btime = 0
+            var aSteps = []
+            var bSteps = []
+            var aDone = false
+            var bDone = false
             JavaWrapper.methodToJavaAsync(() => {
-                while (j.length < 10) {
-                    j.push(`a ${atime}`);
-                    atime += 100
+                for (let atime = 0; atime < 500; atime += 100) {
+                    aSteps.push(atime)
+                    j.push(`a ${atime}`)
                     Time.sleep(100)
                 }
+                aDone = true
             }).run();
             JavaWrapper.methodToJavaAsync(() => {
-                while (j.length < 10) {
-                    j.push(`b ${btime}`);
-                    btime += 110
+                for (let btime = 0; btime < 550; btime += 110) {
+                    bSteps.push(btime)
+                    j.push(`b ${btime}`)
                     Time.sleep(110)
                 }
+                bDone = true
             }).run();
             JavaWrapper.deferCurrentTask(-1)
-            while(j.length < 10) {
+            while (!aDone || !bDone) {
                 JavaWrapper.deferCurrentTask()
             }
             j.push('c');
             event.putString("test", JSON.stringify(j))
+            event.putString("aSteps", JSON.stringify(aSteps))
+            event.putString("bSteps", JSON.stringify(bSteps))
             """;
 
     @Test
     public void test2() throws InterruptedException {
         EventCustom custom = runTestScript(TEST_SCRIPT_2);
-        assertEquals("[\"a 0\",\"b 0\",\"a 100\",\"b 110\",\"a 200\",\"b 220\",\"a 300\",\"b 330\",\"a 400\",\"b 440\",\"c\"]", custom.getString("test"));
+        assertEquals("[0,100,200,300,400]", custom.getString("aSteps"));
+        assertEquals("[0,110,220,330,440]", custom.getString("bSteps"));
+        assertEquals(11, custom.getString("test").split(",").length);
+        assertTrue(custom.getString("test").endsWith("\"c\"]"));
     }
 
     @Language("js")

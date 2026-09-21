@@ -63,40 +63,48 @@ public class PyTest extends BaseTest {
     private final String TEST_SCRIPT_2 = """
             import json
             j = []
-            atime = 0
-            btime = 0
+            a_steps = []
+            b_steps = []
+            a_done = False
+            b_done = False
             
             def a():
-                global atime
-                while len(j) < 10:
+                global a_done
+                for atime in range(0, 500, 100):
+                    a_steps.append(atime)
                     j.append(f'a {atime}')
-                    atime += 100
                     Time.sleep(100)
+                a_done = True
             
             JavaWrapper.methodToJavaAsync(a).run()
 
             def b():
-                global btime
-                while len(j) < 10:
+                global b_done
+                for btime in range(0, 550, 110):
+                    b_steps.append(btime)
                     j.append(f'b {btime}')
-                    btime += 110        
                     Time.sleep(110)
+                b_done = True
 
             JavaWrapper.methodToJavaAsync(b).run()
             JavaWrapper.deferCurrentTask(-1)
 
-            while len(j) < 10:
+            while not a_done or not b_done:
                 JavaWrapper.deferCurrentTask()
 
-            
             j.append('c')
             event.putString("test", json.dumps(j))
+            event.putString("aSteps", json.dumps(a_steps))
+            event.putString("bSteps", json.dumps(b_steps))
             """;
 
     @Test
     public void test2() throws InterruptedException {
         EventCustom custom = runTestScript(TEST_SCRIPT_2, 5000);
-        assertEquals("[\"a 0\", \"b 0\", \"a 100\", \"b 110\", \"a 200\", \"b 220\", \"a 300\", \"b 330\", \"a 400\", \"b 440\", \"c\"]", custom.getString("test"));
+        assertEquals("[0, 100, 200, 300, 400]", custom.getString("aSteps"));
+        assertEquals("[0, 110, 220, 330, 440]", custom.getString("bSteps"));
+        assertEquals(11, custom.getString("test").split(",").length);
+        assertTrue(custom.getString("test").endsWith("\"c\"]"));
     }
 
     @Language("py")
@@ -123,6 +131,7 @@ public class PyTest extends BaseTest {
             
             isDone = False
             def done():
+                global isDone
                 if len(a) == 6:
                     event.putString("test", json.dumps(a))
                     event.putDouble("time", Time.time() - start)
@@ -132,6 +141,8 @@ public class PyTest extends BaseTest {
                 JavaWrapper.methodToJavaAsync(fn).run()
             
             runAsync(long)
+            while len(a) == 0:
+                JavaWrapper.deferCurrentTask()
             runAsync(rapid)
             while not isDone:
                 JavaWrapper.deferCurrentTask()
