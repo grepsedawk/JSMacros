@@ -39,7 +39,7 @@ the `Player`/`World`/`Chat` libraries, services, and everything else.
 
 ## Ruby scripting
 
-Prefer Ruby? [jsmacros-ruby](https://github.com/grepsedawk/jsmacros-ruby) is an
+Prefer Ruby? [jsmacros-ruby](https://github.com/grepsedawk/jsmacros-ruby) is a
 companion Fabric mod that runs JRuby scripts with the same API in snake_case
 (`Player.get_player`, `Client.wait_tick`, and so on). Install it and
 [Fabric Language Kotlin](https://modrinth.com/mod/fabric-language-kotlin) in `mods`
@@ -99,6 +99,10 @@ on remote servers when the answer cannot be determined from synced data.
 Single-player uses the integrated server's recipes. `FurnaceInventory.getFuelValues()`
 also throws on 26.3: fuel durations now depend on server-context item components.
 Fuel eligibility and the open furnace's synced timing methods remain available.
+
+For layered, depth-tested Draw3D surfaces, use distinct z-index values. Exactly
+coplanar elements can still z-fight at some camera angles. See the
+[drawing smoke fixture](scripts/drawing-smoke.md) for rendering coverage.
 
 Releases are cut by tagging `vX.Y.Z` (or the older `vX.Y.Z+<mc version>` form) and
 publishing a GitHub release. CI builds every target from that tag, attaches one main

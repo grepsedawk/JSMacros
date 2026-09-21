@@ -30,3 +30,5 @@ The surface ordering pair checks both depth-tested and see-through panels. In th
 Review every screenshot and search the client log for shader, mixin, rendering, and script errors. In the wall pair, depth-tested text/items should disappear and reappear when see-through is enabled. In the back view, the front-only surface should disappear while the two-sided surface remains. Unregister and clear frames should contain no JsMacros world drawings.
 
 This is feature-family coverage, not an exhaustive permutation of every overload, resource pack, graphics backend, or other mod. Widget interaction and multiplayer behavior are separate tests.
+
+Depth-tested elements at exactly the same depth can still z-fight at some camera angles. The equal-z cases expose that limitation; use distinct z-index values for reliable layering. See-through surfaces use ordered composition without depth testing.
