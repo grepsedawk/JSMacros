@@ -696,7 +696,7 @@ public interface IDraw2D<T> {
      * @since 1.8.4
      */
     default Rect.Builder rectBuilder(int x, int y, int width, int height) {
-        return new Rect.Builder(this).size(width, height).pos1(x, y);
+        return new Rect.Builder(this).pos1(x, y).size(width, height);
     }
 
     /**

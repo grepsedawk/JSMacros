@@ -127,7 +127,7 @@ public class Box implements RenderElement3D<Box> {
      * @since 1.1.8
      */
     public void setFillColor(int fillColor, int alpha) {
-        this.fillColor = fillColor | (alpha << 24);
+        this.fillColor = (fillColor & 0xFFFFFF) | (alpha << 24);
     }
 
     /**
@@ -366,7 +366,7 @@ public class Box implements RenderElement3D<Box> {
          * @since 1.8.4
          */
         public Builder color(int color, int alpha) {
-            this.color = fillColor;
+            this.color = color;
             this.alpha = alpha;
             return this;
         }

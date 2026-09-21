@@ -13,9 +13,7 @@ repositories {
 
 dependencies {
     implementation(rootProject.sourceSets["core"].output)
-    for (dependency in rootProject.configurations["minecraftLibraries"].dependencies) {
-        implementation(dependency)
-    }
+    implementation(files(rootProject.configurations["minecraftLibraries"]))
 
     for (dependency in rootProject.configurations.implementation.get().dependencies) {
         implementation(dependency)
@@ -27,7 +25,7 @@ dependencies {
     // Gradle 9 no longer ships the JUnit Platform launcher implicitly.
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.8.1")
     // ExtensionLoader links against FabricLoader; needed to load the class under test.
-    testRuntimeOnly(rootProject.libs.fabric.loader)
+    testRuntimeOnly("net.fabricmc:fabric-loader:${rootProject.extra["profileFabricLoaderVersion"]}")
 }
 
 tasks.test {

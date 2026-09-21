@@ -21,7 +21,7 @@ subprojects {
             testImplementation(dependency)
         }
         // ExtensionLoader (loaded by these tests) links against FabricLoader.
-        testRuntimeOnly(rootProject.libs.fabric.loader)
+        testRuntimeOnly("net.fabricmc:fabric-loader:${rootProject.extra["profileFabricLoaderVersion"]}")
     }
 
     repositories {

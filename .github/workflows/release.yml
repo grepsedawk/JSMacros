@@ -5,18 +5,22 @@ on:
     types: [published]
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  publish:
+  build:
+    name: Build Minecraft ${{ matrix.profile }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        profile: ['26.1', '26.2', '26.3']
     env:
-      MODRINTH_PROJECT: XcnNwheM                      # jsmacros-reloaded (mpp needs the ID, not the slug)
-      MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}   # job-level so the skip-guard below works
+      MODRINTH_PROJECT: XcnNwheM
     steps:
-      - uses: actions/checkout@v4          # lands on the tag's commit — builds exactly what was tagged
+      - uses: actions/checkout@v4
 
-      # See dev.yml: Gradle launches under JDK 21, toolchain compiles with JDK 25.
+      # Gradle launches on JDK 21 and uses the JDK 25 toolchain for Minecraft.
       - name: Set up JDK 25 (toolchain)
         uses: actions/setup-java@v4
         with:
@@ -35,72 +39,181 @@ jobs:
         with:
           cache-overwrite-existing: true
 
-      - name: Resolve channel + version from tag
+      - name: Resolve channel and version from tag
         id: ver
         shell: bash
         run: |
+          set -euo pipefail
           TAG="${{ github.event.release.tag_name }}"
           VER="${TAG#v}"
-          VER="${VER%%+*}"               # tags carry +<mc> build metadata (v2.1.0+26.2); mod_version excludes it
+          VER="${VER%%+*}" # Preserve compatibility with vX.Y.Z+<mc> tags.
           case "$VER" in
-            *-alpha*) CHANNEL=alpha ;;   # alpha type on Modrinth
-            *-*)      CHANNEL=beta ;;    # any other pre-release suffix -> beta
-            *)        CHANNEL=release ;; # stable
+            *-alpha*) CHANNEL=alpha ;;
+            *-*) CHANNEL=beta ;;
+            *) CHANNEL=release ;;
           esac
-          ARGS="-Pchannel=$CHANNEL -Pmod_version=$VER"
-          MODVER=$(./gradlew -q printVersion $ARGS | tail -1 | tr -d '\n\r')
+          MODVER=$(./gradlew -q printVersion \
+            -PmcProfile=${{ matrix.profile }} \
+            -Pchannel="$CHANNEL" \
+            -Pmod_version="$VER" | tail -1 | tr -d '\n\r')
           {
             echo "tag=$TAG"
-            echo "args=$ARGS"
+            echo "channel=$CHANNEL"
             echo "mod_version=$MODVER"
           } >> "$GITHUB_OUTPUT"
 
-      - name: Build distribution
-        run: ./gradlew createDist ${{ steps.ver.outputs.args }}
+      - name: Test and package
+        run: |
+          ./gradlew check createDist checkProfileArtifacts \
+            -PmcProfile=${{ matrix.profile }} \
+            -Pchannel=${{ steps.ver.outputs.channel }} \
+            -Pmod_version=${{ steps.ver.outputs.mod_version }}
+
+      - name: Upload profile artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: jars-${{ matrix.profile }}
+          if-no-files-found: error
+          path: dist/${{ matrix.profile }}/*.jar
+
+  upload-release-assets:
+    name: Upload release assets
+    permissions:
+      contents: write
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download profile artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: jars-*
+          path: release-artifacts
+
+      - name: Collect main jars and deduplicate Python extension
+        id: assets
+        shell: bash
+        env:
+          V: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          V="${V#v}"
+          V="${V%%+*}"
+          mkdir release-assets
+          for PROFILE in 26.1 26.2 26.3; do
+            PRIMARY=$(find "release-artifacts/jars-$PROFILE" -type f -name "jsmacros-$PROFILE-$V*.jar" ! -name '*-extension*.jar' -print)
+            PRIMARY_COUNT=$(printf '%s\n' "$PRIMARY" | awk 'NF { count++ } END { print count + 0 }')
+            if [ "$PRIMARY_COUNT" -ne 1 ]; then
+              echo "::error::Expected one main jar for $PROFILE, found $PRIMARY_COUNT"
+              exit 1
+            fi
+            cp "$PRIMARY" release-assets/
+
+            PYTHON=$(find "release-artifacts/jars-$PROFILE" -type f -name '*python*-extension*.jar' -print)
+            PYTHON_COUNT=$(printf '%s\n' "$PYTHON" | awk 'NF { count++ } END { print count + 0 }')
+            if [ "$PYTHON_COUNT" -ne 1 ]; then
+              echo "::error::Expected one Python extension jar for $PROFILE, found $PYTHON_COUNT"
+              exit 1
+            fi
+            printf '%s\t%s\n' "$PROFILE" "$PYTHON" >> python-jars.tsv
+          done
+
+          if [ "$(cut -f2 python-jars.tsv | xargs shasum -a 256 | awk '{print $1}' | sort -u | wc -l | tr -d ' ')" -eq 1 ]; then
+            cp "$(awk -F '\t' 'NR == 1 { print $2 }' python-jars.tsv)" release-assets/
+          else
+            while IFS=$'\t' read -r PROFILE JAR; do
+              BASENAME=$(basename "$JAR" .jar)
+              cp "$JAR" "release-assets/$BASENAME-$PROFILE.jar"
+            done < python-jars.tsv
+          fi
+
+          find release-assets -maxdepth 1 -type f -name '*.jar' -print | sort
 
       - name: Upload jars to the GitHub release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: gh release upload "${{ github.event.release.tag_name }}" release-assets/*.jar --clobber
+
+  publish-modrinth:
+    name: Publish Minecraft ${{ matrix.profile }} to Modrinth
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        profile: ['26.1', '26.2', '26.3']
+    env:
+      MODRINTH_PROJECT: XcnNwheM
+      MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 25 (toolchain)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '25'
+
+      - name: Set up JDK 21 (Gradle launcher)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'gradle'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v5
+        with:
+          cache-overwrite-existing: true
+
+      - name: Resolve channel and version from tag
+        id: ver
         shell: bash
         run: |
-          V="${{ steps.ver.outputs.mod_version }}"
-          shopt -s nullglob
-          # Match the build's $modId-* dist outputs:
-          #   jsmacros-<mc>-<V>-fabric.jar          (main mod)
-          #   jsmacros-<mc>-*-extension.jar         (bundled extension jars, e.g. python)
-          FILES=(
-            dist/jsmacros-*-"$V"-fabric.jar
-            dist/jsmacros-*-extension.jar
-          )
-          if [ ${#FILES[@]} -eq 0 ]; then
-            echo "::error::No dist artifacts matched version $V"; exit 1
-          fi
-          gh release upload "${{ steps.ver.outputs.tag }}" "${FILES[@]}" --clobber
+          set -euo pipefail
+          TAG="${{ github.event.release.tag_name }}"
+          VER="${TAG#v}"
+          VER="${VER%%+*}"
+          case "$VER" in
+            *-alpha*) CHANNEL=alpha ;;
+            *-*) CHANNEL=beta ;;
+            *) CHANNEL=release ;;
+          esac
+          MODVER=$(./gradlew -q printVersion \
+            -PmcProfile=${{ matrix.profile }} \
+            -Pchannel="$CHANNEL" \
+            -Pmod_version="$VER" | tail -1 | tr -d '\n\r')
+          {
+            echo "channel=$CHANNEL"
+            echo "mod_version=$MODVER"
+          } >> "$GITHUB_OUTPUT"
 
-      - name: Publish to Modrinth
+      - name: Publish the compatibility group
         if: env.MODRINTH_TOKEN != ''
-        run: ./gradlew publishMods ${{ steps.ver.outputs.args }}
+        run: |
+          ./gradlew publishMods \
+            -PmcProfile=${{ matrix.profile }} \
+            -Pchannel=${{ steps.ver.outputs.channel }} \
+            -Pmod_version=${{ steps.ver.outputs.mod_version }}
 
-      # mod-publish-plugin can't set the per-version environment, so patch it after upload.
-      - name: Mark Modrinth version as client-side
+      # mod-publish-plugin cannot set the environment field per version.
+      - name: Mark the exact Modrinth version as client-side
         if: env.MODRINTH_TOKEN != ''
         shell: bash
         env:
           V: ${{ steps.ver.outputs.mod_version }}
+          PROFILE: ${{ matrix.profile }}
         run: |
           set -euo pipefail
-          for PID in "$MODRINTH_PROJECT"; do
-            [ -z "$PID" ] && continue
-            VID=$(curl -fsS -H "Authorization: $MODRINTH_TOKEN" \
-                  "https://api.modrinth.com/v3/project/$PID/version" \
-              | python3 -c "import sys,json,os; vs=json.load(sys.stdin); pfx=os.environ['V']+'+'; print(next((v['id'] for v in vs if v['version_number'].startswith(pfx)), ''))")
-            if [ -z "$VID" ]; then
-              echo "::warning::No Modrinth version matching $V for project $PID"; continue
-            fi
-            curl -fsS -X PATCH \
-              -H "Authorization: $MODRINTH_TOKEN" \
-              -H "Content-Type: application/json" \
-              -d '{"environment":"client_only"}' \
-              "https://api.modrinth.com/v3/version/$VID"
-            echo "Set $PID version $VID ($V) to client_only"
-          done
+          VERSION_NUMBER="$V+$PROFILE-fabric"
+          export VERSION_NUMBER
+          VID=$(curl -fsS -H "Authorization: $MODRINTH_TOKEN" \
+                "https://api.modrinth.com/v3/project/$MODRINTH_PROJECT/version" \
+            | python3 -c "import json, os, sys; versions=json.load(sys.stdin); target=os.environ['VERSION_NUMBER']; matches=[version['id'] for version in versions if version['version_number'] == target]; assert len(matches) == 1, f'expected one Modrinth version for {target}, found {len(matches)}'; print(matches[0])")
+          curl -fsS -X PATCH \
+            -H "Authorization: $MODRINTH_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{"environment":"client_only"}' \
+            "https://api.modrinth.com/v3/version/$VID"
+          echo "Set $MODRINTH_PROJECT version $VID ($VERSION_NUMBER) to client_only"

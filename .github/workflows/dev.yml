@@ -2,7 +2,7 @@ name: Dev Build
 
 on:
   push:
-    branches: ['main', 'reloaded-canonical']
+  pull_request:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -10,7 +10,12 @@ concurrency:
 
 jobs:
   build:
+    name: Minecraft ${{ matrix.profile }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        profile: ['26.1', '26.2', '26.3']
     steps:
       - uses: actions/checkout@v4
 
@@ -35,7 +40,14 @@ jobs:
         with:
           cache-overwrite-existing: true
 
-      - name: Build (sanity check, no publish)
+      - name: Test and package
+        shell: bash
         run: |
           SHORT_SHA=${GITHUB_SHA::7}
-          ./gradlew createDist -Pchannel=dev -Pbuild_sha=${SHORT_SHA}
+          ./gradlew check createDist checkProfileArtifacts \
+            -PmcProfile=${{ matrix.profile }} \
+            -Pchannel=dev \
+            -Pbuild_sha="$SHORT_SHA"
+
+      - name: Test the client smoke harness
+        run: python3 -m unittest discover -s scripts -p 'test_*.py'

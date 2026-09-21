@@ -282,7 +282,8 @@ public class Line implements RenderElement, Alignable<Line> {
         matrices.pushMatrix();
         setupMatrix(matrices, x1, y1, 1, rotation, getScaledWidth(), getScaledHeight(), rotateCenter);
 
-        float halfWidth = this.width / 2.0f;
+        int top = -(int) Math.floor(this.width / 2.0f);
+        int bottom = (int) Math.ceil(this.width / 2.0f);
         float dx = this.x2 - this.x1;
         float dy = this.y2 - this.y1;
         float length = (float) Math.sqrt(dx * dx + dy * dy);
@@ -293,9 +294,9 @@ public class Line implements RenderElement, Alignable<Line> {
 
         drawContext.fill(
                 0,
-                (int) -halfWidth,
+                top,
                 (int) length,
-                (int) halfWidth,
+                bottom,
                 this.color
         );
 

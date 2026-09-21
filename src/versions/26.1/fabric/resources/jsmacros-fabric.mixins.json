@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "package": "xyz.wagyourtail.jsmacros.fabric.client.mixins.access",
+  "compatibilityLevel": "JAVA_17",
+  "client": [
+    "MixinDebugScreenOverlay",
+    "MixinGameRenderer",
+    "MixinKeyboardHandler",
+    "MixinMouseHandler"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

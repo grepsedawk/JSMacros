@@ -36,18 +36,17 @@ public class CustomImage {
     private final Identifier identifier;
 
     public CustomImage(BufferedImage image) {
-        this(image, String.valueOf(currentId));
+        this(image, null);
     }
 
     public CustomImage(BufferedImage image, String name) {
         this.image = image;
         this.graphics = image.createGraphics();
-        this.name = name;
-        this.texture = createTexture(image, PREFIX + name);
-        identifier = Identifier.parse(PREFIX + name);
-        Minecraft.getInstance().getTextureManager().register(identifier, texture);
+        this.name = nextName(name);
+        this.texture = createTexture(image, PREFIX + this.name);
+        identifier = Identifier.parse(PREFIX + this.name);
+        runOnMinecraftThread(() -> Minecraft.getInstance().getTextureManager().register(identifier, texture));
         update();
-        currentId++;
         IMAGES.put(identifier.toString(), this);
     }
 
@@ -109,17 +108,7 @@ public class CustomImage {
      * @since 1.8.4
      */
     public CustomImage update() {
-        try {
-            final Semaphore semaphore = new Semaphore(0);
-            Minecraft.getInstance().execute(() -> {
-                texture.upload();
-                updateTexture();
-                semaphore.release();
-            });
-            semaphore.acquire();
-        } catch (InterruptedException e) {
-            JsMacrosClient.clientCore.profile.logError(e);
-        }
+        runOnMinecraftThread(this::updateTexture);
         return this;
     }
 
@@ -254,7 +243,7 @@ public class CustomImage {
      * @since 1.8.4
      */
     public CustomImage drawImage(Image img, int x, int y, int width, int height, int sourceX, int sourceY, int sourceWidth, int sourceHeight) {
-        graphics.drawImage(image, x, y, x + width, y + height, sourceX, sourceY, sourceX + sourceWidth, sourceY + sourceHeight, null);
+        graphics.drawImage(img, x, y, x + width, y + height, sourceX, sourceY, sourceX + sourceWidth, sourceY + sourceHeight, null);
         return this;
     }
 
@@ -608,17 +597,54 @@ public class CustomImage {
 
     private static DynamicTexture createTexture(BufferedImage image, String name) {
         AtomicReference<DynamicTexture> texture = new AtomicReference<>();
+        runOnMinecraftThread(() -> texture.set(new DynamicTexture(name, image.getWidth(), image.getHeight(), true)));
+        return texture.get();
+    }
+
+    private static synchronized String nextName(@Nullable String name) {
+        String nextName = name == null ? String.valueOf(currentId) : name;
+        currentId++;
+        return nextName;
+    }
+
+    private static void runOnMinecraftThread(Runnable action) {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.isSameThread()) {
+            action.run();
+            return;
+        }
+        if (JsMacrosClient.clientCore.profile.checkJoinedThreadStack()) {
+            throw new IllegalThreadStateException("Attempted to wait on the Minecraft thread while currently joined to it");
+        }
+
+        AtomicReference<Throwable> failure = new AtomicReference<>();
+        Semaphore semaphore = new Semaphore(0);
         try {
-            final Semaphore semaphore = new Semaphore(0);
-            Minecraft.getInstance().execute(() -> {
-                texture.set(new DynamicTexture(name, image.getWidth(), image.getHeight(), true));
-                semaphore.release();
+            minecraft.execute(() -> {
+                try {
+                    action.run();
+                } catch (Throwable e) {
+                    failure.set(e);
+                } finally {
+                    semaphore.release();
+                }
             });
             semaphore.acquire();
         } catch (InterruptedException e) {
-            JsMacrosClient.clientCore.profile.logError(e);
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("Interrupted while waiting for the Minecraft thread", e);
         }
-        return texture.get();
+
+        Throwable error = failure.get();
+        if (error instanceof RuntimeException runtimeException) {
+            throw runtimeException;
+        }
+        if (error instanceof Error errorException) {
+            throw errorException;
+        }
+        if (error != null) {
+            throw new IllegalStateException("Minecraft-thread custom image operation failed", error);
+        }
     }
 
     public static CustomImage createWidget(int width, int height, String name) {

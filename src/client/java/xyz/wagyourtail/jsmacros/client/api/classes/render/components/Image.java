@@ -84,6 +84,7 @@ public class Image implements RenderElement, Alignable<Image> {
     }
 
     public Image(int x, int y, int width, int height, int zIndex, int alpha, int color, String id, int imageX, int imageY, int regionWidth, int regionHeight, int textureWidth, int textureHeight, float rotation) {
+        this.zIndex = zIndex;
         setPos(x, y, width, height);
         setColor(color, alpha);
         setImage(id, imageX, imageY, regionWidth, regionHeight, textureWidth, textureHeight);

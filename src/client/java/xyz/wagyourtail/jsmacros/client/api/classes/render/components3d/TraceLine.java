@@ -350,7 +350,7 @@ public class TraceLine implements RenderElement3D<TraceLine> {
          * @since 2.0.0
          */
         public Builder alwaysOnTop(boolean alwaysOnTop) {
-            this.alwaysOnTop = !alwaysOnTop;
+            this.alwaysOnTop = alwaysOnTop;
             return this;
         }
 

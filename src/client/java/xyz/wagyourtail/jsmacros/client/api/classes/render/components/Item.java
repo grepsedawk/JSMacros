@@ -387,7 +387,7 @@ public class Item implements RenderElement, Alignable<Item> {
         private int x = 0;
         private int y = 0;
         private ItemStackHelper itemStack = new ItemStackHelper(ItemStack.EMPTY);
-        private String ovText = "";
+        private String ovText;
         private boolean overlay = false;
         private double scale = 1;
         private float rotation = 0;

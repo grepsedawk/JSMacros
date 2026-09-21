@@ -16,6 +16,7 @@ import xyz.wagyourtail.jsmacros.client.api.classes.render.IDraw2D;
 import xyz.wagyourtail.jsmacros.client.api.classes.render.IScreen;
 import xyz.wagyourtail.jsmacros.client.api.library.impl.FHud;
 
+import java.util.Comparator;
 import java.util.function.Consumer;
 
 @Mixin(Gui.class)
@@ -27,7 +28,9 @@ public class MixinGui {
     @Inject(method = "extractRenderState", at = @At("TAIL"))
     private void onRenderHud(DeltaTracker tickCounter, boolean renderCrosshair, boolean renderHotbar, CallbackInfo ci, @Local GuiGraphicsExtractor context) {
         if (!FHud.overlays.isEmpty()) {
-            for (IDraw2D<Draw2D> overlay : FHud.overlays) {
+            for (IDraw2D<Draw2D> overlay : FHud.overlays.stream()
+                    .sorted(Comparator.comparingInt((IDraw2D<Draw2D> overlay) -> ((Draw2D) overlay).getZIndex()))
+                    .toList()) {
                 overlay.render(context);
             }
         }

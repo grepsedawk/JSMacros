@@ -1,0 +1,2 @@
+src/client/java/xyz/wagyourtail/jsmacros/client/mixin/events/MixinGui.java
+src/fabric/java/xyz/wagyourtail/jsmacros/fabric/client/mixins/access/MixinGui.java

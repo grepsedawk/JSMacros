@@ -280,7 +280,7 @@ public class Draw2D implements IDraw2D<Draw2D>, Registrable<Draw2D> {
 
     @Override
     public Text addText(String text, int x, int y, int color, int zIndex, boolean shadow) {
-        return addText(text, x, y, color, 0, shadow, 1, 0);
+        return addText(text, x, y, color, zIndex, shadow, 1, 0);
     }
 
     /**
@@ -415,7 +415,7 @@ public class Draw2D implements IDraw2D<Draw2D>, Registrable<Draw2D> {
      */
     @Override
     public Rect addRect(int x1, int y1, int x2, int y2, int color, int alpha, double rotation) {
-        return addRect(x1, y1, x2, y2, color, alpha, 0, 0);
+        return addRect(x1, y1, x2, y2, color, alpha, rotation, 0);
     }
 
     @Override
@@ -490,7 +490,7 @@ public class Draw2D implements IDraw2D<Draw2D>, Registrable<Draw2D> {
     @Override
     @DocletReplaceParams("x: int, y: int, zIndex: int, id: CanOmitNamespace<ItemId>")
     public Item addItem(int x, int y, int zIndex, String id) {
-        return null;
+        return addItem(x, y, zIndex, id, true, 1, 0);
     }
 
     /**
@@ -536,7 +536,7 @@ public class Draw2D implements IDraw2D<Draw2D>, Registrable<Draw2D> {
 
     @Override
     public Item addItem(int x, int y, int zIndex, ItemStackHelper item) {
-        return null;
+        return addItem(x, y, zIndex, item, true, 1, 0);
     }
 
     /**
