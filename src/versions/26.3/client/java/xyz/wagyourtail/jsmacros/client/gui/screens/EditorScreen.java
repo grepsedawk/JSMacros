@@ -768,7 +768,7 @@ public class EditorScreen extends BaseScreen {
         if (!handled && overlay == null) {
             int btn = event.button();
             int index = getIndexPosition(event.x() - 30, event.y() - 12 + 1);
-            if (btn != 1 || (cursor.startIndex > index || cursor.endIndex < index)) {
+            if (btn != InputConstants.MOUSE_BUTTON_RIGHT || (cursor.startIndex > index || cursor.endIndex < index)) {
                 if (event.hasShiftDown()) {
                     if (index < cursor.dragStartIndex) {
                         cursor.updateEndIndex(cursor.dragStartIndex, history.current);
@@ -793,7 +793,7 @@ public class EditorScreen extends BaseScreen {
                     cursor.arrowLineIndex = cursor.startLineIndex;
                 }
             }
-            if (btn == 1) {
+            if (btn == InputConstants.MOUSE_BUTTON_RIGHT) {
                 openRClickMenu(index, (int) event.x(), (int) event.y());
             }
         }
