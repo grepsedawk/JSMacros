@@ -43,6 +43,7 @@ require(smokeMinecraftVersion in supportedMinecraftVersions) {
 val fabricLoaderVersion = profileProperty("fabric_loader_version")
 val fabricApiVersion = profileProperty("fabric_api_version")
 val modMenuVersion = profileProperty("modmenu_version")
+val sodiumVersion = profileProperty("sodium_version")
 val profileArchiveName = "jsmacros-$mcProfile"
 val profileAccessWidener = file("src/versions/$mcProfile/main/resources/jsmacros.accesswidener")
     .takeIf(File::isFile)
@@ -108,6 +109,10 @@ repositories {
     maven("https://maven.fabricmc.net/")
     maven("https://maven.terraformersmc.com/releases/")
     maven("https://files.minecraftforge.net/maven/")
+    exclusiveContent {
+        forRepository { maven("https://api.modrinth.com/maven/") }
+        filter { includeGroup("maven.modrinth") }
+    }
     maven("https://jitpack.io")
     mavenCentral()
 }
@@ -278,6 +283,7 @@ dependencies {
     val fabricModImplementation by configurations.getting
     val fabricInclude by configurations.getting
     val fabricRuntimeOnly by configurations.getting
+    val fabricCompileOnly by configurations.getting
 
     // ExtensionLoader discovers companion-mod extensions via the Fabric entrypoint API.
     // FabricLoader is present at runtime (single fabric mod jar); core only needs it to compile.
@@ -303,6 +309,7 @@ dependencies {
     fabricModImplementation(fabricApi.fabricModule("fabric-rendering-v1", fabricApiVersion))
 
     fabricModImplementation("com.terraformersmc:modmenu:$modMenuVersion")
+    fabricCompileOnly("maven.modrinth:sodium:$sodiumVersion")
     fabricModImplementation(fabricApi.fabricModule("fabric-screen-api-v1", fabricApiVersion))
 
     fabricInclude(fabricApi.fabricModule("fabric-api-base", fabricApiVersion))
@@ -577,6 +584,19 @@ val checkProfileArtifacts by tasks.registering {
             val entrypoints = metadata["entrypoints"] as Map<*, *>
             entrypoints.values.flatMap { it as List<*> }.forEach { entrypoint ->
                 requireEntry("${entrypoint.toString().replace('.', '/')}.class")
+            }
+
+            val fabricMixinConfig = "jsmacros-fabric.mixins.json"
+            check(fabricMixinConfig in metadata["mixins"] as List<*>) {
+                "Fabric metadata does not register $fabricMixinConfig."
+            }
+            requireEntry(fabricMixinConfig)
+            val fabricMixins = JsonSlurper().parseText(readEntry(fabricMixinConfig)) as Map<*, *>
+            val fabricMixinPackage = (fabricMixins["package"] as String).replace('.', '/')
+            val fabricMixinClasses = (fabricMixins["client"] as List<*>).map { "$fabricMixinPackage/${it.toString().replace('.', '/')}.class" }
+            fabricMixinClasses.forEach { requireEntry(it) }
+            check("$fabricMixinPackage/fix/MixinSodiumVideoSettingsScreen.class" in fabricMixinClasses) {
+                "Sodium settings screen mixin is not registered in ${artifact.name}."
             }
 
             requireEntry("jsmacros.extension.json")
